@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-artifact:
-    name: Build Frontend and Upload Artifact
+    name: Build React App with Vite and Upload Artifact
     runs-on: ubuntu-latest
 
     steps:
@@ -21,15 +21,15 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'   # 프로젝트에 맞는 Node.js 버전으로 설정
+          node-version: '20'  # React 19 + Vite 최신 버전과 호환
 
-      - name: Install dependencies
-        run: npm install
-        working-directory: ./ott
+      - name: Install dependencies (with legacy peer deps)
+        run: npm install --legacy-peer-deps
+        working-directory: ott
 
       - name: Build React app
         run: npm run build
-        working-directory: ./ott
+        working-directory: ott
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
