@@ -26,7 +26,7 @@ jobs:
 
       - name: Build React app
         run: npm run build
-        working-directory: ott
+        working-directory: ./ott
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
