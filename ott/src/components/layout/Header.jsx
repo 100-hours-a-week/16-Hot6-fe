@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import logo from '@/assets/images/logo/logo.svg';
 
 const Header = () => {
@@ -13,14 +14,18 @@ const Header = () => {
       }}
     >
       <div className="h-14 flex items-center justify-between px-4">
-        {/* 로고 영역 */}
-        <div className="flex items-center">
+        {/* text-inherit로 부모의 텍스트 색상을 상속받도록 수정 */}
+        <Link
+          to="/"
+          className="flex items-center text-inherit text-gray-900"
+          aria-label="홈으로 이동"
+        >
           <img src={logo} alt="OnTheTop" className="h-6" />
           <span className="ml-2 font-semibold">OnTheTop</span>
-        </div>
+        </Link>
 
         {/* 알림 아이콘 */}
-        <button className="p-2">
+        <button className="p-2" aria-label="알림">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
