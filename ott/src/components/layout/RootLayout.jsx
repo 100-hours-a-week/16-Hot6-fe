@@ -1,6 +1,8 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './Header'; // Header 컴포넌트 import
+import BottomNavigation from './BottomNavigation';
+import Footer from './Footer'; // Footer import 추가
 
 const RootLayout = () => {
   return (
@@ -29,31 +31,9 @@ const RootLayout = () => {
         <main className="flex-1 w-full pt-14 pb-16">
           <Outlet />
         </main>
-        {/* 하단 네비게이션 */}
-        <nav
-          className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full bg-white border-t border-gray-200"
-          style={{
-            maxWidth: '768px',
-            width: '100%',
-            minWidth: 'min(320px, 100%)',
-            paddingBottom: 'env(safe-area-inset-bottom)',
-          }}
-        >
-          <div className="grid grid-cols-5 h-16">
-            {[
-              { icon: '🏠', label: '홈' },
-              { icon: '📦', label: '데스크' },
-              { icon: '✏️', label: '특가' },
-              { icon: '💬', label: '게시판' },
-              { icon: '👤', label: '로그인' },
-            ].map((item, i) => (
-              <button key={i} className="flex flex-col items-center justify-center space-y-1">
-                <span className="text-xl">{item.icon}</span>
-                <span className="text-xs">{item.label}</span>
-              </button>
-            ))}
-          </div>
-        </nav>
+        <Footer /> {/* Footer 추가 */}
+        {/* 하단 네비게이션 컴포넌트 */}
+        <BottomNavigation />
       </div>
     </div>
   );
