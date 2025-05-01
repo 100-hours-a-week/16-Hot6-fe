@@ -25,6 +25,7 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+        working-directory: ./ott
 
       - name: Build React app
         run: npm run build
