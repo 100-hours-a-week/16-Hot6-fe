@@ -1,0 +1,63 @@
+import axios from 'axios';
+import { getConfig } from '@/config/index.js';
+
+const { BASE_URL } = getConfig();
+
+export const axiosInstance = axios.create({
+  baseURL: BASE_URL,
+  timeout: 5000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// 요청 인터셉터
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
+
+// 응답 인터셉터
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // 토큰이 만료되었고, 재시도하지 않았던 요청인 경우
+    if (error.response.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        const refreshToken = localStorage.getItem('refreshToken');
+        const response = await axios.post(`${BASE_URL}/auth/token/refresh`, {
+          refreshToken,
+        });
+
+        const { accessToken } = response.data;
+        localStorage.setItem('accessToken', accessToken);
+
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        return axiosInstance(originalRequest);
+      } catch (error) {
+        // 리프레시 토큰도 만료된 경우
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        // 로그인 페이지로 리다이렉트
+        window.location.href = '/login';
+        return Promise.reject(error);
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);
+
+export default axiosInstance;
