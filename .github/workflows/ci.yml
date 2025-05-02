@@ -21,14 +21,14 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'  # React 19 + Vite 최신 버전과 호환
+          node-version: '20'
 
-      - name: Install dependencies (with legacy peer deps)
-        run: npm install --legacy-peer-deps
+      - name: Install dependencies (yarn)
+        run: yarn install --frozen-lockfile
         working-directory: ott
 
       - name: Build React app
-        run: npm run build
+        run: yarn build
         working-directory: ott
 
       - name: Deploy to S3 (frontend)
@@ -43,8 +43,7 @@ jobs:
           SOURCE_DIR: ott/dist
           DEST_DIR: frontend/dev/
 
-
-      - name: Invalidate CloudFront cache #캐싱 무효화
+      - name: Invalidate CloudFront cache
         uses: chetan/invalidate-cloudfront-action@v2
         env:
           DISTRIBUTION: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
@@ -52,38 +51,3 @@ jobs:
           AWS_REGION: ap-northeast-2
           AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFRONT_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFRONT_SECRET_ACCESS_KEY }}
-
-
-      
-
-
-
-      # 빌드 아키텍처 업로드
-      # - name: Upload Build Artifact
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: frontend-build
-      #     path: ott/build/
-
-      # nginx 폴더 정리
-      # - name: Clean Nginx folder
-      #   uses: appleboy/ssh-action@v0.1.10
-      #   with:
-      #     host: ${{ secrets.GCP_HOST }}
-      #     username: ${{ secrets.GCP_USER }}
-      #     key: ${{ secrets.GCP_SSH_KEY }}
-      #     script: |
-      #       sudo rm -rf /var/www/html/*
-      #       sudo mkdir -p /var/www/html
-      
-
-      # 프론트를 퍼블릭 서브넷에 배포
-      # - name: Deploy to GCP
-      #   uses: appleboy/scp-action@v0.1.7
-      #   with:
-      #     host: ${{ secrets.GCP_HOST }}
-      #     username: ${{ secrets.GCP_USER }}
-      #     key: ${{ secrets.GCP_SSH_KEY }}
-      #     source: "ott/dist/**"
-      #     target: "/var/www/html"
-      #     strip_components: 2 
