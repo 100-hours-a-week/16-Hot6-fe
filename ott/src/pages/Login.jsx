@@ -4,21 +4,8 @@ import kakaoLoginButton from '@/assets/images/buttons/kakao-login-button.svg'; /
 import { API } from '@/api/client.js';
 import TopBar from '@/components/common/TopBar.jsx';
 const Login = () => {
-  const handleKakaoLogin = async () => {
-    try {
-      const response = await fetch(`${API.auth.kakao}`, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json', // 서버로부터 JSON 응답을 받기 위한 헤더
-        },
-      });
-
-      const data = await response.json();
-
-      window.location.href = data.redirectUrl;
-    } catch (error) {
-      console.error('카카오 로그인 초기화 실패:', error);
-    }
+  const handleKakaoLogin = () => {
+    window.location.href = `${API.auth.kakao}`;
   };
 
   return (
