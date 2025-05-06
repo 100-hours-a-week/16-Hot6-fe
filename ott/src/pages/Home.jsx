@@ -1,11 +1,18 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import useDeskAICheck from '@/hooks/useDeskAICheck';
+import SimpleModal from '@/components/common/SimpleModal';
 
 const Home = () => {
   const navigate = useNavigate();
-
+  const { handleDeskAICreate, modal, setModal } = useDeskAICheck();
   return (
     <div>
+      <SimpleModal
+        open={modal.open}
+        message={modal.message}
+        onClose={() => setModal({ open: false, message: '' })}
+      />
       {/* 메인 이미지 섹션 */}
       <section className="px-4 mb-8">
         <div className="rounded-2xl overflow-hidden bg-gray-100 p-6">
@@ -16,7 +23,12 @@ const Home = () => {
           />
           <h1 className="text-xl font-bold mb-2 text-center">데스크테리어를 완성하세요</h1>
           <div className="flex justify-center">
-            <button className="max-w-[280px] w-full py-3 bg-gray-400 text-white rounded-lg font-medium">
+            <button
+              className="max-w-[280px] w-full py-3 bg-gray-400 text-white rounded-lg font-medium"
+              onClick={() => {
+                navigate('/desk');
+              }}
+            >
               데스크테리어 생성
             </button>
           </div>
