@@ -7,7 +7,8 @@ import OAuth2RedirectHandler from '@/pages/OAuth2RedirectHandler';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
-
+import DeskAI from './pages/DeskAI';
+import AiGenerationResult from './pages/AiGenerationResult';
 const App = () => {
   return (
     <Router>
@@ -15,6 +16,7 @@ const App = () => {
         {/* RootLayout을 사용하는 공개 라우트 */}
         <Route element={<RootLayout />}>
           <Route path="/" element={<Home />} />
+          <Route path="/desk" element={<DeskAI />} />
         </Route>
 
         {/* RootLayout을 사용하는 보호된 라우트 */}
@@ -32,6 +34,7 @@ const App = () => {
         {/* RootLayout을 사용하지 않는 라우트 */}
         <Route path="/login" element={<Login />} />
         <Route path="/login/oauth2/code/kakao" element={<OAuth2RedirectHandler />} />
+        <Route path="/ai-images/:imageId" element={<AiGenerationResult />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
