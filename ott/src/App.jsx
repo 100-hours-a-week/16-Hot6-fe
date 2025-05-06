@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import RootLayout from './components/layout/RootLayout';
 import PrivateRoute from './components/PrivateRoute';
+import OAuth2RedirectHandler from '@/pages/OAuth2RedirectHandler';
 
 // 페이지 컴포넌트들
 import Home from './pages/Home';
@@ -30,6 +31,7 @@ const App = () => {
 
         {/* RootLayout을 사용하지 않는 라우트 */}
         <Route path="/login" element={<Login />} />
+        <Route path="/login/oauth2/code/kakao" element={<OAuth2RedirectHandler />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
