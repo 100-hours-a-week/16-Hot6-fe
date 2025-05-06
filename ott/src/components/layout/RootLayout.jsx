@@ -3,8 +3,13 @@ import { Outlet } from 'react-router-dom';
 import Header from './Header'; // Header 컴포넌트 import
 import BottomNavigation from './BottomNavigation';
 import Footer from './Footer'; // Footer import 추가
+import useDeskAICheck from '@/hooks/useDeskAICheck';
+import SimpleModal from '@/components/common/SimpleModal';
+import ImageGenerationLoader from '@/components/common/ImageGenerationLoader';
 
 const RootLayout = () => {
+  const { handleDeskAICreate, modal, setModal } = useDeskAICheck();
+
   return (
     // 전체 컨테이너에 최소/최대 너비 설정
     <div
@@ -33,7 +38,13 @@ const RootLayout = () => {
         </main>
         <Footer /> {/* Footer 추가 */}
         {/* 하단 네비게이션 컴포넌트 */}
-        <BottomNavigation />
+        <BottomNavigation onDeskClick={handleDeskAICreate} />
+        <SimpleModal
+          open={modal.open}
+          message={modal.message}
+          onClose={() => setModal({ open: false, message: '' })}
+        />
+        <ImageGenerationLoader />
       </div>
     </div>
   );
