@@ -1,14 +1,11 @@
 import axios from 'axios';
-import { getConfig } from '@/config/index.js';
+import { getConfig } from '@/config/index';
 
 const { BASE_URL } = getConfig();
 
 export const axiosInstance = axios.create({
   baseURL: BASE_URL,
   timeout: 5000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 // 요청 인터셉터
