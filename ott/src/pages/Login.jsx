@@ -14,7 +14,7 @@ const Login = () => {
         <TopBar title="로그인" />
 
         {/* 컨텐츠 영역: TopBar 아래에서 중앙 정렬 */}
-        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-48px)] px-4">
+        <div className="flex flex-col items-center justify-center px-4 mt-32">
           <div className="mb-8 text-center">
             <div className="flex items-center justify-center gap-2 mb-16">
               <img src={logo} alt="OnTheTop" className="h-6" />

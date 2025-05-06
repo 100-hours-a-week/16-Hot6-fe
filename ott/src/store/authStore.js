@@ -1,25 +1,22 @@
 import { create } from 'zustand';
+import { API } from '@/api/client.js';
 import axios from '@/api/axios.js';
 
 const useAuthStore = create((set) => ({
   accessToken: localStorage.getItem('accessToken'),
-  refreshToken: localStorage.getItem('refreshToken'),
   user: null,
   isAuthenticated: !!localStorage.getItem('accessToken'),
 
   // 로그인
-  login: async (code) => {
+  login: async (requestUrl) => {
     try {
-      const response = await axios.post('/auth/kakao', { code });
-      const { accessToken, refreshToken, user } = response.data;
+      const response = await axios.get(requestUrl);
+      const { accessToken } = response.data;
 
       localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
 
       set({
         accessToken,
-        refreshToken,
-        user,
         isAuthenticated: true,
       });
 
@@ -33,7 +30,6 @@ const useAuthStore = create((set) => ({
   // 로그아웃
   logout: () => {
     localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
 
     set({
       accessToken: null,
