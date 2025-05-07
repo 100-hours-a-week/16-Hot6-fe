@@ -5,7 +5,15 @@ import SimpleModal from '@/components/common/SimpleModal';
 
 const Home = () => {
   const navigate = useNavigate();
-  const { handleDeskAICreate, modal, setModal } = useDeskAICheck();
+  const { checkDeskAIAvailability, modal, setModal } = useDeskAICheck();
+
+  const handleDeskClick = async () => {
+    const isAvailable = await checkDeskAIAvailability();
+    if (isAvailable) {
+      navigate('/desk');
+    }
+  };
+
   return (
     <div>
       <SimpleModal
@@ -13,6 +21,7 @@ const Home = () => {
         message={modal.message}
         onClose={() => setModal({ open: false, message: '' })}
       />
+
       {/* 메인 이미지 섹션 */}
       <section className="px-4 mb-8">
         <div className="rounded-2xl overflow-hidden bg-gray-100 p-6">
@@ -25,9 +34,7 @@ const Home = () => {
           <div className="flex justify-center">
             <button
               className="max-w-[280px] w-full py-3 bg-gray-400 text-white rounded-lg font-medium"
-              onClick={() => {
-                navigate('/desk');
-              }}
+              onClick={handleDeskClick}
             >
               데스크테리어 생성
             </button>
