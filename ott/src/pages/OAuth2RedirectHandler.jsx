@@ -1,41 +1,41 @@
-// src/pages/OAuth2RedirectHandler.jsx
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-// import useAuthStore from '@/store/useAuthStore';
-import axios from '@/api/axios';
+import useAuthStore from '@/store/authStore';
 
-export default function OAuth2RedirectHandler() {
+const OAuth2RedirectHandler = () => {
   const navigate = useNavigate();
-  const { search, pathname } = useLocation();
-
+  const location = useLocation();
+  const { login } = useAuthStore();
   useEffect(() => {
-    (async () => {
+    const handleOAuthResponse = async () => {
       try {
-        // 현재 URL: /login/oauth2/code/kakao?code=...&state=...
-        // 그대로 GET 요청하면 백엔드가 JSON을 응답해 줌
-        const { data: resp } = await axios.get(`${pathname}${search}`, {
-          headers: { Accept: 'application/json' },
-        });
-
-        // { status:200, message:"...", data:{ accessToken, user }}
-        const { accessToken, user } = resp.data;
-        console.log(accessToken, user);
-        // Zustand에 저장
-        // setAuth({ accessToken, user });
-
-        // 메인 화면으로
-        navigate('/', { replace: true });
-      } catch (err) {
-        console.error('OAuth 콜백 처리 중 에러', err);
-        // 로그인 페이지로 복귀
-        navigate('/login', { replace: true });
+        console.log('location.pathname', location.pathname);
+        // 백엔드에 인증 코드 전송
+        if (await login(location.pathname)) {
+          // 홈으로 리다이렉트
+          navigate('/');
+        } else {
+          navigate('/login');
+        }
+      } catch (error) {
+        console.error('카카오 로그인 처리 중 에러:', error);
+        // 에러 발생 시 로그인 페이지로 리다이렉트
+        navigate('/login');
       }
-    })();
-  }, []);
+    };
 
+    handleOAuthResponse();
+  }, [location, navigate]);
+
+  // 로딩 상태 표시
   return (
-    <div className="flex items-center justify-center h-screen">
-      <p className="text-gray-500">로그인 처리 중… 잠시만 기다려 주세요.</p>
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+        <p className="mt-4 text-gray-600">로그인 처리 중...</p>
+      </div>
     </div>
   );
-}
+};
+
+export default OAuth2RedirectHandler;
