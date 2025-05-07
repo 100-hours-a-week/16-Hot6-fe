@@ -1,33 +1,61 @@
-name: Frontend CI
+name: Frontend CI/CD
 
 on:
   push:
     branches:
       - main
       - dev
+      - feat/dev-cd
 
 jobs:
   build-artifact:
-    name: Build Frontend and Upload Artifact
+    name: Build React App with Vite and Upload Artifact
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          path: .
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'   # 프로젝트에 맞는 Node.js 버전으로 설정
+          node-version: '20'  # React 19 + Vite 최신 버전과 호환
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install dependencies (with legacy peer deps)
+        run: npm install --legacy-peer-deps
+        working-directory: ott
 
       - name: Build React app
         run: npm run build
+        working-directory: ott
 
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4
+
+
+      # - name: Upload Build Artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: frontend-build
+      #     path: ott/build/
+
+
+      - name: Clean Nginx folder
+        uses: appleboy/ssh-action@v0.1.10
         with:
-          name: frontend-build
-          path: build/
+          host: ${{ secrets.GCP_HOST }}
+          username: ${{ secrets.GCP_USER }}
+          key: ${{ secrets.GCP_SSH_KEY }}
+          script: |
+            sudo rm -rf /var/www/html/*
+            sudo mkdir -p /var/www/html
+      
+      - name: Deploy to GCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.GCP_HOST }}
+          username: ${{ secrets.GCP_USER }}
+          key: ${{ secrets.GCP_SSH_KEY }}
+          source: "ott/dist/**"
+          target: "/var/www/html"
+          strip_components: 2 

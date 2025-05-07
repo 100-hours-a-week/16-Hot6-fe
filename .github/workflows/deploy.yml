@@ -1,0 +1,77 @@
+name: Frontend CI & dev CD
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - feat/dev-cd
+
+jobs:
+  build-artifact:
+    name: Build React App with Vite
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'main' && 'main' || 'dev' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          path: .
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies (with legacy peer deps)
+        run: npm install --legacy-peer-deps
+        working-directory: ott
+
+      - name: Build React app
+        run: npm run build
+        working-directory: ott
+
+      - name: Set up SSH config for jump server
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.JUMP_SSH_KEY }}" > ~/.ssh/jump_key
+          chmod 600 ~/.ssh/jump_key
+
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/dev_key
+          chmod 600 ~/.ssh/dev_key
+
+          cat <<EOF > ~/.ssh/config
+          Host fe-dev-server
+              HostName ${{ secrets.SSH_HOST }}
+              User ubuntu
+              IdentityFile ~/.ssh/dev_key
+              ProxyJump jump-server
+              StrictHostKeyChecking no
+              UserKnownHostsFile /dev/null
+
+          Host jump-server
+              HostName ${{ secrets.JUMP_SSH_HOST }}
+              User ubuntu
+              IdentityFile ~/.ssh/jump_key
+              StrictHostKeyChecking no
+              UserKnownHostsFile /dev/null
+          EOF
+
+      - name: Clean Nginx folder on remote
+        run: |
+          ssh -F ~/.ssh/config fe-dev-server <<'EOF'
+            set -eux
+            sudo rm -rf /var/www/html/*
+            sudo mkdir -p /var/www/html
+          EOF
+
+      - name: Copy built files to remote server
+        run: |
+          scp -r -F ~/.ssh/config ott/dist/* fe-dev-server:/var/www/html/
+
+      - name: Reload Nginx
+        run: |
+          ssh -F ~/.ssh/config fe-dev-server <<'EOF'
+            sudo systemctl reload nginx
+          EOF
