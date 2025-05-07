@@ -1,9 +1,9 @@
 import { getConfig } from '@/config/index.js';
 
-const { baseUrl } = getConfig();
+const { BASE_URL } = getConfig();
 
 export const API = {
   auth: {
-    kakao: `${baseUrl}/auth/kakao`,
+    kakao: `${BASE_URL}/auth/kakao`,
   },
 };
