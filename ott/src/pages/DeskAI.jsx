@@ -1,8 +1,9 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import axiosInstance from '@/api/axios';
 import { useNavigate } from 'react-router-dom';
 import SimpleModal from '@/components/common/SimpleModal';
 import useImageGenerationStore from '@/store/imageGenerationStore';
+import useDeskAICheck from '@/hooks/useDeskAICheck';
 
 function resizeImage(file, maxSize = 1024) {
   return new Promise((resolve, reject) => {
@@ -50,12 +51,26 @@ const DeskAI = () => {
   const [image, setImage] = useState(null);
   const [imageUrl, setImageUrl] = useState('');
   const [error, setError] = useState('');
-  const [modal, setModal] = useState({ open: false, message: '' });
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
   const [lastRequestTime, setLastRequestTime] = useState(0);
   const setImageId = useImageGenerationStore((state) => state.setImageId);
+  const { checkDeskAIAvailability, modal, setModal } = useDeskAICheck();
+
+  useEffect(() => {
+    const checkAvailability = async () => {
+      const isAvailable = await checkDeskAIAvailability();
+      if (!isAvailable) {
+        setModal((prev) => ({
+          ...prev,
+          onConfirm: () => navigate('/'),
+        }));
+      }
+    };
+
+    checkAvailability();
+  }, []);
 
   // 이미지 업로드 핸들러
   const handleImageChange = (e) => {
@@ -105,7 +120,7 @@ const DeskAI = () => {
 
   // 모달 닫기
   const handleCloseModal = () => {
-    setModal({ open: false, message: '' });
+    setModal({ open: false, message: '', onConfirm: null });
   };
 
   // 이미지 다시 고르기
@@ -191,7 +206,12 @@ const DeskAI = () => {
         )}
 
         {/* 모달 */}
-        <SimpleModal open={modal.open} message={modal.message} onClose={handleCloseModal} />
+        <SimpleModal
+          open={modal.open}
+          message={modal.message}
+          onClose={handleCloseModal}
+          onConfirm={modal.onConfirm}
+        />
       </div>
     </div>
   );

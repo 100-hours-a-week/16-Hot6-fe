@@ -9,18 +9,16 @@ import Login from './pages/Login';
 import NotFound from './pages/NotFound';
 import DeskAI from './pages/DeskAI';
 import AiGenerationResult from './pages/AiGenerationResult';
+
 const App = () => {
   return (
     <Router>
       <Routes>
-        {/* RootLayout을 사용하는 공개 라우트 */}
+        {/* RootLayout을 사용하는 라우트 */}
         <Route element={<RootLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/desk" element={<DeskAI />} />
-        </Route>
-
-        {/* RootLayout을 사용하는 보호된 라우트 */}
-        <Route element={<RootLayout />}>
+          {/* 보호된 라우트들도 여기에 추가 */}
           {/* <Route
             path="/mypage"
             element={

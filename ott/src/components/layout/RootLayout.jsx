@@ -8,7 +8,7 @@ import SimpleModal from '@/components/common/SimpleModal';
 import ImageGenerationLoader from '@/components/common/ImageGenerationLoader';
 
 const RootLayout = () => {
-  const { handleDeskAICreate, modal, setModal } = useDeskAICheck();
+  const { checkDeskAIAvailability, modal, setModal } = useDeskAICheck();
 
   return (
     // 전체 컨테이너에 최소/최대 너비 설정
@@ -38,7 +38,7 @@ const RootLayout = () => {
         </main>
         <Footer /> {/* Footer 추가 */}
         {/* 하단 네비게이션 컴포넌트 */}
-        <BottomNavigation onDeskClick={handleDeskAICreate} />
+        <BottomNavigation checkDeskAIAvailability={checkDeskAIAvailability} />
         <SimpleModal
           open={modal.open}
           message={modal.message}
