@@ -31,7 +31,7 @@ const App = () => {
 
         {/* RootLayout을 사용하지 않는 라우트 */}
         <Route path="/login" element={<Login />} />
-        <Route path="/oauth2/authorization/kakao" element={<OAuth2RedirectHandler />} />
+        <Route path="/oauth-success" element={<OAuth2RedirectHandler />} />
         <Route path="/ai-images/:imageId" element={<AiGenerationResult />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
