@@ -1,11 +1,31 @@
 import React from 'react';
 import logo from '../assets/images/logo/logo.svg';
 import kakaoLoginButton from '@/assets/images/buttons/kakao-login-button.svg'; // 카카오 버튼 이미지 import
-import { API } from '@/api/client.js';
+import axios from 'axios';
 import TopBar from '@/components/common/TopBar.jsx';
+import { API } from '@/api/client.js';
 const Login = () => {
-  const handleKakaoLogin = () => {
-    window.location.href = `${API.auth.kakao}`;
+  const handleKakaoLogin = async () => {
+    try {
+      // 1. 백엔드에 카카오 로그인 요청
+      const response = await axios.get(`${API.auth.kakao}`, {
+        // 302 리다이렉트를 자동으로 따라가지 않도록 설정
+        maxRedirects: 0,
+        validateStatus: function (status) {
+          return status >= 200 && status < 400; // 302도 유효한 상태로 처리
+        },
+      });
+      // 2. Location 헤더에서 카카오 로그인 URL 가져오기
+      const kakaoAuthUrl = response.headers.location;
+
+      // 3. 카카오 로그인 페이지로 리다이렉트
+      if (kakaoAuthUrl) {
+        window.location.href = kakaoAuthUrl;
+      }
+    } catch (error) {
+      console.error('카카오 로그인 요청 실패:', error);
+      // 에러 처리 (예: 에러 메시지 표시)
+    }
   };
 
   return (
