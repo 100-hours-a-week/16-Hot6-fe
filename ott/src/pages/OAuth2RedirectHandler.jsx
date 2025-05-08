@@ -17,9 +17,17 @@ const OAuth2RedirectHandler = () => {
           console.log('OAuth 로그인 성공 리다이렉트 감지');
 
           // 2. refreshToken으로 accessToken 재발급 요청
-          const response = await axios.post(`${BASE_URL}/auth/token/refresh`, {
-            withCredentials: true, // 쿠키를 포함하여 요청
-          });
+          const response = await axios.post(
+            `${BASE_URL}/auth/token/refresh`,
+            {},
+            {
+              withCredentials: true, // 쿠키를 포함하여 요청
+              headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+              },
+            },
+          );
 
           console.log('토큰 재발급 응답:', response.data);
 
@@ -44,7 +52,7 @@ const OAuth2RedirectHandler = () => {
     };
 
     handleOAuthResponse();
-  }, [location, navigate]);
+  }, [location.pathname]);
 
   // 로딩 상태 표시
   return (

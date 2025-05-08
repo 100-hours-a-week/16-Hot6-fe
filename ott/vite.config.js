@@ -12,12 +12,5 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
-    proxy: {
-      // 콜백 경로 프록시
-      '/login/oauth2': {
-        target: 'https://dev-backend.onthe-top.com',
-        changeOrigin: true,
-      },
-    },
   },
 });

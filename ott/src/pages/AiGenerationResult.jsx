@@ -120,7 +120,7 @@ const AIGeneratedResult = () => {
       </div>
 
       {/* 하단 안내 버튼 */}
-      <div className="w-full max-w-[640px] mt-10 px-4">
+      <div className="fixed bottom-16 left-1/2 -translate-x-1/2 w-full max-w-[640px] px-4">
         <div className="bg-gray-200 rounded-xl py-3 text-center text-gray-700 text-base">
           게시글 작성하러 가기
         </div>
