@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { getConfig } from '@/config/index';
+import { useAuthStore } from '@/store/authStore';
 
 const { BASE_URL } = getConfig();
 
@@ -11,46 +12,12 @@ const OAuth2RedirectHandler = () => {
 
   useEffect(() => {
     const handleOAuthResponse = async () => {
-      try {
-        // 1. 현재 URL이 /oauth-success인지 확인
-        if (location.pathname === '/oauth-success') {
-          console.log('OAuth 로그인 성공 리다이렉트 감지');
-
-          // 2. refreshToken으로 accessToken 재발급 요청
-          const response = await axios.post(
-            `${BASE_URL}/auth/token/refresh`,
-            {},
-            {
-              withCredentials: true, // 쿠키를 포함하여 요청
-              headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-              },
-            },
-          );
-
-          console.log('토큰 재발급 응답:', response.data);
-
-          // 3. 응답에서 accessToken 추출 및 저장
-          if (response.data.status === 200 && response.data.data.accessToken) {
-            const { accessToken } = response.data.data;
-
-            // accessToken 저장
-            localStorage.setItem('accessToken', accessToken);
-
-            // 홈으로 리다이렉트
-            navigate('/');
-          } else {
-            console.error('토큰 재발급 실패:', response.data);
-            navigate('/login');
-          }
-        }
-      } catch (error) {
-        console.error('OAuth 처리 중 에러:', error);
-        navigate('/login');
+      if (location.pathname === '/oauth-success') {
+        console.log('OAuth 로그인 성공 리다이렉트 감지');
+        // authStore의 login 함수 호출
+        await useAuthStore.getState().login(navigate);
       }
     };
-
     handleOAuthResponse();
   }, [location.pathname]);
 
