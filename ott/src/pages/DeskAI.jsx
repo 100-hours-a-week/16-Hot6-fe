@@ -103,7 +103,7 @@ const DeskAI = () => {
 
       // 2. FormData 생성
       const formData = new FormData();
-      formData.append('image', resizedFile);
+      formData.append('beforeImagePath', resizedFile);
 
       // 3. 전송
       const response = await axiosInstance.post('/ai-images', formData);
