@@ -11,6 +11,7 @@ const OAuth2RedirectHandler = () => {
 
   useEffect(() => {
     const handleOAuthResponse = async () => {
+      console.log('OAuth2RedirectHandler 호출됨');
       if (location.pathname === '/oauth-success') {
         console.log('OAuth 로그인 성공 리다이렉트 감지');
         // authStore의 login 함수 호출

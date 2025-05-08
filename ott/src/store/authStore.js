@@ -1,8 +1,8 @@
 import { create } from 'zustand';
-import { API } from '@/api/client.js';
 import axios from '@/api/axios.js';
+import { getConfig } from '@/config/index';
 
-const BASE_URL = '...'; // 실제 BASE_URL로 교체
+const { BASE_URL } = getConfig();
 
 const useAuthStore = create((set) => ({
   accessToken: localStorage.getItem('accessToken'),
