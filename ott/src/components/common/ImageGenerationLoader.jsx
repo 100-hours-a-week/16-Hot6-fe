@@ -11,17 +11,21 @@ const ImageGenerationLoader = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('ImageGenerationLoader - Current state:', { imageId, status });
     if (status !== 'generating' || !imageId) return;
 
+    console.log('Starting polling for image:', imageId);
     let interval = setInterval(async () => {
       try {
         const res = await axiosInstance.get(`/ai-images/${imageId}`);
+        console.log('Polling response:', res.status);
         if (res.status === 200) {
           setStatus('done');
           setShowToast(true);
           clearInterval(interval);
         }
       } catch (e) {
+        console.log('Polling error:', e);
         // 아직 생성 중이면 에러가 날 수 있음, 무시
       }
     }, POLL_INTERVAL);
