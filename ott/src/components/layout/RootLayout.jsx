@@ -34,8 +34,9 @@ const RootLayout = () => {
         {/* overflow-x-hidden 추가 */}
         <Header /> {/* Header 컴포넌트 사용 */}
         {/* 메인 컨텐츠 */}
-        <main className="flex-1 w-full pt-14 pb-16">
+        <main className="flex-1 w-full pt-14 pb-16 relative">
           <Outlet />
+          <ImageGenerationLoader />
         </main>
         <Footer /> {/* Footer 추가 */}
         {/* 하단 네비게이션 컴포넌트 */}
@@ -45,7 +46,6 @@ const RootLayout = () => {
           message={modal.message}
           onClose={() => setModal({ open: false, message: '' })}
         />
-        <ImageGenerationLoader />
         <LoginModal />
       </div>
     </div>

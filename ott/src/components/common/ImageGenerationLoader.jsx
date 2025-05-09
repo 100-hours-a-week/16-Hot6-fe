@@ -47,7 +47,7 @@ const ImageGenerationLoader = () => {
     <>
       {/* 로딩바 (우측 하단 고정) */}
       <div
-        className="fixed z-50 right-6 bottom-24 w-16 h-16 flex items-center justify-center bg-white rounded-full shadow-lg cursor-pointer"
+        className="absolute z-50 right-6 bottom-24 w-16 h-16 flex items-center justify-center bg-white rounded-full shadow-lg cursor-pointer"
         onClick={() => {
           if (status === 'done') {
             navigate(`/ai-images/${imageId}`);
@@ -84,7 +84,7 @@ const ImageGenerationLoader = () => {
       </div>
       {/* 토스트 메시지 */}
       {showToast && (
-        <div className="fixed bottom-40 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg z-50 shadow-lg">
+        <div className="absolute bottom-40 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg z-50 shadow-lg max-w-[768px] w-fit">
           이미지 생성이 완료되었습니다.
         </div>
       )}
