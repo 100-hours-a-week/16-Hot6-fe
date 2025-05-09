@@ -33,20 +33,29 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        const response = await axios.post(`${BASE_URL}/auth/token/refresh`, {
-          refreshToken,
-        });
-
-        const { accessToken } = response.data;
-        localStorage.setItem('accessToken', accessToken);
-
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        return axiosInstance(originalRequest);
+        // 토큰 재발급
+        const response = await axios.post(
+          `${BASE_URL}/auth/token/refresh`,
+          {},
+          {
+            withCredentials: true,
+          },
+        );
+        if (response.data.status === 200 && response.data.data.accessToken) {
+          const { accessToken } = response.data.data;
+          localStorage.setItem('accessToken', accessToken);
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+          return axiosInstance(originalRequest);
+        } else {
+          // 리프레시 토큰도 만료된 경우
+          localStorage.removeItem('accessToken');
+          // 로그인 페이지로 리다이렉트
+          window.location.href = '/login';
+          return Promise.reject(error);
+        }
       } catch (error) {
         // 리프레시 토큰도 만료된 경우
         localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
         // 로그인 페이지로 리다이렉트
         window.location.href = '/login';
         return Promise.reject(error);
