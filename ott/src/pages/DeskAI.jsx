@@ -107,7 +107,7 @@ const DeskAI = () => {
 
       // 3. 전송
       const response = await axiosInstance.post('/ai-images', formData, { timeout: 0 });
-      const { aiImageId } = response.data; // 응답에서 imageId 추출
+      const { aiImageId } = response.data.data; // 응답에서 imageId 추출
       console.log('Image upload successful, imageId:', aiImageId);
       setImageId(aiImageId); // 전역 상태에 저장
       console.log('ImageId set in store, navigating to home...');
