@@ -61,5 +61,4 @@ jobs:
       - name: Deploy to S3
         run: |
           aws s3 sync ott/dist/ s3://onthe-top/frontend/prod/blue \
-            --delete \
-            --acl public-read
+            --delete
