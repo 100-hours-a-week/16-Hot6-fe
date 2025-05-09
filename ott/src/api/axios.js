@@ -12,12 +12,15 @@ export const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
+    console.log('token', token);
     if (token) {
+      console.log('token 있음');
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
   (error) => {
+    console.log('error 인터셉트', error);
     return Promise.reject(error);
   },
 );
@@ -31,9 +34,11 @@ axiosInstance.interceptors.response.use(
     // 토큰이 만료되었고, 재시도하지 않았던 요청인 경우
     if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+      console.log('토큰 만료 인터셉트');
 
       try {
         // 토큰 재발급
+        console.log('토큰 재발급 시도');
         const response = await axios.post(
           `${BASE_URL}/auth/token/refresh`,
           {},
@@ -41,6 +46,7 @@ axiosInstance.interceptors.response.use(
             withCredentials: true,
           },
         );
+        console.log('토큰 재발급 응답', response);
         if (response.data.status === 200 && response.data.data.accessToken) {
           const { accessToken } = response.data.data;
           localStorage.setItem('accessToken', accessToken);
