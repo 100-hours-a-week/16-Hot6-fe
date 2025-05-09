@@ -6,6 +6,7 @@ import Footer from './Footer'; // Footer import 추가
 import useDeskAICheck from '@/hooks/useDeskAICheck';
 import SimpleModal from '@/components/common/SimpleModal';
 import ImageGenerationLoader from '@/components/common/ImageGenerationLoader';
+import LoginModal from '@/components/common/LoginModal';
 
 const RootLayout = () => {
   const { checkDeskAIAvailability, modal, setModal } = useDeskAICheck();
@@ -45,6 +46,7 @@ const RootLayout = () => {
           onClose={() => setModal({ open: false, message: '' })}
         />
         <ImageGenerationLoader />
+        <LoginModal />
       </div>
     </div>
   );

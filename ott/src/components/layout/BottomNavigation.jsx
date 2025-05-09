@@ -25,7 +25,7 @@ const BottomNavigation = ({ checkDeskAIAvailability }) => {
       label: '특가',
     },
     {
-      path: '/community',
+      path: '/posts',
       icon: '💬',
       label: '게시판',
     },
