@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import axios from '@/api/axios.js';
 import { getConfig } from '@/config/index';
-
 const { BASE_URL } = getConfig();
 
 const useAuthStore = create((set) => ({
@@ -44,15 +43,29 @@ const useAuthStore = create((set) => ({
   },
 
   // 로그아웃
-  logout: () => {
-    localStorage.removeItem('accessToken');
-
-    set({
-      accessToken: null,
-      refreshToken: null,
-      user: null,
-      isAuthenticated: false,
-    });
+  logout: async (navigate) => {
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/auth/logout`,
+        {},
+        {
+          withCredentials: true,
+        },
+      );
+      if (response.data.status === 200) {
+        localStorage.removeItem('accessToken');
+        set({
+          accessToken: null,
+          user: null,
+          isAuthenticated: false,
+        });
+        if (navigate) navigate('/');
+      } else {
+        console.error('로그아웃 실패:', response.data);
+      }
+    } catch (error) {
+      console.error('로그아웃 실패:', error);
+    }
   },
 
   // 사용자 정보 업데이트
