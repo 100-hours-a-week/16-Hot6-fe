@@ -9,7 +9,7 @@ jobs:
   build-and-deploy:
     name: Build and Deploy to S3
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'main' && 'main' || 'dev' }} #임시로그냥 dev사용
+    environment: ${{ github.ref_name == 'main' && 'main' || 'prod' }}
 
     steps:
       - name: Checkout repository
