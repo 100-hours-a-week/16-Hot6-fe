@@ -3,7 +3,7 @@ import useImageGenerationStore from '@/store/imageGenerationStore';
 import axiosInstance from '@/api/axios';
 import { useNavigate } from 'react-router-dom';
 
-const POLL_INTERVAL = 3000; // 3초마다 폴링
+const POLL_INTERVAL = 10000; // 10초마다 폴링
 
 const ImageGenerationLoader = () => {
   const { imageId, status, setStatus, reset } = useImageGenerationStore();

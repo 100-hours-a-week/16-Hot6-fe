@@ -30,7 +30,7 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-
+    console.log('error.response', error.response);
     // 토큰이 만료되었고, 재시도하지 않았던 요청인 경우
     if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
