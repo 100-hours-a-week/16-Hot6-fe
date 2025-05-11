@@ -12,7 +12,7 @@ import DeskAI from './pages/DeskAI';
 import AiGenerationResult from './pages/AiGenerationResult';
 import PostEditor from './pages/PostEditor';
 import Posts from './pages/Posts';
-
+import PostDetail from './pages/PostDetail';
 const App = () => {
   return (
     <Router>
@@ -39,6 +39,7 @@ const App = () => {
         <Route path="/oauth-success" element={<OAuth2RedirectHandler />} />
         <Route path="/ai-images/:imageId" element={<AiGenerationResult />} />
         <Route path="/post-editor" element={<PostEditor />} />
+        <Route path="/posts/:postId" element={<PostDetail />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
