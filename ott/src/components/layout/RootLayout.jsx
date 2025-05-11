@@ -36,9 +36,9 @@ const RootLayout = () => {
         {/* 메인 컨텐츠 */}
         <main className="flex-1 w-full pt-14 pb-16 relative">
           <Outlet />
-          <ImageGenerationLoader />
         </main>
         <Footer /> {/* Footer 추가 */}
+        <ImageGenerationLoader />
         {/* 하단 네비게이션 컴포넌트 */}
         <BottomNavigation checkDeskAIAvailability={checkDeskAIAvailability} />
         <SimpleModal

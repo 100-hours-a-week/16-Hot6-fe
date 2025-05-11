@@ -8,6 +8,7 @@ const POLL_INTERVAL = 10000; // 10초마다 폴링
 const ImageGenerationLoader = () => {
   const { imageId, status, setStatus, reset } = useImageGenerationStore();
   const [showToast, setShowToast] = useState(false);
+  const [showFailToast, setShowFailToast] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,14 +20,16 @@ const ImageGenerationLoader = () => {
       try {
         const res = await axiosInstance.get(`/ai-images/${imageId}`);
         console.log('Polling response:', res.status);
-        if (res.status === 200) {
+        if (res.data.data.status === 'SUCCESS') {
           setStatus('done');
           setShowToast(true);
           clearInterval(interval);
+        } else if (res.data.data.status === 'FAILED') {
+          reset();
+          setShowFailToast(true);
         }
       } catch (e) {
         console.log('Polling error:', e);
-        // 아직 생성 중이면 에러가 날 수 있음, 무시
       }
     }, POLL_INTERVAL);
 
@@ -41,13 +44,20 @@ const ImageGenerationLoader = () => {
     }
   }, [showToast]);
 
+  useEffect(() => {
+    if (showFailToast) {
+      const timer = setTimeout(() => setShowFailToast(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showFailToast]);
+
   if (!imageId || status === 'idle') return null;
 
   return (
     <>
       {/* 로딩바 (우측 하단 고정) */}
       <div
-        className="absolute z-50 right-6 bottom-24 w-16 h-16 flex items-center justify-center bg-white rounded-full shadow-lg cursor-pointer"
+        className="fixed z-50 right-6 bottom-[88px] w-16 h-16 flex items-center justify-center bg-white rounded-full shadow-lg cursor-pointer"
         onClick={() => {
           if (status === 'done') {
             navigate(`/ai-images/${imageId}`);
@@ -86,6 +96,11 @@ const ImageGenerationLoader = () => {
       {showToast && (
         <div className="absolute bottom-40 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg z-50 shadow-lg max-w-[768px] w-fit">
           이미지 생성이 완료되었습니다.
+        </div>
+      )}
+      {showFailToast && (
+        <div className="fixed bottom-40 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg z-50 shadow-lg max-w-[768px] w-fit">
+          이미지 생성에 실패 했습니다.
         </div>
       )}
     </>
