@@ -13,6 +13,8 @@ import AiGenerationResult from './pages/AiGenerationResult';
 import PostEditor from './pages/PostEditor';
 import Posts from './pages/Posts';
 import PostDetail from './pages/PostDetail';
+import MyPage from './pages/MyPage';
+
 const App = () => {
   return (
     <Router>
@@ -23,6 +25,7 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/desk" element={<DeskAI />} />
           <Route path="/posts" element={<Posts />} />
+          <Route path="/mypage" element={<MyPage />} />
           {/* 보호된 라우트들도 여기에 추가 */}
           {/* <Route
             path="/mypage"
