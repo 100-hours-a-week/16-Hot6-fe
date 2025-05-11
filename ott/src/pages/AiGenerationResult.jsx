@@ -82,7 +82,9 @@ const AIGeneratedResult = () => {
             </div>
             <div className="ml-4 flex-1 text-left">
               <div className="font-bold text-base">{product.productName}</div>
-              <div className="text-xs text-gray-500">링크</div>
+              <div className="text-xs text-gray-500">
+                {Number(product.price).toLocaleString()}원
+              </div>
             </div>
             {/* 스크랩 버튼 */}
             <button
