@@ -155,6 +155,8 @@ export default function PostEditor() {
 
   return (
     <div className="max-w-[640px] mx-auto min-h-screen bg-white pb-32 relative">
+      {/* 배경 오버레이 (640px 이상일 때 회색 배경) */}
+      <div className="fixed inset-0 bg-gray-100 -z-10 hidden sm:block" />
       {/* TopBar */}
       <TopBar title="게시글 작성" showBack onBackClick={() => setShowLeaveModal(true)} />
 
