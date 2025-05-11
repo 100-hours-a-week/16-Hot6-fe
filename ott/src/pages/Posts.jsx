@@ -1,30 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const dummyApiResponse = {
-  status: 200,
-  message: '게시글 목록 조회 성공',
-  data: {
-    posts: Array.from({ length: 15 }).map((_, i) => ({
-      postId: 154 - i,
-      title: `AI 책상 후기 ${i + 1}`,
-      author: {
-        nickname: 'junsik',
-        profileImageUrl: 'https://example.com/profile.png',
-      },
-      likeCount: 12 + i,
-      commentCount: 3 + i,
-      createdAt: '2025-05-09T09:00:00Z',
-      liked: i % 2 === 0,
-      scrapped: i % 3 === 0,
-    })),
-    pagination: {
-      size: 10,
-      lastPostId: 145,
-      hasNext: true,
-    },
-  },
-};
+import axiosInstance from '@/api/axios';
 
 const CATEGORY_MAP = [
   { label: '전체', value: 'ALL' },
@@ -38,40 +14,56 @@ const SORT_MAP = [
   { label: '스크랩순', value: 'SCRAP' },
 ];
 
-function formatDate(dateString) {
-  // UTC → KST 변환
-  const date = new Date(dateString);
-  const kstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
-
+function formatDate(createdAtStr) {
+  const KST_OFFSET = 9 * 60 * 60 * 1000; // 9시간(ms)
   const now = new Date();
-  const nowKst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-
-  const diffMs = nowKst - kstDate;
-  const diffSec = Math.floor(diffMs / 1000);
-  const diffMin = Math.floor(diffSec / 60);
+  const createdUTC = new Date(createdAtStr);
+  const createdKST = new Date(createdUTC.getTime() + KST_OFFSET);
+  const diffMs = now.getTime() - createdKST.getTime();
+  const diffMin = Math.floor(diffMs / (1000 * 60));
   const diffHour = Math.floor(diffMin / 60);
   const diffDay = Math.floor(diffHour / 24);
 
-  if (diffMin < 1) return '방금 전';
-  if (diffMin < 60) return `${diffMin}분 전`;
-  if (diffHour < 24) return `${diffHour}시간 전`;
-  if (diffDay < 7) return `${diffDay}일 전`;
+  if (diffMin < 1) {
+    return '방금 전';
+  } else if (diffMin < 60) {
+    return `${diffMin}분 전`;
+  } else if (diffHour < 24) {
+    return `${diffHour}시간 전`;
+  } else if (diffDay < 7) {
+    return `${diffDay}일 전`;
+  } else {
+    const pad = (n) => n.toString().padStart(2, '0');
+    return `${createdKST.getFullYear()}년 ${pad(createdKST.getMonth() + 1)}월 ${pad(createdKST.getDate())}일 ${pad(createdKST.getHours())}:${pad(createdKST.getMinutes())}`;
+  }
+}
 
-  const yyyy = kstDate.getFullYear();
-  const MM = String(kstDate.getMonth() + 1).padStart(2, '0');
-  const dd = String(kstDate.getDate()).padStart(2, '0');
-  const HH = String(kstDate.getHours()).padStart(2, '0');
-  const mm = String(kstDate.getMinutes()).padStart(2, '0');
-  return `${yyyy}년 ${MM}월 ${dd}일 ${HH}:${mm}`;
+function useWindowWidth() {
+  const [width, setWidth] = useState(window.innerWidth);
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  return width;
 }
 
 export default function Posts() {
   const navigate = useNavigate();
   const [sort, setSort] = useState('LATEST');
   const [category, setCategory] = useState('ALL');
-  const [posts, setPosts] = useState(dummyApiResponse.data.posts);
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showMiniWrite, setShowMiniWrite] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [pagination, setPagination] = useState({
+    lastPostId: null,
+    hasNext: true,
+    size: 10,
+  });
+  const [isFetching, setIsFetching] = useState(false);
+
+  const windowWidth = useWindowWidth();
 
   // 스크롤 이벤트 핸들러
   useEffect(() => {
@@ -79,10 +71,19 @@ export default function Posts() {
       const scrollY = window.scrollY;
       setShowMiniWrite(scrollY > 200); // 200px 이상 스크롤 시 +만 보이게
       setShowScrollTop(scrollY > 200); // 200px 이상 스크롤 시 ↑ 버튼 보이게
+
+      // 하단 200px 근처 도달 시
+      if (
+        window.innerHeight + window.scrollY >= document.body.offsetHeight - 200 &&
+        pagination.hasNext &&
+        !isFetching
+      ) {
+        fetchPosts();
+      }
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [pagination, isFetching]);
 
   // 스크랩 토글
   const handleScrap = (id) => {
@@ -110,6 +111,37 @@ export default function Posts() {
   const handleScrollTop = () => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   };
+
+  // 게시글 불러오기 함수
+  const fetchPosts = async (isFirst = false) => {
+    if (isFetching || (!pagination.hasNext && !isFirst)) return;
+    setIsFetching(true);
+    try {
+      const params = {};
+      if (!isFirst && pagination.lastPostId) {
+        params.lastPostId = pagination.lastPostId;
+        params.size = pagination.size;
+      }
+      const res = await axiosInstance.get('/posts', { params });
+      const { posts: newPosts, pagination: newPagination } = res.data.data;
+      setPosts((prev) => (isFirst ? newPosts : [...prev, ...newPosts]));
+      setPagination({
+        lastPostId: newPagination.lastPostId,
+        hasNext: newPagination.hasNext,
+        size: newPagination.size,
+      });
+    } catch (e) {
+      alert('게시글 목록을 불러오지 못했습니다.');
+    } finally {
+      setIsFetching(false);
+      setLoading(false);
+    }
+  };
+
+  // 첫 진입 시
+  useEffect(() => {
+    fetchPosts(true);
+  }, []);
 
   return (
     <div className="max-w-[480px] mx-auto min-h-screen bg-white pb-24">
@@ -244,7 +276,13 @@ export default function Posts() {
       </div>
 
       {/* 플로팅 버튼 영역 */}
-      <div className="fixed bottom-20 right-4 flex flex-col items-end gap-3 z-50">
+      <div
+        className="fixed z-50 bottom-24 flex flex-col items-end gap-3"
+        style={{
+          right: windowWidth >= 768 ? 'calc(50vw - 384px + 1rem)' : '1rem',
+          maxWidth: windowWidth >= 768 ? 'calc(100vw - 32px)' : undefined,
+        }}
+      >
         {showScrollTop && (
           <button
             className="mb-1 w-12 h-12 rounded-full bg-white shadow flex items-center justify-center border border-gray-200"
