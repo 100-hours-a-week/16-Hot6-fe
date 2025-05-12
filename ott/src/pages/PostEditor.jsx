@@ -104,7 +104,7 @@ export default function PostEditor() {
         const response = await axiosInstance.post('/posts/ai', {
           title,
           content,
-          aiImageId: selectedAiImageId,
+          ai_image_id: selectedAiImageId,
         });
         if (response.status === 201) {
           navigate('/posts');
@@ -129,6 +129,7 @@ export default function PostEditor() {
           navigate('/posts');
         }
       } catch (error) {
+        console.log(error);
         setShowErrorModal(true);
       } finally {
         setIsSubmitting(false);
