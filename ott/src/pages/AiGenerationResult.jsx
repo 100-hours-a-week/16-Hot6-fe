@@ -19,18 +19,49 @@ const AIGeneratedResult = () => {
         setLoading(false);
       })
       .catch((err) => {
+        console.log('에러 발생:', err);
+        setLoading(false);
         if (err.response && err.response.status === 403) {
           console.log('403 에러');
           setShowForbiddenModal(true);
         } else {
-          setData({});
+          // 다른 에러는 그냥 빈 객체로 (렌더링 시 체크 필요)
+          setData(null);
         }
-        setLoading(false);
       });
   }, [imageId]);
 
+  // 로딩 중이면 로딩 표시
   if (loading) return <div className="flex justify-center items-center h-screen">로딩중...</div>;
 
+  // 모달이 열려있고 데이터가 없으면 모달만 보여줌
+  if (showForbiddenModal) {
+    return (
+      <div>
+        <TopBar title="데스크 아이템 추천" showBackButton />
+        <SimpleModal
+          open={showForbiddenModal}
+          message="해당 게시글을 조회할 권한이 없습니다."
+          onClose={() => {
+            setShowForbiddenModal(false);
+            navigate(-1);
+          }}
+        />
+      </div>
+    );
+  }
+
+  // 데이터가 없으면 에러 표시 또는 다른 대체 UI
+  if (!data) {
+    return (
+      <div className="max-w-[640px] mx-auto min-h-screen bg-white flex flex-col items-center justify-center">
+        <TopBar title="데스크 아이템 추천" showBackButton />
+        <p className="text-center">데이터를 불러올 수 없습니다.</p>
+      </div>
+    );
+  }
+
+  // 정상적인 데이터가 있는 경우의 UI
   return (
     <div className="max-w-[640px] mx-auto min-h-screen bg-white pb-20">
       <TopBar title="데스크 아이템 추천" showBackButton />
@@ -111,15 +142,6 @@ const AIGeneratedResult = () => {
           게시글 작성하러 가기
         </div>
       </div>
-
-      <SimpleModal
-        open={showForbiddenModal}
-        message="해당 게시글을 조회할 권한이 없습니다."
-        onClose={() => {
-          setShowForbiddenModal(false);
-          navigate(-1);
-        }}
-      />
     </div>
   );
 };
