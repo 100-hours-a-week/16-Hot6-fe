@@ -5,6 +5,7 @@ on:
     branches:
       - dev
       - main
+      - feat/prod-cicd
 
 jobs:
   build-and-deploy:
@@ -24,16 +25,22 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
+        run: yarn install --frozen-lockfile
         working-directory: ott
 
-      - name: Build React app
-        run: npm run build
+      - name: Build React app (dev)
+        if: github.ref_name == 'feat/prod-cicd'
+        run: yarn build --mode development
+        working-directory: ott
+
+      - name: Build React app (prod)
+        if: github.ref_name == 'main'
+        run: yarn build
         working-directory: ott
 
       # === DEV 배포 ===
       - name: Set up SSH config for jump server
-        if: github.ref_name == 'dev'
+        if: github.ref_name == 'feat/prod-cicd'
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.JUMP_SSH_KEY }}" > ~/.ssh/jump_key
@@ -60,7 +67,7 @@ jobs:
           EOF
 
       - name: Clean Nginx folder on remote
-        if: github.ref_name == 'dev'
+        if: github.ref_name == 'feat/prod-cicd'
         run: |
           ssh -F ~/.ssh/config fe-dev-server <<'EOF'
             set -eux
@@ -69,12 +76,12 @@ jobs:
           EOF
 
       - name: Copy built files to remote server
-        if: github.ref_name == 'dev'
+        if: github.ref_name == 'feat/prod-cicd'
         run: |
           scp -r -F ~/.ssh/config ott/dist/* fe-dev-server:/var/www/html/
 
       - name: Reload Nginx
-        if: github.ref_name == 'dev'
+        if: github.ref_name == 'feat/prod-cicd'
         run: |
           ssh -F ~/.ssh/config fe-dev-server <<'EOF'
             sudo systemctl reload nginx
