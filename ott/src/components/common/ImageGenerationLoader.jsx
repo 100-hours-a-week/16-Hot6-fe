@@ -72,9 +72,9 @@ const ImageGenerationLoader = () => {
 
   return (
     <>
-      {/* 로딩바 (우측 하단 고정) */}
+      {/* 로딩바 (좌측 하단 고정) */}
       <div
-        className="fixed z-50 bottom-24 flex flex-col items-end gap-3"
+        className="fixed z-50 bottom-24 flex flex-col items-start gap-3"
         onClick={() => {
           if (status === 'done') {
             navigate(`/ai-images/${imageId}`);

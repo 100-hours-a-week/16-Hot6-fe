@@ -2,36 +2,47 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import useAuthStore from '@/store/authStore';
 
+// SVG 아이콘 import
+import homeOutlinedIcon from '@/assets/icons/navigation/home-outlined.svg';
+import homeFilledIcon from '@/assets/icons/navigation/home-filled.svg';
+import deskOutlinedIcon from '@/assets/icons/navigation/sparkles-outlined.svg';
+import deskFilledIcon from '@/assets/icons/navigation/sparkles-filled.svg';
+import uploadOutlinedIcon from '@/assets/icons/navigation/fire-outlined.svg';
+import uploadFilledIcon from '@/assets/icons/navigation/fire-filled.svg';
+import postsOutlinedIcon from '@/assets/icons/navigation/chatbubbles-outlined.svg';
+import postsFilledIcon from '@/assets/icons/navigation/chatbubbles-filled.svg';
+import mypageOutlinedIcon from '@/assets/icons/navigation/person-outlined.svg';
+import mypageFilledIcon from '@/assets/icons/navigation/person-filled.svg';
+
 const BottomNavigation = ({ checkDeskAIAvailability }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
   const navigationItems = [
     {
       path: '/',
-      icon: '🏠',
+      icon: location.pathname === '/' ? homeFilledIcon : homeOutlinedIcon,
       label: '홈',
-      // 아이콘 컴포넌트로 대체 가능
-      // icon: <HomeIcon className="w-6 h-6" />
     },
     {
       path: '/desk',
-      icon: '📦',
+      icon: location.pathname === '/desk' ? deskFilledIcon : deskOutlinedIcon,
       label: '데스크',
     },
     {
       path: '/upload',
-      icon: '✏️',
+      icon: location.pathname === '/upload' ? uploadFilledIcon : uploadOutlinedIcon,
       label: '특가',
     },
     {
       path: '/posts',
-      icon: '💬',
+      icon: location.pathname === '/posts' ? postsFilledIcon : postsOutlinedIcon,
       label: '게시판',
     },
     {
       path: isAuthenticated ? '/mypage' : '/login',
-      icon: '👤',
+      icon: location.pathname === '/mypage' ? mypageFilledIcon : mypageOutlinedIcon,
       label: isAuthenticated ? '내 정보' : '로그인',
     },
   ];
@@ -56,7 +67,7 @@ const BottomNavigation = ({ checkDeskAIAvailability }) => {
               }`}
               type="button"
             >
-              <span className="text-xl">{item.icon}</span>
+              <img src={item.icon} alt={item.label} className="w-6 h-6" />
               <span className="text-xs">{item.label}</span>
             </button>
           ) : (
@@ -67,7 +78,7 @@ const BottomNavigation = ({ checkDeskAIAvailability }) => {
                 location.pathname === item.path ? 'text-blue-500' : 'text-gray-500'
               }`}
             >
-              <span className="text-xl">{item.icon}</span>
+              <img src={item.icon} alt={item.label} className="w-6 h-6" />
               <span className="text-xs">{item.label}</span>
             </Link>
           ),
