@@ -19,14 +19,15 @@ const ImageGenerationLoader = () => {
     let interval = setInterval(async () => {
       try {
         const res = await axiosInstance.get(`/ai-images/${imageId}`);
-        console.log('Polling response:', res.status);
-        if (res.data.data.status === 'SUCCESS') {
+        console.log('Polling response:', res.data.data.status);
+        if (res.data.data.image.status === 'SUCCESS') {
           setStatus('done');
           setShowToast(true);
           clearInterval(interval);
-        } else if (res.data.data.status === 'FAILED') {
+        } else if (res.data.data.image.status === 'FAILED') {
           reset();
           setShowFailToast(true);
+          clearInterval(interval);
         }
       } catch (e) {
         console.log('Polling error:', e);
