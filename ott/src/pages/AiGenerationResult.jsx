@@ -54,7 +54,7 @@ const AIGeneratedResult = () => {
   // 데이터가 없으면 에러 표시 또는 다른 대체 UI
   if (!data) {
     return (
-      <div className="max-w-[640px] mx-auto min-h-screen bg-white flex flex-col items-center justify-center">
+      <div className="max-w-[640px] mx-auto min-h-screen bg-white pb-20">
         <TopBar title="데스크 아이템 추천" showBackButton />
         <p className="text-center">데이터를 불러올 수 없습니다.</p>
       </div>
