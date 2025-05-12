@@ -7,26 +7,29 @@ import SimpleModal from '@/components/common/SimpleModal';
 const AIGeneratedResult = () => {
   const { imageId } = useParams();
   const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [showForbiddenModal, setShowForbiddenModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     axiosInstance
       .get(`/ai-images/${imageId}`)
-      .then((res) => setData(res.data.data))
+      .then((res) => {
+        setData(res.data.data);
+        setLoading(false);
+      })
       .catch((err) => {
-        console.log(err);
-        console.log(err.response);
-        console.log(err.response.status);
         if (err.response && err.response.status === 403) {
+          console.log('403 에러');
           setShowForbiddenModal(true);
         } else {
           setData({});
         }
+        setLoading(false);
       });
   }, [imageId]);
 
-  if (!data) return <div className="flex justify-center items-center h-screen">로딩중...</div>;
+  if (loading) return <div className="flex justify-center items-center h-screen">로딩중...</div>;
 
   return (
     <div className="max-w-[640px] mx-auto min-h-screen bg-white pb-20">
