@@ -70,7 +70,7 @@ const AIGeneratedResult = () => {
       <div className="p-4 flex flex-col items-center">
         <div className="relative w-full max-w-lg aspect-square bg-gray-100 rounded-xl overflow-hidden flex items-center justify-center">
           <img
-            src={data.image.imagePath}
+            src={data.image.afterImagePath}
             alt="AI 생성 이미지"
             className="object-contain w-full h-full"
           />
