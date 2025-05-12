@@ -15,7 +15,7 @@ const TopBar = ({ title, onBackClick, className = '', showBack = true }) => {
 
   return (
     <div className="mt-2 sticky top-0 w-full bg-white z-50">
-      <div className="mx-auto flex items-center h-12 px-4">
+      <div className="mx-auto flex items-center h-13 px-4">
         {showBack && (
           <button
             className="flex items-center justify-center p-2 -ml-2"

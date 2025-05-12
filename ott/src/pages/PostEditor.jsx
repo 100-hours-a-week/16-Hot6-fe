@@ -1,8 +1,9 @@
-import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import TopBar from '../components/common/TopBar';
 import SimpleModal from '../components/common/SimpleModal';
 import axiosInstance from '@/api/axios';
+import ImagePreview from '../components/common/ImagePreview';
 
 const categories = [
   { value: 'ai', label: 'AI' },
@@ -28,6 +29,9 @@ export default function PostEditor() {
   const [loadingImages, setLoadingImages] = useState(false);
   const [freeImages, setFreeImages] = useState([]);
   const [carouselIdx, setCarouselIdx] = useState(0);
+  const [searchParams] = useSearchParams();
+  const imageId = searchParams.get('imageId');
+  const [aiImage, setAiImage] = useState(null);
   const navigate = useNavigate();
 
   const beforeInputRef = useRef();
@@ -93,18 +97,19 @@ export default function PostEditor() {
 
   const isSubmitEnabled =
     (category === 'ai'
-      ? isTitleValid && isContentValid && selectedAiImageId
+      ? isTitleValid && isContentValid && (selectedAiImageId || (imageId && aiImage))
       : isTitleValid && isContentValid) && !isSubmitting;
 
   const handleSubmit = async () => {
     if (category === 'ai') {
-      if (!isTitleValid || !isContentValid || !selectedAiImageId) return;
+      if (!isTitleValid || !isContentValid || (!selectedAiImageId && !(imageId && aiImage))) return;
       setIsSubmitting(true);
       try {
+        const aiImageIdToSend = selectedAiImageId || imageId;
         const response = await axiosInstance.post('/posts/ai', {
           title,
           content,
-          ai_image_id: selectedAiImageId,
+          ai_image_id: aiImageIdToSend,
         });
         if (response.status === 201) {
           navigate('/posts');
@@ -121,7 +126,14 @@ export default function PostEditor() {
         const formData = new FormData();
         formData.append('title', title);
         formData.append('content', content);
-        freeImages.forEach((file) => formData.append('images', file));
+
+        // 이미지 리사이즈 후 append
+        for (const file of freeImages) {
+          const resizedBlob = await resizeImage(file, 1024);
+          const resizedFile = new File([resizedBlob], file.name, { type: file.type });
+          formData.append('images', resizedFile);
+        }
+
         const response = await axiosInstance.post('/posts/free', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
@@ -153,6 +165,16 @@ export default function PostEditor() {
   // 캐러셀 이동
   const goPrev = () => setCarouselIdx((idx) => Math.max(0, idx - 1));
   const goNext = () => setCarouselIdx((idx) => Math.min(freeImages.length - 1, idx + 1));
+
+  useEffect(() => {
+    console.log('imageId', imageId);
+    if (imageId) {
+      axiosInstance.get(`/ai-images/${imageId}`).then((res) => {
+        setAiImage(res.data.data.image);
+        console.log(res.data.data.image);
+      });
+    }
+  }, [imageId]);
 
   return (
     <div className="max-w-[640px] mx-auto min-h-screen bg-white pb-32 relative">
@@ -192,7 +214,7 @@ export default function PostEditor() {
         </div>
 
         {/* 이미지 선택 버튼 */}
-        {category === 'free' && (
+        {category === 'free' && !aiImage && (
           <button
             className="flex items-center gap-2 border rounded-lg px-4 py-2 bg-gray-100 mb-4"
             onClick={handleFreeImageButtonClick}
@@ -221,43 +243,16 @@ export default function PostEditor() {
 
         {/* 자유 카테고리: 이미지 미리보기 */}
         {category === 'free' && freeImages.length > 0 && (
-          <div className="relative flex flex-col items-center mb-4">
-            <div className="relative flex items-center justify-center w-60 h-60 bg-gray-100 rounded-xl overflow-hidden">
-              {/* 삭제 버튼 - 왼쪽 상단 */}
-              <button
-                onClick={() => handleRemoveImage(carouselIdx)}
-                className="absolute top-2 left-2 bg-white rounded-full p-1 shadow"
-              >
-                🗑️
-              </button>
-              {/* 순서/전체 표기 - 오른쪽 상단 */}
-              <div className="absolute top-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full">
-                {carouselIdx + 1} / {freeImages.length}
-              </div>
-              {/* 이미지 */}
-              <img
-                src={URL.createObjectURL(freeImages[carouselIdx])}
-                alt={`선택 이미지 ${carouselIdx + 1}`}
-                className="object-cover w-full h-full"
-              />
-            </div>
-            {/* 썸네일 리스트(선택적) */}
-            <div className="flex gap-2 mt-2">
-              {freeImages.map((file, idx) => (
-                <img
-                  key={idx}
-                  src={URL.createObjectURL(file)}
-                  alt={`썸네일 ${idx + 1}`}
-                  className={`w-12 h-12 object-cover rounded ${idx === carouselIdx ? 'ring-2 ring-blue-500' : ''}`}
-                  onClick={() => setCarouselIdx(idx)}
-                />
-              ))}
-            </div>
-          </div>
+          <ImagePreview
+            images={freeImages}
+            carouselIdx={carouselIdx}
+            onRemove={handleRemoveImage}
+            onSelect={setCarouselIdx}
+          />
         )}
 
         {/* AI 카테고리: 선택된 이미지 쌍 미리보기 */}
-        {category === 'ai' && selectedAiImage && (
+        {category === 'ai' && selectedAiImage ? (
           <div className="flex justify-center gap-4 mb-4">
             <img
               src={selectedAiImage.beforeImagePath}
@@ -270,10 +265,25 @@ export default function PostEditor() {
               className="w-40 h-40 object-cover rounded-xl"
             />
           </div>
+        ) : (
+          aiImage && (
+            <div className="flex justify-center gap-4 mb-4">
+              <img
+                src={aiImage.beforeImagePath}
+                alt="before"
+                className="w-40 h-40 object-cover rounded-xl"
+              />
+              <img
+                src={aiImage.afterImagePath}
+                alt="after"
+                className="w-40 h-40 object-cover rounded-xl"
+              />
+            </div>
+          )
         )}
 
         {/* AI 카테고리: 이미지 선택 버튼 */}
-        {category === 'ai' && (
+        {category === 'ai' && !aiImage && (
           <button
             className="flex items-center gap-2 border rounded-lg px-4 py-2 bg-gray-100 mb-4"
             onClick={handleOpenImageSheet}
@@ -420,7 +430,7 @@ function AiImageBottomSheet({ open, onClose, onSelect, aiImageList }) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
+    <div className="fixed inset-0 z-50 flex flex-col bg-white max-w-[640px] mx-auto">
       {/* TopBar */}
       <div className="flex items-center justify-between px-4 h-12 border-b relative">
         <button className="p-2 -ml-2" onClick={onClose} aria-label="닫기">
@@ -548,4 +558,46 @@ function AiImageBottomSheet({ open, onClose, onSelect, aiImageList }) {
       </div>
     </div>
   );
+}
+
+function resizeImage(file, maxSize = 1024) {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      img.src = e.target.result;
+    };
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxSize || height > maxSize) {
+        if (width > height) {
+          height = Math.round((height * maxSize) / width);
+          width = maxSize;
+        } else {
+          width = Math.round((width * maxSize) / height);
+          height = maxSize;
+        }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error('이미지 리사이즈 실패'));
+          }
+        },
+        file.type,
+        0.9,
+      );
+    };
+    img.onerror = reject;
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }

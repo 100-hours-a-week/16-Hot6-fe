@@ -3,6 +3,19 @@ import useImageGenerationStore from '@/store/imageGenerationStore';
 import axiosInstance from '@/api/axios';
 import { useNavigate } from 'react-router-dom';
 
+// 윈도우 너비를 확인하는 훅 추가
+function useWindowWidth() {
+  const [width, setWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return width;
+}
+
 const POLL_INTERVAL = 10000; // 10초마다 폴링
 
 const ImageGenerationLoader = () => {
@@ -10,6 +23,7 @@ const ImageGenerationLoader = () => {
   const [showToast, setShowToast] = useState(false);
   const [showFailToast, setShowFailToast] = useState(false);
   const navigate = useNavigate();
+  const windowWidth = useWindowWidth(); // 훅 사용
 
   useEffect(() => {
     console.log('ImageGenerationLoader - Current state:', { imageId, status });
@@ -58,9 +72,9 @@ const ImageGenerationLoader = () => {
 
   return (
     <>
-      {/* 로딩바 (우측 하단 고정) */}
+      {/* 로딩바 (좌측 하단 고정) */}
       <div
-        className="fixed z-50 bottom-24 flex flex-col items-end gap-3"
+        className="fixed z-50 bottom-24 flex flex-col items-start gap-3"
         onClick={() => {
           if (status === 'done') {
             navigate(`/ai-images/${imageId}`);
