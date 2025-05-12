@@ -60,14 +60,18 @@ const ImageGenerationLoader = () => {
     <>
       {/* 로딩바 (우측 하단 고정) */}
       <div
-        className="fixed z-50 right-6 bottom-[88px] w-16 h-16 flex items-center justify-center bg-white rounded-full shadow-lg cursor-pointer"
+        className="fixed z-50 bottom-24 flex flex-col items-end gap-3"
         onClick={() => {
           if (status === 'done') {
             navigate(`/ai-images/${imageId}`);
             reset();
           }
         }}
-        style={{ opacity: status === 'done' ? 1 : 0.8 }}
+        style={{
+          opacity: status === 'done' ? 1 : 0.8,
+          right: windowWidth >= 768 ? 'calc(50vw - 384px + 1rem)' : '1rem',
+          maxWidth: windowWidth >= 768 ? 'calc(100vw - 32px)' : undefined,
+        }}
       >
         {status === 'generating' ? (
           <svg className="animate-spin w-10 h-10 text-gray-400" viewBox="0 0 24 24">
