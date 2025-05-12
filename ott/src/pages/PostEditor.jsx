@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import TopBar from '../components/common/TopBar';
 import SimpleModal from '../components/common/SimpleModal';
 import axiosInstance from '@/api/axios';
-import ImagePreview from '../components/common/ImagePreview';
+import ImagePreview from '../components/common/ImagePreeview';
 
 const categories = [
   { value: 'ai', label: 'AI' },
