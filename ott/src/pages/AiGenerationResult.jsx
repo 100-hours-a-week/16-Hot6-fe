@@ -21,16 +21,21 @@ const AIGeneratedResult = () => {
       .catch((err) => {
         console.log('에러 발생:', err);
         setLoading(false);
+        console.log('에러 발생:', err);
+        setLoading(false);
         if (err.response && err.response.status === 403) {
           console.log('403 에러');
           setShowForbiddenModal(true);
         } else {
           // 다른 에러는 그냥 빈 객체로 (렌더링 시 체크 필요)
           setData(null);
+          // 다른 에러는 그냥 빈 객체로 (렌더링 시 체크 필요)
+          setData(null);
         }
       });
   }, [imageId]);
 
+  // 로딩 중이면 로딩 표시
   // 로딩 중이면 로딩 표시
   if (loading) return <div className="flex justify-center items-center h-screen">로딩중...</div>;
 
