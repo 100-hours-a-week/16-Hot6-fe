@@ -15,6 +15,9 @@ const AIGeneratedResult = () => {
       .get(`/ai-images/${imageId}`)
       .then((res) => setData(res.data.data))
       .catch((err) => {
+        console.log(err);
+        console.log(err.response);
+        console.log(err.response.status);
         if (err.response && err.response.status === 403) {
           setShowForbiddenModal(true);
         } else {
