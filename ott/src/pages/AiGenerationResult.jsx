@@ -37,7 +37,7 @@ const AIGeneratedResult = () => {
   // 모달이 열려있고 데이터가 없으면 모달만 보여줌
   if (showForbiddenModal) {
     return (
-      <div>
+      <div className="max-w-[640px] mx-auto min-h-screen bg-white pb-20">
         <TopBar title="데스크 아이템 추천" showBackButton />
         <SimpleModal
           open={showForbiddenModal}
