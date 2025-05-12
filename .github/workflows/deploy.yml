@@ -1,15 +1,16 @@
-name: Frontend CI & dev CD
+name: Frontend CI & CD
 
 on:
   push:
     branches:
-      - prod-temp
+      - dev
+      - feat/prod-cicd
 
 jobs:
   build-and-deploy:
-    name: Build and Deploy to S3
+    name: Build Frontend & Deploy
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'main' && 'main' || 'prod' }}
+    environment: ${{ github.ref_name == 'feat/prod-cicd' && 'prod' || 'dev' }}
 
     steps:
       - name: Checkout repository
@@ -30,35 +31,94 @@ jobs:
         run: npm run build
         working-directory: ott
 
+      # === DEV 배포 ===
+      - name: Set up SSH config for jump server
+        if: github.ref_name == 'dev'
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.JUMP_SSH_KEY }}" > ~/.ssh/jump_key
+          chmod 600 ~/.ssh/jump_key
+
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/dev_key
+          chmod 600 ~/.ssh/dev_key
+
+          cat <<EOF > ~/.ssh/config
+          Host fe-dev-server
+              HostName ${{ secrets.SSH_HOST }}
+              User ubuntu
+              IdentityFile ~/.ssh/dev_key
+              ProxyJump jump-server
+              StrictHostKeyChecking no
+              UserKnownHostsFile /dev/null
+
+          Host jump-server
+              HostName ${{ secrets.JUMP_SSH_HOST }}
+              User ubuntu
+              IdentityFile ~/.ssh/jump_key
+              StrictHostKeyChecking no
+              UserKnownHostsFile /dev/null
+          EOF
+
+      - name: Clean Nginx folder on remote
+        if: github.ref_name == 'dev'
+        run: |
+          ssh -F ~/.ssh/config fe-dev-server <<'EOF'
+            set -eux
+            sudo rm -rf /var/www/html/*
+            sudo mkdir -p /var/www/html
+          EOF
+
+      - name: Copy built files to remote server
+        if: github.ref_name == 'dev'
+        run: |
+          scp -r -F ~/.ssh/config ott/dist/* fe-dev-server:/var/www/html/
+
+      - name: Reload Nginx
+        if: github.ref_name == 'dev'
+        run: |
+          ssh -F ~/.ssh/config fe-dev-server <<'EOF'
+            sudo systemctl reload nginx
+          EOF
+
+      # === PROD 배포 ===
       - name: Authenticate to GCP
+        if: github.ref_name == 'feat/prod-cicd'
         uses: google-github-actions/auth@v2
         with:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
-      
-      - name: Generate secrets.properties from GCP Secrets
-        run: |
-          mkdir -p ./secrets
-          touch ./secrets/secrets.properties
 
-          for LABEL in $SECRET_LABELS; do
-            gcloud secrets list --filter="labels.env=$LABEL" --format="value(name)" | while read SECRET_NAME; do
-              SECRET_VALUE=$(gcloud secrets versions access latest --secret="$SECRET_NAME")
-              IFS='-' read -r SERVICE KEY ENV <<< "$SECRET_NAME"
-              echo "${KEY}=${SECRET_VALUE}" >> ./secrets/secrets.properties
-            done
+      - name: Load secrets from GCP and export as env
+        if: github.ref_name == 'feat/prod-cicd'
+        id: load-secrets
+        run: |
+          gcloud secrets list --filter="labels.env=frontend_prod" --format="value(name)" | while read SECRET_NAME; do
+            SECRET_VALUE=$(gcloud secrets versions access latest --secret="$SECRET_NAME")
+            IFS='-' read -r SERVICE KEY ENV <<< "$SECRET_NAME"
+            echo "export $KEY='$SECRET_VALUE'" >> $GITHUB_ENV
           done
-        env:
-          SECRET_LABELS: "backend_shared"
-      
 
-      - name: Configure AWS credentials from secrets.properties
+      - name: Configure AWS credentials (S3)
+        if: github.ref_name == 'feat/prod-cicd'
         run: |
-          source ./secrets/secrets.properties
           aws configure set aws_access_key_id "$S3_ACCESS_KEY"
           aws configure set aws_secret_access_key "$S3_SECRET_KEY"
           aws configure set region ap-northeast-2
 
       - name: Deploy to S3
+        if: github.ref_name == 'feat/prod-cicd'
         run: |
-          aws s3 sync ott/dist/ s3://onthe-top/frontend/prod/blue \
-            --delete
+          aws s3 sync ott/dist/ s3://onthe-top/frontend/prod/blue --delete
+
+      - name: Configure AWS credentials (CloudFront)
+        if: github.ref_name == 'feat/prod-cicd'
+        run: |
+          aws configure set aws_access_key_id "$CLOUDFRONT_ACCESS_KEY"
+          aws configure set aws_secret_access_key "$CLOUDFRONT_SECRET_KEY"
+          aws configure set region ap-northeast-2
+
+      - name: Invalidate CloudFront cache
+        if: github.ref_name == 'feat/prod-cicd'
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" \
+            --paths "/*"
