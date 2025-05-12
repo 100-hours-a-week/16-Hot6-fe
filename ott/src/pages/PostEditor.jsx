@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import TopBar from '../components/common/TopBar';
 import SimpleModal from '../components/common/SimpleModal';
 import axiosInstance from '@/api/axios';
+import ImagePreview from '../components/common/ImagePreview';
 
 const categories = [
   { value: 'ai', label: 'AI' },
@@ -242,39 +243,12 @@ export default function PostEditor() {
 
         {/* 자유 카테고리: 이미지 미리보기 */}
         {category === 'free' && freeImages.length > 0 && (
-          <div className="relative flex flex-col items-center mb-4">
-            <div className="relative flex items-center justify-center w-60 h-60 bg-gray-100 rounded-xl overflow-hidden">
-              {/* 삭제 버튼 - 왼쪽 상단 */}
-              <button
-                onClick={() => handleRemoveImage(carouselIdx)}
-                className="absolute top-2 left-2 bg-white rounded-full p-1 shadow"
-              >
-                🗑️
-              </button>
-              {/* 순서/전체 표기 - 오른쪽 상단 */}
-              <div className="absolute top-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full">
-                {carouselIdx + 1} / {freeImages.length}
-              </div>
-              {/* 이미지 */}
-              <img
-                src={URL.createObjectURL(freeImages[carouselIdx])}
-                alt={`선택 이미지 ${carouselIdx + 1}`}
-                className="object-cover w-full h-full"
-              />
-            </div>
-            {/* 썸네일 리스트(선택적) */}
-            <div className="flex gap-2 mt-2">
-              {freeImages.map((file, idx) => (
-                <img
-                  key={idx}
-                  src={URL.createObjectURL(file)}
-                  alt={`썸네일 ${idx + 1}`}
-                  className={`w-12 h-12 object-cover rounded ${idx === carouselIdx ? 'ring-2 ring-blue-500' : ''}`}
-                  onClick={() => setCarouselIdx(idx)}
-                />
-              ))}
-            </div>
-          </div>
+          <ImagePreview
+            images={freeImages}
+            carouselIdx={carouselIdx}
+            onRemove={handleRemoveImage}
+            onSelect={setCarouselIdx}
+          />
         )}
 
         {/* AI 카테고리: 선택된 이미지 쌍 미리보기 */}
