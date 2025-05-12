@@ -54,7 +54,7 @@ const AIGeneratedResult = () => {
   // 데이터가 없으면 에러 표시 또는 다른 대체 UI
   if (!data) {
     return (
-      <div className="max-w-[640px] mx-auto min-h-screen bg-white flex flex-col items-center justify-center">
+      <div className="max-w-[640px] mx-auto min-h-screen bg-white pb-20">
         <TopBar title="데스크 아이템 추천" showBackButton />
         <p className="text-center">데이터를 불러올 수 없습니다.</p>
       </div>
@@ -70,7 +70,7 @@ const AIGeneratedResult = () => {
       <div className="p-4 flex flex-col items-center">
         <div className="relative w-full max-w-lg aspect-square bg-gray-100 rounded-xl overflow-hidden flex items-center justify-center">
           <img
-            src={data.image.imagePath}
+            src={data.image.afterImagePath}
             alt="AI 생성 이미지"
             className="object-contain w-full h-full"
           />
@@ -138,9 +138,12 @@ const AIGeneratedResult = () => {
 
       {/* 하단 안내 버튼 */}
       <div className="w-full max-w-[640px] px-4 mx-auto mt-8">
-        <div className="bg-gray-200 rounded-xl py-3 text-center text-gray-700 text-base">
+        <button
+          className="w-full bg-black rounded-xl py-3 text-center text-white text-base"
+          onClick={() => navigate(`/post-editor?imageId=${data.image.imageId}`)}
+        >
           게시글 작성하러 가기
-        </div>
+        </button>
       </div>
     </div>
   );
