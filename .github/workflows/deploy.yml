@@ -1,15 +1,16 @@
-name: Frontend CI & dev CD
+name: Frontend CI & CD
 
 on:
   push:
     branches:
       - dev
+      - main
 
 jobs:
-  build-artifact:
-    name: Build React App with Vite
+  build-and-deploy:
+    name: Build Frontend & Deploy
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'main' && 'main' || 'dev' }}
+    environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
 
     steps:
       - name: Checkout repository
@@ -22,15 +23,23 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies (with legacy peer deps)
-        run: npm install --legacy-peer-deps
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
         working-directory: ott
 
-      - name: Build React app
-        run: npm run build
+      - name: Build React app (dev)
+        if: github.ref_name == 'dev'
+        run: yarn build --mode development
+        working-directory: ott
+        
+      - name: Build React app (prod)
+        if: github.ref_name == 'main'
+        run: yarn build --mode production
         working-directory: ott
 
+      # === DEV 배포 ===
       - name: Set up SSH config for jump server
+        if: github.ref_name == 'dev'
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.JUMP_SSH_KEY }}" > ~/.ssh/jump_key
@@ -57,6 +66,7 @@ jobs:
           EOF
 
       - name: Clean Nginx folder on remote
+        if: github.ref_name == 'dev'
         run: |
           ssh -F ~/.ssh/config fe-dev-server <<'EOF'
             set -eux
@@ -65,11 +75,34 @@ jobs:
           EOF
 
       - name: Copy built files to remote server
+        if: github.ref_name == 'dev'
         run: |
           scp -r -F ~/.ssh/config ott/dist/* fe-dev-server:/var/www/html/
 
       - name: Reload Nginx
+        if: github.ref_name == 'dev'
         run: |
           ssh -F ~/.ssh/config fe-dev-server <<'EOF'
             sudo systemctl reload nginx
           EOF
+
+      # === PROD 배포 ===
+      - name: Deploy to S3
+        if: github.ref_name == 'main'
+        run: |
+          export AWS_ACCESS_KEY_ID="${{ secrets.S3_ACCESS_KEY }}"
+          export AWS_SECRET_ACCESS_KEY="${{ secrets.S3_SECRET_KEY }}"
+          export AWS_DEFAULT_REGION="ap-northeast-2"
+
+          aws s3 sync ott/dist/ s3://onthe-top/frontend/prod/blue --delete
+
+      - name: Invalidate CloudFront cache
+        if: github.ref_name == 'main'
+        run: |
+          export AWS_ACCESS_KEY_ID="${{ secrets.CLOUDFRONT_ACCESS_KEY }}"
+          export AWS_SECRET_ACCESS_KEY="${{ secrets.CLOUDFRONT_SECRET_KEY }}"
+          export AWS_DEFAULT_REGION="ap-northeast-2"
+
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --paths "/*"
