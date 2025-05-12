@@ -2,51 +2,66 @@ import React, { useEffect, useState } from 'react';
 import axiosInstance from '@/api/axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import TopBar from '../components/common/TopBar';
-
-const dummyData = {
-  status: 200,
-  message: '데스크 이미지 및 추천 제품 조회 성공',
-  data: {
-    image: {
-      imageId: 3101,
-      imagePath: 'https://cdn.yourapp.com/ai/3101.jpg',
-      createdAt: '2025-04-23T14:00:00Z',
-    },
-    products: [
-      {
-        productId: 501,
-        productName: 'LED 무드등',
-        imagePath: 'https://cdn.yourapp.com/products/501.jpg',
-        price: 10000,
-        purchaseLink: 'https://store.com/product/501',
-        isScrapped: true,
-      },
-      {
-        productId: 502,
-        productName: '기계식 키보드',
-        imagePath: 'https://cdn.yourapp.com/products/502.jpg',
-        price: 10000,
-        purchaseLink: 'https://store.com/product/502',
-        isScrapped: false,
-      },
-    ],
-  },
-};
+import SimpleModal from '@/components/common/SimpleModal';
 
 const AIGeneratedResult = () => {
   const { imageId } = useParams();
   const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showForbiddenModal, setShowForbiddenModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     axiosInstance
       .get(`/ai-images/${imageId}`)
-      .then((res) => setData(res.data.data))
-      .catch(() => setData(dummyData.data));
+      .then((res) => {
+        setData(res.data.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.log('에러 발생:', err);
+        setLoading(false);
+        if (err.response && err.response.status === 403) {
+          console.log('403 에러');
+          setShowForbiddenModal(true);
+        } else {
+          // 다른 에러는 그냥 빈 객체로 (렌더링 시 체크 필요)
+          setData(null);
+        }
+      });
   }, [imageId]);
 
-  if (!data) return <div className="flex justify-center items-center h-screen">로딩중...</div>;
+  // 로딩 중이면 로딩 표시
+  if (loading) return <div className="flex justify-center items-center h-screen">로딩중...</div>;
 
+  // 모달이 열려있고 데이터가 없으면 모달만 보여줌
+  if (showForbiddenModal) {
+    return (
+      <div className="max-w-[640px] mx-auto min-h-screen bg-white pb-20">
+        <TopBar title="데스크 아이템 추천" showBackButton />
+        <SimpleModal
+          open={showForbiddenModal}
+          message="해당 게시글을 조회할 권한이 없습니다."
+          onClose={() => {
+            setShowForbiddenModal(false);
+            navigate(-1);
+          }}
+        />
+      </div>
+    );
+  }
+
+  // 데이터가 없으면 에러 표시 또는 다른 대체 UI
+  if (!data) {
+    return (
+      <div className="max-w-[640px] mx-auto min-h-screen bg-white flex flex-col items-center justify-center">
+        <TopBar title="데스크 아이템 추천" showBackButton />
+        <p className="text-center">데이터를 불러올 수 없습니다.</p>
+      </div>
+    );
+  }
+
+  // 정상적인 데이터가 있는 경우의 UI
   return (
     <div className="max-w-[640px] mx-auto min-h-screen bg-white pb-20">
       <TopBar title="데스크 아이템 추천" showBackButton />
@@ -82,12 +97,14 @@ const AIGeneratedResult = () => {
             </div>
             <div className="ml-4 flex-1 text-left">
               <div className="font-bold text-base">{product.productName}</div>
-              <div className="text-xs text-gray-500">링크</div>
+              <div className="text-xs text-gray-500">
+                {Number(product.price).toLocaleString()}원
+              </div>
             </div>
             {/* 스크랩 버튼 */}
             <button
               type="button"
-              aria-label={product.isScrapped ? '스크랩 해제' : '스크랩'}
+              aria-label={product.scraped ? '스크랩 해제' : '스크랩'}
               className="ml-2 w-8 h-8 flex items-center justify-center"
               tabIndex={0}
               onClick={(e) => {
@@ -95,7 +112,7 @@ const AIGeneratedResult = () => {
                 console.log('스크랩 버튼 클릭');
               }}
             >
-              {product.isScrapped ? (
+              {product.scarped ? (
                 <svg className="w-6 h-6" fill="#222" viewBox="0 0 24 24">
                   <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                 </svg>
@@ -120,7 +137,7 @@ const AIGeneratedResult = () => {
       </div>
 
       {/* 하단 안내 버튼 */}
-      <div className="fixed bottom-16 left-1/2 -translate-x-1/2 w-full max-w-[640px] px-4">
+      <div className="w-full max-w-[640px] px-4 mx-auto mt-8">
         <div className="bg-gray-200 rounded-xl py-3 text-center text-gray-700 text-base">
           게시글 작성하러 가기
         </div>

@@ -8,6 +8,7 @@ const Home = () => {
   const { checkDeskAIAvailability, modal, setModal } = useDeskAICheck();
 
   const handleDeskClick = async () => {
+    console.log('handleDeskClic 버튼 클릭함!');
     const isAvailable = await checkDeskAIAvailability();
     if (isAvailable) {
       navigate('/desk');

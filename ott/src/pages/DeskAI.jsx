@@ -107,14 +107,12 @@ const DeskAI = () => {
 
       // 3. 전송
       const response = await axiosInstance.post('/ai-images', formData, { timeout: 0 });
-      const { imageId } = response.data; // 응답에서 imageId 추출
-      console.log('Image upload successful, imageId:', imageId);
-      setImageId(imageId); // 전역 상태에 저장
-      console.log('ImageId set in store, navigating to home...');
+      const { aiImageId } = response.data.data; // 응답에서 imageId 추출      console.log('Image upload successful, imageId:', aiImageId);
+      setImageId(aiImageId); // 전역 상태에 저장
+
       setLoading(false);
       navigate('/'); // 홈으로 이동
     } catch (err) {
-      console.error('Image upload failed:', err);
       setLoading(false);
       setModal({ open: true, message: '이미지 업로드에 실패했습니다. 다시 시도해 주세요.' });
       setLastRequestTime(0);

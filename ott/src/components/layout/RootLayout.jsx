@@ -6,6 +6,7 @@ import Footer from './Footer'; // Footer import 추가
 import useDeskAICheck from '@/hooks/useDeskAICheck';
 import SimpleModal from '@/components/common/SimpleModal';
 import ImageGenerationLoader from '@/components/common/ImageGenerationLoader';
+import LoginModal from '@/components/common/LoginModal';
 
 const RootLayout = () => {
   const { checkDeskAIAvailability, modal, setModal } = useDeskAICheck();
@@ -33,10 +34,11 @@ const RootLayout = () => {
         {/* overflow-x-hidden 추가 */}
         <Header /> {/* Header 컴포넌트 사용 */}
         {/* 메인 컨텐츠 */}
-        <main className="flex-1 w-full pt-14 pb-16">
+        <main className="flex-1 w-full pt-14 pb-16 relative">
           <Outlet />
         </main>
         <Footer /> {/* Footer 추가 */}
+        <ImageGenerationLoader />
         {/* 하단 네비게이션 컴포넌트 */}
         <BottomNavigation checkDeskAIAvailability={checkDeskAIAvailability} />
         <SimpleModal
@@ -44,7 +46,7 @@ const RootLayout = () => {
           message={modal.message}
           onClose={() => setModal({ open: false, message: '' })}
         />
-        <ImageGenerationLoader />
+        <LoginModal />
       </div>
     </div>
   );

@@ -3,11 +3,12 @@ import useImageGenerationStore from '@/store/imageGenerationStore';
 import axiosInstance from '@/api/axios';
 import { useNavigate } from 'react-router-dom';
 
-const POLL_INTERVAL = 3000; // 3초마다 폴링
+const POLL_INTERVAL = 10000; // 10초마다 폴링
 
 const ImageGenerationLoader = () => {
   const { imageId, status, setStatus, reset } = useImageGenerationStore();
   const [showToast, setShowToast] = useState(false);
+  const [showFailToast, setShowFailToast] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,15 +19,20 @@ const ImageGenerationLoader = () => {
     let interval = setInterval(async () => {
       try {
         const res = await axiosInstance.get(`/ai-images/${imageId}`);
-        console.log('Polling response:', res.status);
-        if (res.status === 200) {
+        console.log('Polling response:', res.data.data.image.state);
+        if (res.data.data.image.state === 'SUCCESS') {
+          console.log('Image generation successful');
           setStatus('done');
           setShowToast(true);
+          clearInterval(interval);
+        } else if (res.data.data.image.state === 'FAILED') {
+          console.log('Image generation failed');
+          reset();
+          setShowFailToast(true);
           clearInterval(interval);
         }
       } catch (e) {
         console.log('Polling error:', e);
-        // 아직 생성 중이면 에러가 날 수 있음, 무시
       }
     }, POLL_INTERVAL);
 
@@ -41,20 +47,31 @@ const ImageGenerationLoader = () => {
     }
   }, [showToast]);
 
+  useEffect(() => {
+    if (showFailToast) {
+      const timer = setTimeout(() => setShowFailToast(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showFailToast]);
+
   if (!imageId || status === 'idle') return null;
 
   return (
     <>
       {/* 로딩바 (우측 하단 고정) */}
       <div
-        className="fixed z-50 right-6 bottom-24 w-16 h-16 flex items-center justify-center bg-white rounded-full shadow-lg cursor-pointer"
+        className="fixed z-50 bottom-24 flex flex-col items-end gap-3"
         onClick={() => {
           if (status === 'done') {
             navigate(`/ai-images/${imageId}`);
             reset();
           }
         }}
-        style={{ opacity: status === 'done' ? 1 : 0.8 }}
+        style={{
+          opacity: status === 'done' ? 1 : 0.8,
+          right: windowWidth >= 768 ? 'calc(50vw - 384px + 1rem)' : '1rem',
+          maxWidth: windowWidth >= 768 ? 'calc(100vw - 32px)' : undefined,
+        }}
       >
         {status === 'generating' ? (
           <svg className="animate-spin w-10 h-10 text-gray-400" viewBox="0 0 24 24">
@@ -84,8 +101,13 @@ const ImageGenerationLoader = () => {
       </div>
       {/* 토스트 메시지 */}
       {showToast && (
-        <div className="fixed bottom-40 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg z-50 shadow-lg">
+        <div className="absolute bottom-40 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg z-50 shadow-lg max-w-[768px] w-fit">
           이미지 생성이 완료되었습니다.
+        </div>
+      )}
+      {showFailToast && (
+        <div className="fixed bottom-40 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg z-50 shadow-lg max-w-[768px] w-fit">
+          이미지 생성에 실패 했습니다.
         </div>
       )}
     </>
