@@ -86,38 +86,33 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
-
-      - name: Load secrets from GCP and export as env
+      
+      - name: Load secrets from GCP and export to env
         if: github.ref_name == 'feat/prod-cicd'
         id: load-secrets
         run: |
           gcloud secrets list --filter="labels.env=frontend_prod" --format="value(name)" | while read SECRET_NAME; do
             SECRET_VALUE=$(gcloud secrets versions access latest --secret="$SECRET_NAME")
             IFS='-' read -r SERVICE KEY ENV <<< "$SECRET_NAME"
-            echo "export $KEY='$SECRET_VALUE'" >> $GITHUB_ENV
+            printf "%s=%s\n" "$KEY" "$SECRET_VALUE" >> $GITHUB_ENV
           done
-
-      - name: Configure AWS credentials (S3)
-        if: github.ref_name == 'feat/prod-cicd'
-        run: |
-          aws configure set aws_access_key_id "$S3_ACCESS_KEY"
-          aws configure set aws_secret_access_key "$S3_SECRET_KEY"
-          aws configure set region ap-northeast-2
-
+      
+      # 안전하게 환경 변수로 설정하여 aws cli가 인식하도록 설정
       - name: Deploy to S3
         if: github.ref_name == 'feat/prod-cicd'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ env.S3_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ env.S3_SECRET_KEY }}
+          AWS_DEFAULT_REGION: ap-northeast-2
         run: |
           aws s3 sync ott/dist/ s3://onthe-top/frontend/prod/blue --delete
-
-      - name: Configure AWS credentials (CloudFront)
-        if: github.ref_name == 'feat/prod-cicd'
-        run: |
-          aws configure set aws_access_key_id "$CLOUDFRONT_ACCESS_KEY"
-          aws configure set aws_secret_access_key "$CLOUDFRONT_SECRET_KEY"
-          aws configure set region ap-northeast-2
-
+      
       - name: Invalidate CloudFront cache
         if: github.ref_name == 'feat/prod-cicd'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ env.CLOUDFRONT_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ env.CLOUDFRONT_SECRET_KEY }}
+          AWS_DEFAULT_REGION: ap-northeast-2
         run: |
           aws cloudfront create-invalidation \
             --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" \
