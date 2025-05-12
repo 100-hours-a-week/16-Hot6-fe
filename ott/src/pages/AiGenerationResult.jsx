@@ -138,9 +138,12 @@ const AIGeneratedResult = () => {
 
       {/* 하단 안내 버튼 */}
       <div className="w-full max-w-[640px] px-4 mx-auto mt-8">
-        <div className="bg-gray-200 rounded-xl py-3 text-center text-gray-700 text-base">
+        <button
+          className="w-full bg-black rounded-xl py-3 text-center text-white text-base"
+          onClick={() => navigate(`/post-editor?imageId=${data.image.imageId}`)}
+        >
           게시글 작성하러 가기
-        </div>
+        </button>
       </div>
     </div>
   );
