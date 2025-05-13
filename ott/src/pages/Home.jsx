@@ -4,6 +4,7 @@ import axiosInstance from '@/api/axios';
 import SimpleModal from '@/components/common/SimpleModal';
 import useDeskAICheck from '@/hooks/useDeskAICheck';
 import mainImage from '@/assets/images/main.webp';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -37,7 +38,6 @@ const Home = () => {
   // 모달 표시 핸들러
   const handleShowModal = (e) => {
     e.stopPropagation();
-    console.log('handleShowModal 버튼 클릭함!');
     setShowModal(true);
   };
 
@@ -59,7 +59,6 @@ const Home = () => {
   };
 
   const handleDeskClick = async () => {
-    console.log('handleDeskClic 버튼 클릭함!');
     const isAvailable = await checkDeskAIAvailability();
     if (isAvailable) {
       navigate('/desk');
@@ -67,11 +66,7 @@ const Home = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (error) {
