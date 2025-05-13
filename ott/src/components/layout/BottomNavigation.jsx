@@ -107,6 +107,7 @@ const BottomNavigation = ({ checkDeskAIAvailability }) => {
       </nav>
       <SimpleModal
         open={isModalOpen}
+        title="⚒️ 서비스 준비중"
         message={`서비스 준비중입니다.\n 곧 더 나은 모습으로 찾아뵙겠습니다.`}
         onClose={() => setIsModalOpen(false)}
       />

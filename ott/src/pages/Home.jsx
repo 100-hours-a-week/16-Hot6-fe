@@ -442,6 +442,7 @@ const Home = () => {
       {/* SimpleModal */}
       <SimpleModal
         open={showModal}
+        title="⚒️ 서비스 준비중"
         onClose={() => setShowModal(false)}
         message={`서비스 준비중입니다.\n 곧 더 나은 모습으로 찾아뵙겠습니다.`}
       />
