@@ -153,12 +153,18 @@ export default function PostEditor() {
           console.error('게시글 불러오기 실패:', error);
           setShowErrorModal(true);
         } finally {
+          if (category === null) {
+            setCategory('ai');
+          }
           setIsLoading(false);
         }
       };
 
       fetchPost();
     } else {
+      if (category === null) {
+        setCategory('ai');
+      }
       setIsLoading(false);
     }
   }, [isEditMode, postId]);
@@ -240,7 +246,11 @@ export default function PostEditor() {
   const handleOpenImageSheet = async () => {
     setLoadingImages(true);
     try {
-      const res = await axiosInstance.get('/users/me/desks');
+      const res = await axiosInstance.get('/users/me/desks', {
+        params: {
+          type: 'post',
+        },
+      });
       setAiImageList(res.data.data.images);
       setShowImageSheet(true);
     } catch (e) {
@@ -285,7 +295,9 @@ export default function PostEditor() {
         <div className="mb-4">
           <label className="block font-bold mb-1">카테고리</label>
           <select
-            className="w-full border rounded-lg px-3 py-2"
+            className={`w-full border rounded-lg px-3 py-2 ${
+              isEditMode ? 'bg-gray-100 cursor-not-allowed' : ''
+            }`}
             value={category}
             onChange={(e) => {
               const newCategory = e.target.value;
@@ -301,6 +313,7 @@ export default function PostEditor() {
               setAiImageList([]);
               setCarouselIdx(0);
             }}
+            disabled={isEditMode} // 수정 모드일 때 비활성화
           >
             {categories.map((c) => (
               <option key={c.value} value={c.value}>
