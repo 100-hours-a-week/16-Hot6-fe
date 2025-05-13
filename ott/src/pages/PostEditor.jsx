@@ -302,7 +302,7 @@ export default function PostEditor() {
               setAiImageList([]);
               setCarouselIdx(0);
             }}
-            disabled={isEditMode} // 수정 모드일 때 비활성화
+            disabled={isEditMode || imageId} // 수정 모드, AI 게시글 작성일 때 비활성화
           >
             {categories.map((c) => (
               <option key={c.value} value={c.value}>
