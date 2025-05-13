@@ -6,9 +6,17 @@ import SimpleModal from '@/components/common/SimpleModal';
 
 // 날짜 포맷 함수
 function formatDate(dateStr) {
-  const date = new Date(dateStr);
+  const createdUTC = new Date(dateStr);
+  const date = new Date(createdUTC.getTime() + 9 * 60 * 60 * 1000);
   return `${date.getFullYear()}년 ${String(date.getMonth() + 1).padStart(2, '0')}월 ${String(date.getDate()).padStart(2, '0')}일 ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
+
+const formatLikeCount = (count) => {
+  if (count < 1000) return count.toString();
+  if (count < 10000) return `${Math.floor(count / 1000)}k`;
+  if (count < 100000) return `${Math.floor(count / 1000)}k`;
+  return `${Math.floor(count / 1000)}k`;
+};
 
 export default function PostDetail() {
   const { postId } = useParams();
@@ -176,7 +184,7 @@ export default function PostDetail() {
               <path d="M12 21C12 21 4 13.5 4 8.5C4 5.5 6.5 3 9.5 3C11.24 3 12 4.5 12 4.5C12 4.5 12.76 3 14.5 3C17.5 3 20 5.5 20 8.5C20 13.5 12 21 12 21Z" />
             </svg>
           )}
-          <span className="ml-1">{post.likeCount}</span>
+          <span className="ml-1">{formatLikeCount(post.likeCount)}</span>
         </button>
         <button
           onClick={(e) => {
