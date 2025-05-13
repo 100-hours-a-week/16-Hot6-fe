@@ -52,10 +52,6 @@ export default function PostEditor() {
   };
 
   const handleFreeImageButtonClick = () => {
-    if (!isEditMode) {
-      setFreeImages([]);
-      setCarouselIdx(0);
-    }
     fileInputRef.current.click();
   };
 
@@ -94,13 +90,17 @@ export default function PostEditor() {
     }
 
     setFreeImages((prev) => [...prev, ...validFiles]);
-    setCarouselIdx(0);
   };
 
   // 이미지 삭제
   const handleRemoveImage = (idx) => {
     setFreeImages((prev) => prev.filter((_, i) => i !== idx));
-    setCarouselIdx(0);
+    // 삭제 후 캐러셀 인덱스 조정
+    setCarouselIdx((prevIdx) => {
+      if (prevIdx === 0) return 0; // 첫 번째 이미지 삭제 시
+      if (prevIdx >= idx) return prevIdx - 1; // 현재 인덱스 이후의 이미지 삭제 시
+      return prevIdx; // 현재 인덱스 이전의 이미지 삭제 시
+    });
   };
 
   const getImageUrl = (file) => (file ? URL.createObjectURL(file) : null);
@@ -333,19 +333,49 @@ export default function PostEditor() {
           />
         )}
 
+        {/* AI 이미지 선택 버튼 */}
+        {category === 'ai' && (
+          <button
+            className="flex items-center gap-2 border rounded-lg px-4 py-2 bg-gray-100 mb-4"
+            onClick={() => setShowImageSheet(true)}
+          >
+            <svg
+              className="w-6 h-6 mr-2"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2z" />
+              <circle cx="12" cy="13" r="3" />
+            </svg>
+            이미지 선택
+          </button>
+        )}
+
         {/* AI 카테고리: 선택된 이미지 쌍 미리보기 */}
         {category === 'ai' && selectedAiImage ? (
-          <div className="flex justify-center gap-4 mb-4">
-            <img
-              src={selectedAiImage.beforeImagePath}
-              alt="before"
-              className="w-40 h-40 object-cover rounded-xl"
-            />
-            <img
-              src={selectedAiImage.afterImagePath}
-              alt="after"
-              className="w-40 h-40 object-cover rounded-xl"
-            />
+          <div className="flex gap-4 px-4 mt-6 mb-6">
+            <div className="flex-1 flex flex-col items-center">
+              <div className="font-bold mb-1">Before</div>
+              <div className="min-w-[160px] min-h-[160px] w-full max-w-[300px] aspect-square bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                <img
+                  src={selectedAiImage.beforeImagePath}
+                  alt="before"
+                  className="object-contain w-full h-full"
+                />
+              </div>
+            </div>
+            <div className="flex-1 flex flex-col items-center">
+              <div className="font-bold mb-1">After</div>
+              <div className="min-w-[160px] min-h-[160px] w-full max-w-[300px] aspect-square bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                <img
+                  src={selectedAiImage.afterImagePath}
+                  alt="after"
+                  className="object-contain w-full h-full"
+                />
+              </div>
+            </div>
           </div>
         ) : (
           aiImage && (
@@ -363,24 +393,6 @@ export default function PostEditor() {
             </div>
           )
         )}
-
-        {/* AI 이미지 선택 버튼 */}
-        <button
-          className="flex items-center gap-2 border rounded-lg px-4 py-2 bg-gray-100 mb-4"
-          onClick={() => setShowImageSheet(true)}
-        >
-          <svg
-            className="w-6 h-6 mr-2"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-          >
-            <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2z" />
-            <circle cx="12" cy="13" r="3" />
-          </svg>
-          이미지 선택
-        </button>
 
         {/* 제목 입력 */}
         <div className="mb-2">
