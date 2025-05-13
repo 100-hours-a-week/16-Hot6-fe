@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import TopBar from '../components/common/TopBar';
 import SimpleModal from '../components/common/SimpleModal';
@@ -232,23 +232,6 @@ export default function PostEditor() {
     }
   };
 
-  const handleOpenImageSheet = async () => {
-    setLoadingImages(true);
-    try {
-      const res = await axiosInstance.get('/users/me/desks', {
-        params: {
-          type: 'post',
-        },
-      });
-      setAiImageList(res.data.data.images);
-      setShowImageSheet(true);
-    } catch (e) {
-      setShowImageListErrorModal(true);
-    } finally {
-      setLoadingImages(false);
-    }
-  };
-
   // 캐러셀 이동
   const goPrev = () => setCarouselIdx((idx) => Math.max(0, idx - 1));
   const goNext = () => setCarouselIdx((idx) => Math.min(freeImages.length - 1, idx + 1));
@@ -302,7 +285,7 @@ export default function PostEditor() {
               setAiImageList([]);
               setCarouselIdx(0);
             }}
-            disabled={isEditMode} // 수정 모드일 때 비활성화
+            disabled={isEditMode || imageId} // 수정 모드, AI 게시글 작성일 때 비활성화
           >
             {categories.map((c) => (
               <option key={c.value} value={c.value}>
@@ -381,25 +364,23 @@ export default function PostEditor() {
           )
         )}
 
-        {/* AI 카테고리: 이미지 선택 버튼 */}
-        {category === 'ai' && !aiImage && (
-          <button
-            className="flex items-center gap-2 border rounded-lg px-4 py-2 bg-gray-100 mb-4"
-            onClick={handleOpenImageSheet}
+        {/* AI 이미지 선택 버튼 */}
+        <button
+          className="flex items-center gap-2 border rounded-lg px-4 py-2 bg-gray-100 mb-4"
+          onClick={() => setShowImageSheet(true)}
+        >
+          <svg
+            className="w-6 h-6 mr-2"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
           >
-            <svg
-              className="w-6 h-6 mr-2"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2z" />
-              <circle cx="12" cy="13" r="3" />
-            </svg>
-            이미지 선택
-          </button>
-        )}
+            <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2z" />
+            <circle cx="12" cy="13" r="3" />
+          </svg>
+          이미지 선택
+        </button>
 
         {/* 제목 입력 */}
         <div className="mb-2">
@@ -451,37 +432,12 @@ export default function PostEditor() {
         </button>
       </div>
 
-      {/* AI 카테고리: 이미지 쌍 선택 BottomSheet */}
-      {category === 'ai' && (
-        <div
-          className={`fixed inset-0 z-50 transition-all duration-300 ease-in-out ${
-            showImageSheet ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full'
-          }`}
-        >
-          {loadingImages && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-20">
-              <svg className="animate-spin w-12 h-12 text-gray-400" viewBox="0 0 24 24">
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                  fill="none"
-                />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-              </svg>
-            </div>
-          )}
-          <AiImageBottomSheet
-            open={showImageSheet}
-            onClose={() => setShowImageSheet(false)}
-            onSelect={handleAiImageSelect}
-            aiImageList={aiImageList}
-          />
-        </div>
-      )}
+      {/* AiImageBottomSheet 컴포넌트 */}
+      <AiImageBottomSheet
+        open={showImageSheet}
+        onClose={() => setShowImageSheet(false)}
+        onSelect={handleAiImageSelect}
+      />
 
       {/* Coming Soon Modal */}
       <SimpleModal
@@ -517,14 +473,77 @@ export default function PostEditor() {
   );
 }
 
-function AiImageBottomSheet({ open, onClose, onSelect, aiImageList }) {
+function AiImageBottomSheet({ open, onClose, onSelect }) {
   const [selected, setSelected] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [aiImageList, setAiImageList] = useState([]);
+  const [hasNext, setHasNext] = useState(true);
+  const [lastImageId, setLastImageId] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const bottomRef = useRef(null);
   const navigate = useNavigate();
 
   const SHEET_HEIGHT = typeof window !== 'undefined' ? window.innerHeight : 700;
   const TOPBAR_HEIGHT = 48;
   const CONTENT_HEIGHT = SHEET_HEIGHT - TOPBAR_HEIGHT;
+
+  const fetchAiImages = useCallback(
+    async (isInitial = false) => {
+      if (!hasNext || isLoading) return;
+
+      setIsLoading(true);
+      try {
+        const res = await axiosInstance.get('/users/me/desks', {
+          params: {
+            type: 'post',
+            size: 10,
+            lastImageId: isInitial ? null : lastImageId,
+          },
+        });
+
+        const { images, hasNext: nextHasNext } = res.data.data;
+
+        if (isInitial) {
+          setAiImageList(images);
+        } else {
+          setAiImageList((prev) => [...prev, ...images]);
+        }
+
+        setHasNext(nextHasNext);
+        if (images.length > 0) {
+          setLastImageId(images[images.length - 1].aiImageId);
+        }
+      } catch (error) {
+        console.error('AI 이미지 목록 조회 실패:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [hasNext, isLoading, lastImageId],
+  );
+
+  const handleScroll = useCallback(() => {
+    if (!bottomRef.current) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = bottomRef.current;
+    if (scrollHeight - scrollTop - clientHeight < 100) {
+      fetchAiImages();
+    }
+  }, [fetchAiImages]);
+
+  useEffect(() => {
+    const currentRef = bottomRef.current;
+    if (currentRef) {
+      currentRef.addEventListener('scroll', handleScroll);
+      return () => currentRef.removeEventListener('scroll', handleScroll);
+    }
+  }, [handleScroll]);
+
+  useEffect(() => {
+    if (open) {
+      fetchAiImages(true);
+    }
+  }, [open, fetchAiImages]);
 
   if (!open) return null;
 
@@ -553,6 +572,7 @@ function AiImageBottomSheet({ open, onClose, onSelect, aiImageList }) {
           완료
         </button>
       </div>
+
       {/* 상단 이미지 영역 */}
       <div
         className="flex items-center justify-center transition-all duration-300 ease-in-out"
@@ -573,6 +593,7 @@ function AiImageBottomSheet({ open, onClose, onSelect, aiImageList }) {
           <span className="text-gray-400">이미지를 선택하세요</span>
         )}
       </div>
+
       {/* 하단 이미지 목록 영역 */}
       <div
         className="w-full bg-[#f8fafc] rounded-t-2xl overflow-hidden transition-all duration-300 ease-in-out transform translate-y-0"
@@ -581,7 +602,7 @@ function AiImageBottomSheet({ open, onClose, onSelect, aiImageList }) {
           boxShadow: '0 -2px 8px rgba(0,0,0,0.04)',
         }}
       >
-        <div className="overflow-y-auto h-full px-4 pt-4 pb-20">
+        <div ref={bottomRef} className="overflow-y-auto h-full px-4 pt-4 pb-20">
           {aiImageList.length > 0 ? (
             <div className="space-y-3">
               {aiImageList.map((item) => (
@@ -637,6 +658,11 @@ function AiImageBottomSheet({ open, onClose, onSelect, aiImageList }) {
                   )}
                 </div>
               ))}
+              {isLoading && (
+                <div className="flex justify-center py-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center h-full -mt-12">

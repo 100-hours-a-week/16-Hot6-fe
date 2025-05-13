@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import TopBar from '@/components/common/TopBar';
 import axiosInstance from '@/api/axios';
+import SimpleModal from '@/components/common/SimpleModal';
 
 // 날짜 포맷 함수
 function formatDate(dateStr) {
@@ -16,6 +17,8 @@ export default function PostDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [carouselIdx, setCarouselIdx] = useState(0);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDeleteErrorToast, setShowDeleteErrorToast] = useState(false);
 
   // 게시글 정보 불러오기
   useEffect(() => {
@@ -62,6 +65,22 @@ export default function PostDetail() {
 
   const handleEdit = () => {
     navigate(`/post-editor?postId=${postId}&mode=edit`);
+  };
+
+  // 삭제 핸들러 함수 추가
+  const handleDelete = async () => {
+    try {
+      await axiosInstance.delete(`/posts/${postId}`);
+      // 삭제 성공 시 목록 페이지로 이동
+      navigate('/posts');
+    } catch (error) {
+      console.error('게시글 삭제 실패:', error);
+      setShowDeleteErrorToast(true);
+      // 3초 후 토스트 메시지 숨기기
+      setTimeout(() => {
+        setShowDeleteErrorToast(false);
+      }, 3000);
+    }
   };
 
   // 로딩 중일 때
@@ -115,7 +134,9 @@ export default function PostDetail() {
             <button className="text-gray-400 text-sm" onClick={handleEdit}>
               수정
             </button>
-            <button className="text-red-500 text-sm">삭제</button>
+            <button className="text-red-500 text-sm" onClick={() => setShowDeleteModal(true)}>
+              삭제
+            </button>
           </div>
         )}
       </div>
@@ -256,6 +277,23 @@ export default function PostDetail() {
         <div className="font-bold mb-2">{post.commentCount}개의 댓글</div>
         {/* 댓글 목록은 별도 API로 불러오는 것이 좋습니다 */}
       </div>
+
+      {/* 삭제 확인 모달 */}
+      <SimpleModal
+        open={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        message="정말로 삭제하시겠습니까?"
+        leftButtonText="취소"
+        rightButtonText="삭제"
+      />
+
+      {/* 삭제 실패 토스트 */}
+      {showDeleteErrorToast && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg">
+          삭제에 실패했습니다. 잠시 후 다시 시도해주세요.
+        </div>
+      )}
     </div>
   );
 }
