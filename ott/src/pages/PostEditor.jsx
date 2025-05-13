@@ -99,14 +99,6 @@ export default function PostEditor() {
 
   // 이미지 삭제
   const handleRemoveImage = (idx) => {
-    // const imageToRemove = freeImages[idx];
-
-    // if (imageToRemove.imageUuid) {
-    //   // 기존 이미지 삭제
-    //   setRemovedImageIds((prev) => [...prev, imageToRemove.imageUuid]);
-    //   setExistingImageIds((prev) => prev.filter((id) => id !== imageToRemove.imageUuid));
-    // }
-
     setFreeImages((prev) => prev.filter((_, i) => i !== idx));
     setCarouselIdx(0);
   };
@@ -140,11 +132,11 @@ export default function PostEditor() {
               afterImagePath: postData.imageUrls[0].afterImagePath,
               aiImageId: postData.imageUrls[0].aiImageId,
             });
-            setSelectedAiImageId(postData.imageUrls[0].aiImageId);
+            setSelectedAiImageId(postData.imageUrls[0].id);
           } else {
             // 자유 게시판 이미지 처리
             const imageIds = postData.imageUrls.reduce((acc, img) => {
-              acc[img.imageUuid] = img.id;
+              acc[img.imageUuid] = img.sequence;
               return acc;
             }, {});
             setExistingImageIds(imageIds);
@@ -168,7 +160,12 @@ export default function PostEditor() {
   // 제출 핸들러 수정
   const handleSubmit = async () => {
     if (category === 'ai') {
-      if (!isTitleValid || !isContentValid || (!selectedAiImageId && !(imageId && aiImage))) return;
+      if (
+        !isTitleValid ||
+        !isContentValid ||
+        (!selectedAiImageId && !(isEditMode ? aiImage : imageId && aiImage))
+      )
+        return;
       setIsSubmitting(true);
       try {
         const aiImageIdToSend = selectedAiImageId || imageId;
