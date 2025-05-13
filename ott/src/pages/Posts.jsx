@@ -4,14 +4,14 @@ import axiosInstance from '@/api/axios';
 
 const CATEGORY_MAP = [
   { label: '전체', value: 'ALL' },
-  { label: 'AI추천', value: 'AI_RECOMMEND' },
+  { label: 'AI추천', value: 'AI' },
   { label: '자유', value: 'FREE' },
 ];
 const SORT_MAP = [
   { label: '최신순', value: 'LATEST' },
   { label: '조회수순', value: 'VIEW' },
   { label: '좋아요순', value: 'LIKE' },
-  { label: '스크랩순', value: 'SCRAP' },
+  // { label: '스크랩순', value: 'SCRAP' },
 ];
 
 function formatDate(createdAtStr) {
@@ -65,25 +65,107 @@ export default function Posts() {
 
   const windowWidth = useWindowWidth();
 
+  // 게시글 불러오기 함수
+  const fetchPosts = async (isFirst = false) => {
+    if (isFetching || (!pagination.hasNext && !isFirst)) return;
+    setIsFetching(true);
+    try {
+      const params = {
+        category: category !== 'ALL' ? category : undefined,
+        sort,
+        size: pagination.size,
+      };
+
+      if (!isFirst && pagination.lastPostId) {
+        params.lastPostId = pagination.lastPostId;
+      }
+
+      const res = await axiosInstance.get('/posts', { params });
+      const { posts: newPosts, pagination: newPagination } = res.data.data;
+      setPosts((prev) => (isFirst ? newPosts : [...prev, ...newPosts]));
+      setPagination({
+        lastPostId: newPagination.lastPostId,
+        hasNext: newPagination.hasNext,
+        size: newPagination.size,
+      });
+    } catch (e) {
+      alert('게시글 목록을 불러오지 못했습니다.');
+    } finally {
+      setIsFetching(false);
+      setLoading(false);
+    }
+  };
+
+  // 카테고리 변경 핸들러
+  const handleCategoryChange = (newCategory) => {
+    setCategory(newCategory);
+    setPosts([]); // 기존 게시글 목록 초기화
+    setPagination({
+      lastPostId: null,
+      hasNext: true,
+      size: 10,
+    });
+  };
+
+  // 정렬 변경 핸들러
+  const handleSortChange = (newSort) => {
+    setSort(newSort);
+    setPosts([]); // 기존 게시글 목록 초기화
+    setPagination({
+      lastPostId: null,
+      hasNext: true,
+      size: 10,
+    });
+  };
+
+  // 카테고리나 정렬이 변경될 때마다 새로운 요청
+  useEffect(() => {
+    fetchPosts(true);
+  }, [category, sort]);
+
   // 스크롤 이벤트 핸들러
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      setShowMiniWrite(scrollY > 200); // 200px 이상 스크롤 시 +만 보이게
-      setShowScrollTop(scrollY > 200); // 200px 이상 스크롤 시 ↑ 버튼 보이게
+    let isFetchingMore = false;
+    let lastScrollY = window.scrollY;
 
-      // 하단 200px 근처 도달 시
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const isScrollingDown = currentScrollY > lastScrollY;
+      lastScrollY = currentScrollY;
+
+      setShowMiniWrite(currentScrollY > 200);
+      setShowScrollTop(currentScrollY > 200);
+
       if (
-        window.innerHeight + window.scrollY >= document.body.offsetHeight - 200 &&
+        isScrollingDown &&
+        window.innerHeight + currentScrollY >= document.body.offsetHeight - 200 &&
         pagination.hasNext &&
-        !isFetching
+        !isFetching &&
+        !isFetchingMore
       ) {
-        fetchPosts();
+        isFetchingMore = true;
+        fetchPosts().finally(() => {
+          isFetchingMore = false;
+        });
       }
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [pagination, isFetching]);
+
+    let timeoutId;
+    const debouncedHandleScroll = () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      timeoutId = setTimeout(handleScroll, 200);
+    };
+
+    window.addEventListener('scroll', debouncedHandleScroll);
+    return () => {
+      window.removeEventListener('scroll', debouncedHandleScroll);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [pagination, isFetching, category, sort]);
 
   // 스크랩 토글
   const handleScrap = (id) => {
@@ -112,32 +194,6 @@ export default function Posts() {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   };
 
-  // 게시글 불러오기 함수
-  const fetchPosts = async (isFirst = false) => {
-    if (isFetching || (!pagination.hasNext && !isFirst)) return;
-    setIsFetching(true);
-    try {
-      const params = {};
-      if (!isFirst && pagination.lastPostId) {
-        params.lastPostId = pagination.lastPostId;
-        params.size = pagination.size;
-      }
-      const res = await axiosInstance.get('/posts', { params });
-      const { posts: newPosts, pagination: newPagination } = res.data.data;
-      setPosts((prev) => (isFirst ? newPosts : [...prev, ...newPosts]));
-      setPagination({
-        lastPostId: newPagination.lastPostId,
-        hasNext: newPagination.hasNext,
-        size: newPagination.size,
-      });
-    } catch (e) {
-      alert('게시글 목록을 불러오지 못했습니다.');
-    } finally {
-      setIsFetching(false);
-      setLoading(false);
-    }
-  };
-
   // 첫 진입 시
   useEffect(() => {
     fetchPosts(true);
@@ -150,8 +206,10 @@ export default function Posts() {
         {CATEGORY_MAP.map((cat) => (
           <button
             key={cat.value}
-            className={`px-3 py-1 rounded-full text-sm font-semibold ${category === cat.value ? 'bg-black text-white' : 'bg-gray-100 text-gray-600'}`}
-            onClick={() => setCategory(cat.value)}
+            className={`px-3 py-1 rounded-full text-sm font-semibold ${
+              category === cat.value ? 'bg-black text-white' : 'bg-gray-100 text-gray-600'
+            }`}
+            onClick={() => handleCategoryChange(cat.value)}
           >
             {cat.label}
           </button>
@@ -160,7 +218,7 @@ export default function Posts() {
           <select
             className="border rounded px-2 py-1 text-sm"
             value={sort}
-            onChange={(e) => setSort(e.target.value)}
+            onChange={(e) => handleSortChange(e.target.value)}
           >
             {SORT_MAP.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -180,9 +238,16 @@ export default function Posts() {
             onClick={() => navigate(`/posts/${post.postId}`)}
           >
             {/* After 이미지 */}
-            <div className="relative w-full h-[140px] bg-gray-200 rounded-lg mb-3 flex items-center justify-center">
-              {/* 실제 이미지가 있으면 <img src={post.afterImage} ... /> */}
-              <span className="text-gray-400">이미지</span>
+            <div className="relative w-full h-[140px] bg-gray-200 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+              {post.thumbnailUrl ? (
+                <img
+                  src={post.thumbnailUrl}
+                  alt="Thumbnail"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-gray-400">이미지 없음</span>
+              )}
               {/* 스크랩 버튼 */}
               <button
                 className="absolute bottom-2 right-2 w-8 h-8 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-lg"
