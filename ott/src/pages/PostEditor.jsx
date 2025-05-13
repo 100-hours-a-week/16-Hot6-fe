@@ -38,7 +38,7 @@ export default function PostEditor() {
   const [aiImage, setAiImage] = useState(null);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
-  const [existingImageIds, setExistingImageIds] = useState([]);
+  const [existingImageIds, setExistingImageIds] = useState({});
   const [removedImageIds, setRemovedImageIds] = useState([]);
 
   const beforeInputRef = useRef();
@@ -143,9 +143,12 @@ export default function PostEditor() {
             setSelectedAiImageId(postData.imageUrls[0].aiImageId);
           } else {
             // 자유 게시판 이미지 처리
-            const imageIds = postData.imageUrls.map((img) => img.imageUuid);
+            const imageIds = postData.imageUrls.reduce((acc, img) => {
+              acc[img.imageUuid] = img.id;
+              return acc;
+            }, {});
             setExistingImageIds(imageIds);
-            setFreeImages(imageIds);
+            setFreeImages(postData.imageUrls.map((img) => img.imageUuid));
           }
         } catch (error) {
           console.error('게시글 불러오기 실패:', error);
@@ -209,7 +212,7 @@ export default function PostEditor() {
             const resizedFile = new File([resizedBlob], file.name, { type: file.type });
             formData.append('images', resizedFile);
           } else {
-            formData.append('existingImageIds', file);
+            formData.append('existingImageIds', existingImageIds[file]);
           }
         }
 
