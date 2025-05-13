@@ -31,6 +31,9 @@ export default function PostEditor() {
   const [carouselIdx, setCarouselIdx] = useState(0);
   const [searchParams] = useSearchParams();
   const imageId = searchParams.get('imageId');
+  const postId = searchParams.get('postId');
+  const mode = searchParams.get('mode');
+  const isEditMode = mode === 'edit';
   const [aiImage, setAiImage] = useState(null);
   const navigate = useNavigate();
 
@@ -100,18 +103,62 @@ export default function PostEditor() {
       ? isTitleValid && isContentValid && (selectedAiImageId || (imageId && aiImage))
       : isTitleValid && isContentValid) && !isSubmitting;
 
+  // 게시글 정보 불러오기
+  useEffect(() => {
+    if (isEditMode && postId) {
+      const fetchPost = async () => {
+        try {
+          const response = await axiosInstance.get(`/posts/${postId}`);
+          const postData = response.data.data;
+
+          // 게시글 데이터로 폼 초기화
+          setTitle(postData.title);
+          setContent(postData.content);
+          setCategory(postData.type === 'AI' ? 'ai' : 'free');
+
+          // 이미지 처리
+          if (postData.type === 'AI') {
+            setSelectedAiImage({
+              beforeImagePath: postData.imageUrls[0].beforeImagePath,
+              afterImagePath: postData.imageUrls[1].afterImagePath,
+              aiImageId: postData.imageUrls[0].aiImageId,
+            });
+            setSelectedAiImageId(postData.imageUrls[0].aiImageId);
+          } else {
+            // 자유 게시판 이미지 처리
+            setFreeImages(
+              postData.imageUrls.map((img) => ({
+                imageUuid: img.imageUuid,
+              })),
+            );
+          }
+        } catch (error) {
+          console.error('게시글 불러오기 실패:', error);
+          setShowErrorModal(true);
+        }
+      };
+
+      fetchPost();
+    }
+  }, [isEditMode, postId]);
+
+  // 제출 핸들러 수정
   const handleSubmit = async () => {
     if (category === 'ai') {
       if (!isTitleValid || !isContentValid || (!selectedAiImageId && !(imageId && aiImage))) return;
       setIsSubmitting(true);
       try {
         const aiImageIdToSend = selectedAiImageId || imageId;
-        const response = await axiosInstance.post('/posts/ai', {
+        const endpoint = isEditMode ? `/posts/ai/${postId}` : '/posts/ai';
+        const method = isEditMode ? 'patch' : 'post';
+
+        const response = await axiosInstance[method](endpoint, {
           title,
           content,
           ai_image_id: aiImageIdToSend,
         });
-        if (response.status === 201) {
+
+        if (response.status === (isEditMode ? 200 : 201)) {
           navigate('/posts');
         }
       } catch (error) {
@@ -134,10 +181,14 @@ export default function PostEditor() {
           formData.append('images', resizedFile);
         }
 
-        const response = await axiosInstance.post('/posts/free', formData, {
+        const endpoint = isEditMode ? `/posts/free/${postId}` : '/posts/free';
+        const method = isEditMode ? 'patch' : 'post';
+
+        const response = await axiosInstance[method](endpoint, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-        if (response.status === 201) {
+
+        if (response.status === (isEditMode ? 200 : 201)) {
           navigate('/posts');
         }
       } catch (error) {
@@ -181,7 +232,11 @@ export default function PostEditor() {
       {/* 배경 오버레이 (640px 이상일 때 회색 배경) */}
       <div className="fixed inset-0 bg-gray-100 -z-10 hidden sm:block" />
       {/* TopBar */}
-      <TopBar title="게시글 작성" showBack onBackClick={() => setShowLeaveModal(true)} />
+      <TopBar
+        title={isEditMode ? '게시글 수정' : '게시글 작성'}
+        showBack
+        onBackClick={() => setShowLeaveModal(true)}
+      />
 
       <div className="px-4 py-6">
         {/* 카테고리 드롭다운 */}
@@ -339,7 +394,7 @@ export default function PostEditor() {
         </div>
       </div>
 
-      {/* 작성 완료 버튼 (하단 고정) */}
+      {/* 작성 완료 버튼 */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[640px] px-4 pb-6 bg-white z-50">
         <button
           className={`w-full py-3 rounded-lg text-white font-bold text-lg shadow-md transition-colors ${
@@ -348,7 +403,7 @@ export default function PostEditor() {
           disabled={!isSubmitEnabled}
           onClick={handleSubmit}
         >
-          {isSubmitting ? '전송 중...' : '작성 완료'}
+          {isSubmitting ? '전송 중...' : isEditMode ? '수정 완료' : '작성 완료'}
         </button>
       </div>
 

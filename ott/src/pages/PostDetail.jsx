@@ -1,72 +1,103 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import TopBar from '@/components/common/TopBar';
+import axiosInstance from '@/api/axios';
 
-// 더미 데이터
-const dummyPost = {
-  postId: 154,
-  title: 'AI 책상 후기',
-  content: 'AI로 생성한 이미지로 책상을 꾸며봤어요!',
-  postType: 'AI_RECOMMEND', // 또는 "FREE"
-  author: {
-    nickname: 'junsik',
-    profileImageUrl: 'https://example.com/profile.png',
-  },
-  likeCount: 12,
-  commentCount: 2,
-  scrapped: true,
-  liked: false,
-  isOwner: true,
-  imageUrls: ['https://cdn.example.com/ai/1.png', 'https://cdn.example.com/ai/2.png'],
-  createdAt: '2025-04-22T01:00:00Z',
-};
-
-const dummyComments = [
-  {
-    commentId: 87,
-    content: '책상이 진짜 예쁘네요!',
-    author: {
-      nickname: 'jun',
-      profileImageUrl: 'https://cdn...',
-    },
-    createdAt: '2025-04-22T00:00:00Z',
-    isOwner: false,
-  },
-  {
-    commentId: 88,
-    content: '저도 AI로 꾸며보고 싶어요!',
-    author: {
-      nickname: 'junsik',
-      profileImageUrl: 'https://cdn...',
-    },
-    createdAt: '2025-04-22T00:10:00Z',
-    isOwner: true,
-  },
-];
-
-// 날짜 포맷 함수 (간단 버전)
+// 날짜 포맷 함수
 function formatDate(dateStr) {
   const date = new Date(dateStr);
   return `${date.getFullYear()}년 ${String(date.getMonth() + 1).padStart(2, '0')}월 ${String(date.getDate()).padStart(2, '0')}일 ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
 export default function PostDetail() {
-  const [post, setPost] = useState(dummyPost);
-  const [comments, setComments] = useState(dummyComments);
-  const [commentInput, setCommentInput] = useState('');
+  const { postId } = useParams();
+  const navigate = useNavigate();
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [carouselIdx, setCarouselIdx] = useState(0);
 
-  // 댓글 등록 함수 예시
-  const handleCommentSubmit = () => {
-    if (commentInput.trim().length === 0) return;
-    // 실제 등록 로직 추가
-    // setComments([...comments, ...]);
-    setCommentInput('');
+  // 게시글 정보 불러오기
+  useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        const response = await axiosInstance.get(`/posts/${postId}`);
+        setPost(response.data.data);
+      } catch (err) {
+        setError('게시글을 불러오는데 실패했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPost();
+  }, [postId]);
+
+  // 좋아요 토글 핸들러 추가
+  const handleLike = async (postId) => {
+    try {
+      // API 호출 로직 추가 필요
+      setPost((prev) => ({
+        ...prev,
+        liked: !prev.liked,
+        likeCount: prev.liked ? prev.likeCount - 1 : prev.likeCount + 1,
+      }));
+    } catch (error) {
+      console.error('좋아요 처리 중 오류 발생:', error);
+    }
   };
+
+  // 스크랩 토글 핸들러 추가
+  const handleScrap = async (postId) => {
+    try {
+      // API 호출 로직 추가 필요
+      setPost((prev) => ({
+        ...prev,
+        scrapped: !prev.scrapped,
+      }));
+    } catch (error) {
+      console.error('스크랩 처리 중 오류 발생:', error);
+    }
+  };
+
+  const handleEdit = () => {
+    navigate(`/post-editor?postId=${postId}&mode=edit`);
+  };
+
+  // 로딩 중일 때
+  if (loading) {
+    return (
+      <div className="max-w-[480px] mx-auto min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  // 에러가 있을 때
+  if (error) {
+    return (
+      <div className="max-w-[480px] mx-auto min-h-screen bg-white flex flex-col items-center justify-center">
+        <p className="text-red-500 mb-4">{error}</p>
+        <button
+          onClick={() => navigate('/posts')}
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg"
+        >
+          목록으로 돌아가기
+        </button>
+      </div>
+    );
+  }
+
+  // 게시글이 없을 때
+  if (!post) {
+    return null;
+  }
 
   return (
     <div className="max-w-[480px] mx-auto min-h-screen bg-white pb-24 relative">
       {/* 배경 오버레이 (640px 이상일 때 회색 배경) */}
       <div className="fixed inset-0 bg-gray-100 -z-10 hidden sm:block" />
-      <TopBar title="게시글 상세" showBackButton />
+      <TopBar title="게시글 상세" showBack />
 
       {/* 작성자 정보 */}
       <div className="flex items-center px-4 pt-4">
@@ -79,9 +110,11 @@ export default function PostDetail() {
           <div className="font-bold">{post.author.nickname}</div>
           <div className="text-xs text-gray-400">{formatDate(post.createdAt)}</div>
         </div>
-        {post.isOwner && (
+        {post.owner && (
           <div className="flex gap-2">
-            <button className="text-gray-400 text-sm">수정</button>
+            <button className="text-gray-400 text-sm" onClick={handleEdit}>
+              수정
+            </button>
             <button className="text-red-500 text-sm">삭제</button>
           </div>
         )}
@@ -90,26 +123,46 @@ export default function PostDetail() {
       {/* 제목, 좋아요, 스크랩 */}
       <div className="flex items-center px-4 mt-4">
         <div className="font-bold text-xl flex-1">{post.title}</div>
-        <button className="flex items-center mr-2">
+        <button
+          className="flex items-center mr-2"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleLike(post.postId);
+          }}
+        >
           {post.liked ? (
-            <svg width="24" height="24" fill="#ff3b30" stroke="#ff3b30" viewBox="0 0 24 24">
+            <svg
+              width="24"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="#ff3b30"
+              stroke="#ff3b30"
+              strokeWidth="2"
+              style={{ transform: 'scale(1.2,1)' }}
+            >
               <path d="M12 21C12 21 4 13.5 4 8.5C4 5.5 6.5 3 9.5 3C11.24 3 12 4.5 12 4.5C12 4.5 12.76 3 14.5 3C17.5 3 20 5.5 20 8.5C20 13.5 12 21 12 21Z" />
             </svg>
           ) : (
             <svg
               width="24"
-              height="24"
+              height="20"
+              viewBox="0 0 24 24"
               fill="none"
               stroke="#ff3b30"
               strokeWidth="2"
-              viewBox="0 0 24 24"
+              style={{ transform: 'scale(1.2,1)' }}
             >
               <path d="M12 21C12 21 4 13.5 4 8.5C4 5.5 6.5 3 9.5 3C11.24 3 12 4.5 12 4.5C12 4.5 12.76 3 14.5 3C17.5 3 20 5.5 20 8.5C20 13.5 12 21 12 21Z" />
             </svg>
           )}
           <span className="ml-1">{post.likeCount}</span>
         </button>
-        <button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleScrap(post.postId);
+          }}
+        >
           {post.scrapped ? (
             <svg className="w-6 h-6" fill="#2563eb" stroke="#2563eb" viewBox="0 0 24 24">
               <path
@@ -139,44 +192,61 @@ export default function PostDetail() {
       </div>
 
       {/* 이미지 영역 */}
-      {post.postType === 'AI_RECOMMEND' ? (
-        <div className="flex gap-4 px-4 mt-6">
-          <div className="flex-1 flex flex-col items-center">
-            <div className="font-bold mb-1">Before</div>
-            <div className="w-[120px] h-[120px] bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
-              {post.imageUrls[0] ? (
-                <img src={post.imageUrls[0]} alt="before" className="object-cover w-full h-full" />
-              ) : (
-                <span className="text-gray-400">이미지</span>
-              )}
-            </div>
-          </div>
-          <div className="flex-1 flex flex-col items-center">
-            <div className="font-bold mb-1">After</div>
-            <div className="w-[120px] h-[120px] bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
-              {post.imageUrls[1] ? (
-                <img src={post.imageUrls[1]} alt="after" className="object-cover w-full h-full" />
-              ) : (
-                <span className="text-gray-400">이미지</span>
-              )}
-            </div>
-          </div>
-        </div>
-      ) : (
-        // FREE 타입일 때 이미지 미리보기 UI (PostEditor.jsx 참고)
-        <div className="px-4 mt-6">
-          <div className="flex gap-2">
-            {post.imageUrls.map((url, idx) => (
-              <div
-                key={idx}
-                className="w-[120px] h-[120px] bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden"
-              >
-                <img src={url} alt={`img${idx}`} className="object-cover w-full h-full" />
+      {post.imageUrls &&
+        post.imageUrls.length > 0 &&
+        (post.type === 'AI' ? (
+          <div className="flex gap-4 px-4 mt-6">
+            <div className="flex-1 flex flex-col items-center">
+              <div className="font-bold mb-1">Before</div>
+              <div className="w-[120px] h-[120px] bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                <img
+                  src={post.imageUrls[0]?.beforeImagePath}
+                  alt="before"
+                  className="object-cover w-full h-full"
+                />
               </div>
-            ))}
+            </div>
+            <div className="flex-1 flex flex-col items-center">
+              <div className="font-bold mb-1">After</div>
+              <div className="w-[120px] h-[120px] bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                <img
+                  src={post.imageUrls[1]?.afterImagePath}
+                  alt="after"
+                  className="object-cover w-full h-full"
+                />
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="relative flex flex-col items-center mb-4 px-4 mt-6">
+            <div className="relative flex items-center justify-center w-60 h-60 bg-gray-100 rounded-xl overflow-hidden">
+              {/* 순서/전체 표기 */}
+              <div className="absolute top-4 right-4 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full">
+                {carouselIdx + 1} / {post.imageUrls.length}
+              </div>
+              {/* 메인 이미지 */}
+              <img
+                src={post.imageUrls[carouselIdx].imageUuid}
+                alt={`이미지 ${carouselIdx + 1}`}
+                className="object-cover w-full h-full"
+              />
+            </div>
+            {/* 썸네일 리스트 */}
+            <div className="flex gap-2 mt-2">
+              {post.imageUrls.map((img, idx) => (
+                <img
+                  key={idx}
+                  src={img.imageUuid}
+                  alt={`썸네일 ${idx + 1}`}
+                  className={`w-12 h-12 object-cover rounded ${
+                    idx === carouselIdx ? 'ring-2 ring-blue-500' : ''
+                  }`}
+                  onClick={() => setCarouselIdx(idx)}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
 
       {/* 본문 */}
       <div className="px-4 mt-6 text-base whitespace-pre-line">{post.content}</div>
@@ -184,60 +254,7 @@ export default function PostDetail() {
       {/* 댓글 영역 */}
       <div className="px-4 mt-8">
         <div className="font-bold mb-2">{post.commentCount}개의 댓글</div>
-        <div className="space-y-4">
-          {comments.map((c) => (
-            <div key={c.commentId} className="flex items-start gap-2">
-              <img
-                src={c.author.profileImageUrl}
-                alt="profile"
-                className="w-8 h-8 rounded-full object-cover"
-              />
-              <div className="flex-1">
-                <div className="flex items-center">
-                  <div className="flex items-center gap-2 flex-1">
-                    <span className="font-semibold text-sm">{c.author.nickname}</span>
-                    <span className="text-xs text-gray-400">{formatDate(c.createdAt)}</span>
-                  </div>
-                  {c.isOwner && (
-                    <div className="flex gap-2">
-                      <button className="text-gray-400 text-xs">수정</button>
-                      <button className="text-red-500 text-xs">삭제</button>
-                    </div>
-                  )}
-                </div>
-                <div className="text-sm mt-1">{c.content}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 댓글 입력창 (fixed) */}
-      <div
-        className="fixed bottom-3 left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-white border-t px-4 py-2 flex items-center"
-        style={{ zIndex: 50 }}
-      >
-        <input
-          type="text"
-          className="flex-1 border rounded px-3 py-2 text-sm outline-none"
-          placeholder="댓글을 입력해주세요."
-          value={commentInput}
-          onChange={(e) => setCommentInput(e.target.value)}
-          maxLength={500}
-        />
-        <button
-          className={`ml-2 px-4 py-2 rounded font-semibold transition
-            ${
-              commentInput.trim().length > 0
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            }
-          `}
-          disabled={commentInput.trim().length === 0}
-          onClick={handleCommentSubmit}
-        >
-          등록
-        </button>
+        {/* 댓글 목록은 별도 API로 불러오는 것이 좋습니다 */}
       </div>
     </div>
   );
