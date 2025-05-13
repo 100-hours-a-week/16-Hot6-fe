@@ -4,6 +4,7 @@ import TopBar from '../components/common/TopBar';
 import SimpleModal from '../components/common/SimpleModal';
 import axiosInstance from '@/api/axios';
 import ImagePreview from '../components/common/ImagePreview';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const categories = [
   { value: 'ai', label: 'AI' },
@@ -11,7 +12,7 @@ const categories = [
 ];
 
 export default function PostEditor() {
-  const [category, setCategory] = useState(categories[0].value);
+  const [category, setCategory] = useState(null);
   const [showImageSheet, setShowImageSheet] = useState(false);
   const [aiImageList, setAiImageList] = useState([]);
   const [selectedAiImageId, setSelectedAiImageId] = useState(null);
@@ -36,6 +37,9 @@ export default function PostEditor() {
   const isEditMode = mode === 'edit';
   const [aiImage, setAiImage] = useState(null);
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
+  const [existingImageIds, setExistingImageIds] = useState([]);
+  const [removedImageIds, setRemovedImageIds] = useState([]);
 
   const beforeInputRef = useRef();
   const afterInputRef = useRef();
@@ -79,16 +83,28 @@ export default function PostEditor() {
     if (overSize) {
       alert('5MB가 넘는 이미지는 업로드할 수 없습니다.');
     }
-    if (validFiles.length + freeImages.length > 5) {
+
+    // 전체 이미지 개수 체크 (기존 이미지 + 새로 추가할 이미지)
+    const totalImages = freeImages.length + validFiles.length;
+    if (totalImages > 5) {
       alert('이미지는 최대 5개까지 선택할 수 있습니다.');
       return;
     }
-    setFreeImages([...validFiles].slice(0, 5));
+
+    setFreeImages((prev) => [...prev, ...validFiles]);
     setCarouselIdx(0);
   };
 
   // 이미지 삭제
   const handleRemoveImage = (idx) => {
+    const imageToRemove = freeImages[idx];
+
+    if (imageToRemove.imageUuid) {
+      // 기존 이미지 삭제
+      setRemovedImageIds((prev) => [...prev, imageToRemove.imageUuid]);
+      setExistingImageIds((prev) => prev.filter((id) => id !== imageToRemove.imageUuid));
+    }
+
     setFreeImages((prev) => prev.filter((_, i) => i !== idx));
     setCarouselIdx(0);
   };
@@ -107,38 +123,43 @@ export default function PostEditor() {
   useEffect(() => {
     if (isEditMode && postId) {
       const fetchPost = async () => {
+        setIsLoading(true);
         try {
           const response = await axiosInstance.get(`/posts/${postId}`);
           const postData = response.data.data;
-
-          // 게시글 데이터로 폼 초기화
           setTitle(postData.title);
           setContent(postData.content);
           setCategory(postData.type === 'AI' ? 'ai' : 'free');
 
-          // 이미지 처리
           if (postData.type === 'AI') {
             setSelectedAiImage({
               beforeImagePath: postData.imageUrls[0].beforeImagePath,
-              afterImagePath: postData.imageUrls[1].afterImagePath,
+              afterImagePath: postData.imageUrls[0].afterImagePath,
               aiImageId: postData.imageUrls[0].aiImageId,
             });
             setSelectedAiImageId(postData.imageUrls[0].aiImageId);
           } else {
             // 자유 게시판 이미지 처리
+            const imageIds = postData.imageUrls.map((img) => img.imageUuid);
+            setExistingImageIds(imageIds);
             setFreeImages(
               postData.imageUrls.map((img) => ({
                 imageUuid: img.imageUuid,
+                previewUrl: img.imagePath, // 이미지 미리보기 URL
               })),
             );
           }
         } catch (error) {
           console.error('게시글 불러오기 실패:', error);
           setShowErrorModal(true);
+        } finally {
+          setIsLoading(false);
         }
       };
 
       fetchPost();
+    } else {
+      setIsLoading(false);
     }
   }, [isEditMode, postId]);
 
@@ -168,17 +189,33 @@ export default function PostEditor() {
       }
     } else if (category === 'free') {
       if (!isTitleValid || !isContentValid) return;
+
+      // 전체 이미지 개수 체크
+      if (freeImages.length > 5) {
+        alert('이미지는 최대 5개까지 선택할 수 있습니다.');
+        return;
+      }
+
       setIsSubmitting(true);
       try {
         const formData = new FormData();
         formData.append('title', title);
         formData.append('content', content);
 
-        // 이미지 리사이즈 후 append
+        // 기존 이미지 ID 배열 추가
+        if (isEditMode) {
+          formData.append('existingImageIds', JSON.stringify(existingImageIds));
+          formData.append('removedImageIds', JSON.stringify(removedImageIds));
+        }
+
+        // 새로 추가된 이미지 리사이즈 후 append
         for (const file of freeImages) {
-          const resizedBlob = await resizeImage(file, 1024);
-          const resizedFile = new File([resizedBlob], file.name, { type: file.type });
-          formData.append('images', resizedFile);
+          if (file instanceof File) {
+            // 새로 추가된 이미지인 경우에만 리사이즈
+            const resizedBlob = await resizeImage(file, 1024);
+            const resizedFile = new File([resizedBlob], file.name, { type: file.type });
+            formData.append('images', resizedFile);
+          }
         }
 
         const endpoint = isEditMode ? `/posts/free/${postId}` : '/posts/free';
@@ -226,6 +263,11 @@ export default function PostEditor() {
       });
     }
   }, [imageId]);
+
+  // 카테고리가 설정되지 않은 경우 로딩 상태 표시
+  if (category === null) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <div className="max-w-[640px] mx-auto min-h-screen bg-white pb-32 relative">

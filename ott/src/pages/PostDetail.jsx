@@ -94,7 +94,7 @@ export default function PostDetail() {
   }
 
   return (
-    <div className="max-w-[480px] mx-auto min-h-screen bg-white pb-24 relative">
+    <div className="max-w-[768px] mx-auto min-h-screen bg-white pb-24 relative">
       {/* 배경 오버레이 (640px 이상일 때 회색 배경) */}
       <div className="fixed inset-0 bg-gray-100 -z-10 hidden sm:block" />
       <TopBar title="게시글 상세" showBack />
@@ -198,28 +198,28 @@ export default function PostDetail() {
           <div className="flex gap-4 px-4 mt-6">
             <div className="flex-1 flex flex-col items-center">
               <div className="font-bold mb-1">Before</div>
-              <div className="w-[120px] h-[120px] bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+              <div className="w-[240px] h-[240px] bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
                 <img
-                  src={post.imageUrls[0]?.beforeImagePath}
+                  src={post.imageUrls[0].beforeImagePath}
                   alt="before"
-                  className="object-cover w-full h-full"
+                  className="object-contain w-full h-full"
                 />
               </div>
             </div>
             <div className="flex-1 flex flex-col items-center">
               <div className="font-bold mb-1">After</div>
-              <div className="w-[120px] h-[120px] bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+              <div className="w-[240px] h-[240px] bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
                 <img
-                  src={post.imageUrls[1]?.afterImagePath}
+                  src={post.imageUrls[0].afterImagePath}
                   alt="after"
-                  className="object-cover w-full h-full"
+                  className="object-contain w-full h-full"
                 />
               </div>
             </div>
           </div>
         ) : (
           <div className="relative flex flex-col items-center mb-4 px-4 mt-6">
-            <div className="relative flex items-center justify-center w-60 h-60 bg-gray-100 rounded-xl overflow-hidden">
+            <div className="relative flex items-center justify-center w-80 h-80 bg-gray-100 rounded-xl overflow-hidden">
               {/* 순서/전체 표기 */}
               <div className="absolute top-4 right-4 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full">
                 {carouselIdx + 1} / {post.imageUrls.length}
@@ -228,7 +228,7 @@ export default function PostDetail() {
               <img
                 src={post.imageUrls[carouselIdx].imageUuid}
                 alt={`이미지 ${carouselIdx + 1}`}
-                className="object-cover w-full h-full"
+                className="object-contain w-full h-full"
               />
             </div>
             {/* 썸네일 리스트 */}
