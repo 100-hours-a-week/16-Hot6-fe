@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import axiosInstance from '@/api/axios';
 
 const CATEGORY_MAP = [
@@ -50,8 +50,9 @@ function useWindowWidth() {
 
 export default function Posts() {
   const navigate = useNavigate();
-  const [sort, setSort] = useState('LATEST');
-  const [category, setCategory] = useState('ALL');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [sort, setSort] = useState(searchParams.get('sort') || 'LATEST');
+  const [category, setCategory] = useState(searchParams.get('category') || 'ALL');
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showMiniWrite, setShowMiniWrite] = useState(false);
@@ -99,6 +100,10 @@ export default function Posts() {
   // 카테고리 변경 핸들러
   const handleCategoryChange = (newCategory) => {
     setCategory(newCategory);
+    setSearchParams((prev) => {
+      prev.set('category', newCategory);
+      return prev;
+    });
     setPosts([]); // 기존 게시글 목록 초기화
     setPagination({
       lastPostId: null,
@@ -110,6 +115,10 @@ export default function Posts() {
   // 정렬 변경 핸들러
   const handleSortChange = (newSort) => {
     setSort(newSort);
+    setSearchParams((prev) => {
+      prev.set('sort', newSort);
+      return prev;
+    });
     setPosts([]); // 기존 게시글 목록 초기화
     setPagination({
       lastPostId: null,
@@ -208,6 +217,21 @@ export default function Posts() {
     fetchPosts(true);
   }, []);
 
+  // useEffect에서 URL 파라미터 변경 감지
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    const sortParam = searchParams.get('sort');
+
+    if (categoryParam) setCategory(categoryParam);
+    if (sortParam) setSort(sortParam);
+  }, [searchParams]);
+
+  // 게시글 클릭 핸들러 수정
+  const handlePostClick = (postId) => {
+    // 현재 상태를 URL에 저장한 채로 상세 페이지로 이동
+    navigate(`/posts/${postId}?category=${category}&sort=${sort}`);
+  };
+
   return (
     <div className="max-w-[480px] mx-auto min-h-screen bg-white pb-24">
       {/* 카테고리/정렬 */}
@@ -244,7 +268,7 @@ export default function Posts() {
           <div
             key={post.postId}
             className="bg-white rounded-xl shadow-sm border p-4 cursor-pointer"
-            onClick={() => navigate(`/posts/${post.postId}`)}
+            onClick={() => handlePostClick(post.postId)}
           >
             {/* After 이미지 */}
             <div className="relative w-full h-[140px] bg-gray-200 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
