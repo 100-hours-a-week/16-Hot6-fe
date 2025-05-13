@@ -2,6 +2,7 @@ import React from 'react';
 
 const SimpleModal = ({
   open,
+  title,
   message,
   onClose,
   onConfirm,
@@ -15,6 +16,11 @@ const SimpleModal = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+        {title && (
+          <div className="mb-4 pb-2">
+            <h2 className="text-lg font-bold text-center">{title}</h2>
+          </div>
+        )}
         <p className="text-center whitespace-pre-line mb-6" style={{ whiteSpace: 'pre-line' }}>
           {message}
         </p>
