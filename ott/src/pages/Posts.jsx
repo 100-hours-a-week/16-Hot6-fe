@@ -196,6 +196,15 @@ export default function Posts() {
 
   // 첫 진입 시
   useEffect(() => {
+    // 액세스 토큰 헬스 체크
+    (async () => {
+      try {
+        await axiosInstance.get('/users/me');
+      } catch (error) {
+        // 에러가 발생해도 무시
+        console.error('사용자 정보 요청 실패:', error);
+      }
+    })();
     fetchPosts(true);
   }, []);
 

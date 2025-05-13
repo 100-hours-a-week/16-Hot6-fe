@@ -52,8 +52,10 @@ export default function PostEditor() {
   };
 
   const handleFreeImageButtonClick = () => {
-    setFreeImages([]);
-    setCarouselIdx(0);
+    if (!isEditMode) {
+      setFreeImages([]);
+      setCarouselIdx(0);
+    }
     fileInputRef.current.click();
   };
 
@@ -97,13 +99,13 @@ export default function PostEditor() {
 
   // 이미지 삭제
   const handleRemoveImage = (idx) => {
-    const imageToRemove = freeImages[idx];
+    // const imageToRemove = freeImages[idx];
 
-    if (imageToRemove.imageUuid) {
-      // 기존 이미지 삭제
-      setRemovedImageIds((prev) => [...prev, imageToRemove.imageUuid]);
-      setExistingImageIds((prev) => prev.filter((id) => id !== imageToRemove.imageUuid));
-    }
+    // if (imageToRemove.imageUuid) {
+    //   // 기존 이미지 삭제
+    //   setRemovedImageIds((prev) => [...prev, imageToRemove.imageUuid]);
+    //   setExistingImageIds((prev) => prev.filter((id) => id !== imageToRemove.imageUuid));
+    // }
 
     setFreeImages((prev) => prev.filter((_, i) => i !== idx));
     setCarouselIdx(0);
@@ -121,6 +123,7 @@ export default function PostEditor() {
 
   // 게시글 정보 불러오기
   useEffect(() => {
+    // 수정 모드일 때
     if (isEditMode && postId) {
       const fetchPost = async () => {
         setIsLoading(true);
@@ -142,29 +145,19 @@ export default function PostEditor() {
             // 자유 게시판 이미지 처리
             const imageIds = postData.imageUrls.map((img) => img.imageUuid);
             setExistingImageIds(imageIds);
-            setFreeImages(
-              postData.imageUrls.map((img) => ({
-                imageUuid: img.imageUuid,
-                previewUrl: img.imagePath, // 이미지 미리보기 URL
-              })),
-            );
+            setFreeImages(imageIds);
           }
         } catch (error) {
           console.error('게시글 불러오기 실패:', error);
           setShowErrorModal(true);
         } finally {
-          if (category === null) {
-            setCategory('ai');
-          }
           setIsLoading(false);
         }
       };
 
       fetchPost();
     } else {
-      if (category === null) {
-        setCategory('ai');
-      }
+      setCategory('ai');
       setIsLoading(false);
     }
   }, [isEditMode, postId]);
@@ -208,12 +201,6 @@ export default function PostEditor() {
         formData.append('title', title);
         formData.append('content', content);
 
-        // 기존 이미지 ID 배열 추가
-        if (isEditMode) {
-          formData.append('existingImageIds', JSON.stringify(existingImageIds));
-          formData.append('removedImageIds', JSON.stringify(removedImageIds));
-        }
-
         // 새로 추가된 이미지 리사이즈 후 append
         for (const file of freeImages) {
           if (file instanceof File) {
@@ -221,6 +208,8 @@ export default function PostEditor() {
             const resizedBlob = await resizeImage(file, 1024);
             const resizedFile = new File([resizedBlob], file.name, { type: file.type });
             formData.append('images', resizedFile);
+          } else {
+            formData.append('existingImageIds', file);
           }
         }
 
