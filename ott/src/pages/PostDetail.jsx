@@ -198,7 +198,7 @@ export default function PostDetail() {
           <div className="flex gap-4 px-4 mt-6">
             <div className="flex-1 flex flex-col items-center">
               <div className="font-bold mb-1">Before</div>
-              <div className="w-[240px] h-[240px] bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+              <div className="min-w-[160px] min-h-[160px] w-full max-w-[300px] aspect-square bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
                 <img
                   src={post.imageUrls[0].beforeImagePath}
                   alt="before"
@@ -208,7 +208,7 @@ export default function PostDetail() {
             </div>
             <div className="flex-1 flex flex-col items-center">
               <div className="font-bold mb-1">After</div>
-              <div className="w-[240px] h-[240px] bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+              <div className="min-w-[160px] min-h-[160px] w-full max-w-[300px] aspect-square bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
                 <img
                   src={post.imageUrls[0].afterImagePath}
                   alt="after"
