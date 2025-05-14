@@ -42,6 +42,7 @@ export default function CommentBottomSheet({ open, onClose, postId, editComment,
   const [isDragging, setIsDragging] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // BottomSheet가 열릴 때마다 댓글 불러오기
   useEffect(() => {
@@ -117,6 +118,8 @@ export default function CommentBottomSheet({ open, onClose, postId, editComment,
 
   // 댓글 등록/수정 버튼 클릭 핸들러
   const handleRegisterOrEdit = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     if (isEditMode) {
       await handleEdit();
     } else {
@@ -131,6 +134,7 @@ export default function CommentBottomSheet({ open, onClose, postId, editComment,
         setTimeout(() => setToast(''), 3000);
       }
     }
+    setIsSubmitting(false);
   };
 
   // 댓글 입력창 포커스
@@ -249,45 +253,43 @@ export default function CommentBottomSheet({ open, onClose, postId, editComment,
             <div className="text-center py-8">첫번째 댓글을 남겨주세요!</div>
           ) : (
             comments.map((c) => (
-              <div className="space-y-4">
-                <div key={c.commentId} className="flex items-start gap-2 py-2">
-                  <img
-                    src={c.author.profileImageUrl}
-                    alt="profile"
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center">
-                      <div className="flex items-center gap-2 flex-1">
-                        <span className="font-semibold text-sm">{c.author.nickname}</span>
-                        <span className="text-xs text-gray-400">
-                          {formatCommentDate(c.createdAt)}
-                        </span>
-                      </div>
-                      {c.owner && (
-                        <div className="flex gap-2">
-                          <button
-                            className="text-gray-400 text-xs"
-                            onClick={() =>
-                              handleCommentEditClick({ commentId: c.commentId, content: c.content })
-                            }
-                          >
-                            수정
-                          </button>
-                          <button
-                            className="text-red-500 text-xs"
-                            onClick={() => {
-                              setDeleteTarget({ commentId: c.commentId });
-                              setIsDeleteModalOpen(true);
-                            }}
-                          >
-                            삭제
-                          </button>
-                        </div>
-                      )}
+              <div key={c.commentId} className="flex items-start gap-2 py-2">
+                <img
+                  src={c.author.profileImageUrl}
+                  alt="profile"
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center">
+                    <div className="flex items-center gap-2 flex-1">
+                      <span className="font-semibold text-sm">{c.author.nickname}</span>
+                      <span className="text-xs text-gray-400">
+                        {formatCommentDate(c.createdAt)}
+                      </span>
                     </div>
-                    <div className="text-sm mt-1">{c.content}</div>
+                    {c.owner && (
+                      <div className="flex gap-2">
+                        <button
+                          className="text-gray-400 text-xs"
+                          onClick={() =>
+                            handleCommentEditClick({ commentId: c.commentId, content: c.content })
+                          }
+                        >
+                          수정
+                        </button>
+                        <button
+                          className="text-red-500 text-xs"
+                          onClick={() => {
+                            setDeleteTarget({ commentId: c.commentId });
+                            setIsDeleteModalOpen(true);
+                          }}
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    )}
                   </div>
+                  <div className="text-sm mt-1 break-words whitespace-pre-line">{c.content}</div>
                 </div>
               </div>
             ))
@@ -305,12 +307,19 @@ export default function CommentBottomSheet({ open, onClose, postId, editComment,
               if (e.target.value.length <= 500) setCommentInput(e.target.value);
             }}
             maxLength={500}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey && isValid) {
+                e.preventDefault();
+                handleRegisterOrEdit();
+              }
+            }}
           />
           <button
             className={`ml-2 px-4 py-2 rounded font-semibold transition
               ${isValid ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
             disabled={!isValid}
             onClick={handleRegisterOrEdit}
+            type="button"
           >
             {isEditMode ? '수정' : '등록'}
           </button>
