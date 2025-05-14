@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext, useLocation } from 'react-router-dom';
 import axiosInstance from '@/api/axios';
 import SimpleModal from '@/components/common/SimpleModal';
 import useDeskAICheck from '@/hooks/useDeskAICheck';
 import mainImage from '@/assets/images/main.webp';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { addScrap, removeScrap } from '@/api/scraps';
 
 const Home = () => {
   const navigate = useNavigate();
+  const { setToast } = useOutletContext();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [mainData, setMainData] = useState({
@@ -17,6 +19,7 @@ const Home = () => {
   });
   const { checkDeskAIAvailability, modal, setModal } = useDeskAICheck();
   const [showModal, setShowModal] = useState(false);
+  const location = useLocation();
 
   // 메인 데이터 조회
   useEffect(() => {
@@ -35,6 +38,15 @@ const Home = () => {
     fetchMainData();
   }, []);
 
+  useEffect(() => {
+    if (location.state && location.state.toast) {
+      setToast(location.state.toast);
+      setTimeout(() => setToast(''), 1500);
+      // React Router의 state도 명시적으로 초기화
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, location.pathname, navigate]);
+
   // 모달 표시 핸들러
   const handleShowModal = (e) => {
     e.stopPropagation();
@@ -44,17 +56,29 @@ const Home = () => {
   // 스크랩 토글 핸들러
   const handleScrap = async (type, id) => {
     try {
-      // 스크랩 API 호출 로직 추가 필요
+      // 현재 아이템 찾기
+      const itemKey = type === 'popularSetups' ? 'postId' : 'itemId';
+      const item = mainData[type].find((item) => item[itemKey] === id);
+
+      if (item.scrapped) {
+        await removeScrap({ type: type === 'popularSetups' ? 'POST' : 'PRODUCT', targetId: id });
+        setToast('스크랩이 취소되었어요.');
+      } else {
+        console.log(type, id);
+        await addScrap({ type: type === 'popularSetups' ? 'POST' : 'PRODUCT', targetId: id });
+        setToast('스크랩이 추가되었어요.');
+      }
+
       setMainData((prev) => ({
         ...prev,
         [type]: prev[type].map((item) =>
-          item[type === 'popularSetups' ? 'postId' : 'itemId'] === id
-            ? { ...item, scrapped: !item.scrapped }
-            : item,
+          item[itemKey] === id ? { ...item, scrapped: !item.scrapped } : item,
         ),
       }));
     } catch (err) {
-      console.error('스크랩 처리 실패:', err);
+      setToast('전송에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setTimeout(() => setToast(''), 1500);
     }
   };
 

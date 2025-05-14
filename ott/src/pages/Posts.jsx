@@ -1,6 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useOutletContext } from 'react-router-dom';
 import axiosInstance from '@/api/axios';
+import { addLike, removeLike } from '@/api/likes';
+import { addScrap, removeScrap } from '@/api/scraps';
+import Toast from '../components/common/Toast';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 const CATEGORY_MAP = [
   { label: '전체', value: 'ALL' },
@@ -63,6 +67,8 @@ export default function Posts() {
     size: 10,
   });
   const [isFetching, setIsFetching] = useState(false);
+  const [error, setError] = useState(null);
+  const { toast, setToast } = useOutletContext();
 
   const windowWidth = useWindowWidth();
 
@@ -89,8 +95,9 @@ export default function Posts() {
         hasNext: newPagination.hasNext,
         size: newPagination.size,
       });
+      setError(null);
     } catch (e) {
-      alert('게시글 목록을 불러오지 못했습니다.');
+      setError('게시글 목록을 불러오지 못했습니다.');
     } finally {
       setIsFetching(false);
       setLoading(false);
@@ -177,25 +184,51 @@ export default function Posts() {
   }, [pagination, isFetching, category, sort]);
 
   // 스크랩 토글
-  const handleScrap = (id) => {
-    setPosts((prev) =>
-      prev.map((post) => (post.postId === id ? { ...post, scrapped: !post.scrapped } : post)),
-    );
+  const handleScrap = async (id) => {
+    try {
+      const post = posts.find((post) => post.postId === id);
+      console.log(post);
+      if (post.scrapped) {
+        await removeScrap({ type: 'POST', targetId: id });
+      } else {
+        await addScrap({ type: 'POST', targetId: id });
+      }
+      setPosts((prev) =>
+        prev.map((post) => (post.postId === id ? { ...post, scrapped: !post.scrapped } : post)),
+      );
+      setToast(post.scrapped ? '스크랩이 취소되었어요.' : '스크랩이 추가되었어요.');
+    } catch {
+      setToast('전송에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setTimeout(() => setToast(''), 1500);
+    }
   };
 
   // 좋아요 토글
-  const handleLike = (id) => {
-    setPosts((prev) =>
-      prev.map((post) =>
-        post.postId === id
-          ? {
-              ...post,
-              liked: !post.liked,
-              likeCount: post.liked ? post.likeCount - 1 : post.likeCount + 1,
-            }
-          : post,
-      ),
-    );
+  const handleLike = async (id) => {
+    try {
+      const post = posts.find((post) => post.postId === id);
+      if (post.liked) {
+        await removeLike({ type: 'POST', targetId: id });
+      } else {
+        await addLike({ type: 'POST', targetId: id });
+      }
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.postId === id
+            ? {
+                ...post,
+                liked: !post.liked,
+                likeCount: post.liked ? post.likeCount - 1 : post.likeCount + 1,
+              }
+            : post,
+        ),
+      );
+    } catch {
+      setToast('전송에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setTimeout(() => setToast(''), 1500);
+    }
   };
 
   // 최상단 이동
@@ -231,6 +264,20 @@ export default function Posts() {
     // 현재 상태를 URL에 저장한 채로 상세 페이지로 이동
     navigate(`/posts/${postId}?category=${category}&sort=${sort}`);
   };
+
+  // 로딩 중일 때
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  // 에러가 있을 때
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-[480px] mx-auto min-h-screen bg-white pb-24">

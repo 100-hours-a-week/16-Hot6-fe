@@ -5,6 +5,8 @@ import axiosInstance from '@/api/axios';
 import SimpleModal from '@/components/common/SimpleModal';
 import CommentBottomSheet from '@/components/common/CommentBottomSheet';
 import Toast from '@/components/common/Toast';
+import { addLike, removeLike } from '@/api/likes';
+import { addScrap, removeScrap } from '@/api/scraps';
 
 // 날짜 포맷 함수
 function formatDate(dateStr) {
@@ -13,7 +15,6 @@ function formatDate(dateStr) {
   return `${date.getFullYear()}년 ${String(date.getMonth() + 1).padStart(2, '0')}월 ${String(date.getDate()).padStart(2, '0')}일 ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
-//
 function formatCommentDate(createdAtStr) {
   const KST_OFFSET = 9 * 60 * 60 * 1000; // 9시간(ms)
   const now = new Date();
@@ -69,19 +70,19 @@ export default function PostDetail() {
 
   // 게시글 정보 불러오기
   useEffect(() => {
-    const fetchPost = async () => {
-      try {
-        const response = await axiosInstance.get(`/posts/${postId}`);
-        setPost(response.data.data);
-      } catch (err) {
-        setError('게시글을 불러오는데 실패했습니다.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchPost();
   }, [postId]);
+
+  const fetchPost = async () => {
+    try {
+      const response = await axiosInstance.get(`/posts/${postId}`);
+      setPost(response.data.data);
+    } catch (err) {
+      setError('게시글을 불러오는데 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // 댓글 목록 불러오기
   const fetchComments = async (isFirst = true, lastCommentId = null) => {
@@ -108,29 +109,43 @@ export default function PostDetail() {
   }, [isBottomSheetOpen]);
 
   // 좋아요 토글 핸들러 추가
-  const handleLike = async (postId) => {
+  const handleLike = async () => {
     try {
-      // API 호출 로직 추가 필요
+      if (post.liked) {
+        await removeLike({ type: 'POST', targetId: post.postId });
+      } else {
+        await addLike({ type: 'POST', targetId: post.postId });
+      }
       setPost((prev) => ({
         ...prev,
         liked: !prev.liked,
         likeCount: prev.liked ? prev.likeCount - 1 : prev.likeCount + 1,
       }));
-    } catch (error) {
-      console.error('좋아요 처리 중 오류 발생:', error);
+    } catch {
+      setToast('전송에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setTimeout(() => setToast(''), 1500);
     }
   };
 
   // 스크랩 토글 핸들러 추가
-  const handleScrap = async (postId) => {
+  const handleScrap = async () => {
     try {
-      // API 호출 로직 추가 필요
+      if (post.scrapped) {
+        await removeScrap({ type: 'POST', targetId: post.postId });
+        setToast('스크랩이 취소되었어요.');
+      } else {
+        await addScrap({ type: 'POST', targetId: post.postId });
+        setToast('스크랩이 추가되었어요.');
+      }
       setPost((prev) => ({
         ...prev,
         scrapped: !prev.scrapped,
       }));
-    } catch (error) {
-      console.error('스크랩 처리 중 오류 발생:', error);
+    } catch {
+      setToast('전송에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setTimeout(() => setToast(''), 1500);
     }
   };
 
@@ -227,14 +242,10 @@ export default function PostDetail() {
 
       {/* 제목, 좋아요, 스크랩 */}
       <div className="flex items-center px-4 mt-4">
-        <div className="font-bold text-xl flex-1">{post.title}</div>
-        <button
-          className="flex items-center mr-2"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleLike(post.postId);
-          }}
-        >
+        <div className="font-bold text-xl break-words whitespace-pre-line min-w-0 flex-1">
+          {post.title}
+        </div>
+        <button className="flex items-center mr-2" onClick={handleLike}>
           {post.liked ? (
             <svg
               width="24"
@@ -262,12 +273,7 @@ export default function PostDetail() {
           )}
           <span className="ml-1">{formatLikeCount(post.likeCount)}</span>
         </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleScrap(post.postId);
-          }}
-        >
+        <button onClick={handleScrap}>
           {post.scrapped ? (
             <svg className="w-6 h-6" fill="#2563eb" stroke="#2563eb" viewBox="0 0 24 24">
               <path
@@ -354,7 +360,9 @@ export default function PostDetail() {
         ))}
 
       {/* 본문 */}
-      <div className="px-4 mt-6 text-base whitespace-pre-line">{post.content}</div>
+      <div className="px-4 mt-6 text-base text-gray-800 mb-4 break-words whitespace-pre-line">
+        {post.content}
+      </div>
 
       {/* 댓글 영역 */}
       <div className="px-4 mt-8">
@@ -369,7 +377,7 @@ export default function PostDetail() {
                 alt="profile"
                 className="w-8 h-8 rounded-full object-cover"
               />
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center">
                   <div className="flex items-center gap-2 flex-1">
                     <span className="font-semibold text-sm">{c.author.nickname}</span>
@@ -390,6 +398,7 @@ export default function PostDetail() {
                         onClick={() => {
                           setDeleteTarget({ commentId: c.commentId });
                           setIsDeleteModalOpen(true);
+                          fetchPost(true);
                         }}
                       >
                         삭제
@@ -397,7 +406,7 @@ export default function PostDetail() {
                     </div>
                   )}
                 </div>
-                <div className="text-sm mt-1">{c.content}</div>
+                <div className="text-sm break-words whitespace-pre-line">{c.content}</div>
               </div>
             </div>
           ))}
@@ -465,10 +474,10 @@ export default function PostDetail() {
         onLeftClick={() => setIsDeleteModalOpen(false)}
         onRightClick={async () => {
           try {
-            console.log(`/comments/${deleteTarget.commentId}`);
             await axiosInstance.delete(`/comments/${deleteTarget.commentId}`);
             setToast('댓글이 삭제되었어요.');
             fetchComments(true);
+            fetchPost(true);
           } catch {
             setToast('댓글 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.');
           } finally {
@@ -485,6 +494,7 @@ export default function PostDetail() {
         onClose={() => {
           setIsBottomSheetOpen(false);
           setEditComment(null);
+          fetchPost(true);
         }}
         postId={postId}
         editComment={editComment}
