@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import SimpleModal from '@/components/common/SimpleModal';
 import useImageGenerationStore from '@/store/imageGenerationStore';
 import useDeskAICheck from '@/hooks/useDeskAICheck';
+import Toast from '../components/common/Toast';
 
 function resizeImage(file, maxSize = 1024) {
   return new Promise((resolve, reject) => {
@@ -57,6 +58,7 @@ const DeskAI = () => {
   const [lastRequestTime, setLastRequestTime] = useState(0);
   const setImageId = useImageGenerationStore((state) => state.setImageId);
   const { checkDeskAIAvailability, modal, setModal } = useDeskAICheck();
+  const [toast, setToast] = useState('');
 
   useEffect(() => {
     const checkAvailability = async () => {
@@ -109,12 +111,21 @@ const DeskAI = () => {
       const response = await axiosInstance.post('/ai-images', formData, { timeout: 0 });
       const { aiImageId } = response.data.data; // 응답에서 imageId 추출      console.log('Image upload successful, imageId:', aiImageId);
       setImageId(aiImageId); // 전역 상태에 저장
-
       setLoading(false);
-      navigate('/'); // 홈으로 이동
+      navigate('/', {
+        state: { toast: '이미지 전송 성공' },
+      });
     } catch (err) {
       setLoading(false);
-      setModal({ open: true, message: '이미지 업로드에 실패했습니다. 다시 시도해 주세요.' });
+      if (err.response.status === 400) {
+        setModal({
+          open: true,
+          message: '책상 사진이 아닙니다.\n책상이 잘 나오도록 사진을 다시 업로드해주세요.',
+        });
+      } else {
+        setToast('이미지 업로드에 실패했습니다. 다시 시도해 주세요.');
+        setTimeout(() => setToast(''), 1500);
+      }
       setLastRequestTime(0);
     }
   };
@@ -205,7 +216,7 @@ const DeskAI = () => {
             {error}
           </div>
         )}
-
+        <Toast message={toast} />
         {/* 모달 */}
         <SimpleModal
           open={modal.open}
