@@ -3,6 +3,7 @@ import RootLayout from './components/layout/RootLayout';
 import PrivateRoute from './components/PrivateRoute';
 import OAuth2RedirectHandler from '@/pages/OAuth2RedirectHandler';
 import ScrollToTop from './components/common/ScrollToTop';
+import ImageGenerationLoader from './components/common/ImageGenerationLoader';
 
 // 페이지 컴포넌트들
 import Home from './pages/Home';
@@ -19,6 +20,7 @@ import ProfileEdit from './pages/ProfileEdit';
 const App = () => {
   return (
     <Router>
+      <ImageGenerationLoader />
       <ScrollToTop />
       <Routes>
         {/* RootLayout을 사용하는 라우트 */}
@@ -41,8 +43,8 @@ const App = () => {
         {/* RootLayout을 사용하지 않는 라우트 */}
         <Route path="/login" element={<Login />} />
         <Route path="/oauth-success" element={<OAuth2RedirectHandler />} />
-        <Route path="/ai-images/:imageId" element={<AiGenerationResult />} />
         <Route path="/post-editor" element={<PostEditor />} />
+        <Route path="/ai-images/:imageId" element={<AiGenerationResult />} />
         <Route path="/posts/:postId" element={<PostDetail />} />
         <Route path="/profile-edit" element={<ProfileEdit />} />
         <Route path="*" element={<NotFound />} />

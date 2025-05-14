@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import useImageGenerationStore from '@/store/imageGenerationStore';
 import axiosInstance from '@/api/axios';
 import { useNavigate } from 'react-router-dom';
+import Toast from './Toast';
 
 // 윈도우 너비를 확인하는 훅 추가
 function useWindowWidth() {
@@ -20,27 +21,24 @@ const POLL_INTERVAL = 10000; // 10초마다 폴링
 
 const ImageGenerationLoader = () => {
   const { imageId, status, setStatus, reset } = useImageGenerationStore();
+  const [toast, setToast] = useState('');
   const [showToast, setShowToast] = useState(false);
   const [showFailToast, setShowFailToast] = useState(false);
   const navigate = useNavigate();
   const windowWidth = useWindowWidth(); // 훅 사용
 
   useEffect(() => {
-    console.log('ImageGenerationLoader - Current state:', { imageId, status });
     if (status !== 'generating' || !imageId) return;
 
-    console.log('Starting polling for image:', imageId);
     let interval = setInterval(async () => {
       try {
         const res = await axiosInstance.get(`/ai-images/${imageId}`);
-        console.log('Polling response:', res.data.data.image.state);
+
         if (res.data.data.image.state === 'SUCCESS') {
-          console.log('Image generation successful');
           setStatus('done');
           setShowToast(true);
           clearInterval(interval);
         } else if (res.data.data.image.state === 'FAILED') {
-          console.log('Image generation failed');
           reset();
           setShowFailToast(true);
           clearInterval(interval);
@@ -53,28 +51,19 @@ const ImageGenerationLoader = () => {
     return () => clearInterval(interval);
   }, [imageId, status, setStatus]);
 
-  // 토스트 메시지 자동 사라짐
   useEffect(() => {
-    if (showToast) {
-      const timer = setTimeout(() => setShowToast(false), 3000);
-      return () => clearTimeout(timer);
+    if (toast) {
+      setTimeout(() => setToast(''), 1500);
     }
-  }, [showToast]);
-
-  useEffect(() => {
-    if (showFailToast) {
-      const timer = setTimeout(() => setShowFailToast(false), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [showFailToast]);
+  }, [toast]);
 
   if (!imageId || status === 'idle') return null;
 
   return (
     <>
-      {/* 로딩바 (좌측 하단 고정) */}
+      {/* 로딩바 (우측 상단 고정) */}
       <div
-        className="fixed z-50 bottom-24 flex flex-col items-start gap-3"
+        className="fixed z-50 top-16 right-8 flex flex-col items-start gap-3"
         onClick={() => {
           if (status === 'done') {
             navigate(`/ai-images/${imageId}`);
@@ -88,9 +77,9 @@ const ImageGenerationLoader = () => {
         }}
       >
         {status === 'generating' ? (
-          <svg className="animate-spin w-10 h-10 text-gray-400" viewBox="0 0 24 24">
+          <svg className="animate-spin w-10 h-10 text-blue-500" viewBox="0 0 24 24">
             <circle
-              className="opacity-25"
+              className="opacity-75"
               cx="12"
               cy="12"
               r="10"
@@ -114,16 +103,9 @@ const ImageGenerationLoader = () => {
         )}
       </div>
       {/* 토스트 메시지 */}
-      {showToast && (
-        <div className="absolute bottom-40 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg z-50 shadow-lg max-w-[768px] w-fit">
-          이미지 생성이 완료되었습니다.
-        </div>
-      )}
-      {showFailToast && (
-        <div className="fixed bottom-40 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg z-50 shadow-lg max-w-[768px] w-fit">
-          이미지 생성에 실패 했습니다.
-        </div>
-      )}
+      <Toast />
+      {showToast && <Toast message={'이미지 생성이 완료되었습니다.'} />}
+      {showFailToast && <Toast message={'이미지 생성에 실패 했습니다.'} />}
     </>
   );
 };

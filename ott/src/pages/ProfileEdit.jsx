@@ -179,7 +179,8 @@ export default function ProfileEdit() {
   const isValid = isNicknameValid && isKakaoNicknameValid && (profileFile || profileImg);
 
   return (
-    <div className="max-w-[640px] mx-auto min-h-screen bg-white pb-12 relative">
+    <div className="max-w-[768px] mx-auto min-h-screen bg-white pb-24 relative">
+      <div className="fixed inset-0 bg-gray-100 -z-10 hidden sm:block" />
       <TopBar title="회원정보 변경" showBack />
 
       {/* 프로필 사진 + 이미지 선택 버튼 */}
