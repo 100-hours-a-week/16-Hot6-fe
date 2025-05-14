@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axiosInstance from '@/api/axios';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import SimpleModal from '@/components/common/SimpleModal';
+import { useNavigate } from 'react-router-dom';
+import useAuthStore from '@/store/authStore';
 
 export default function MyPage() {
   // 사용자 정보 상태 관리
@@ -10,16 +12,19 @@ export default function MyPage() {
     nicknameKakao: null,
     profileImagePath: '',
     point: 0,
-    isCertified: false,
+    certified: false,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const navigate = useNavigate();
   const handleShowModal = (e) => {
     e.stopPropagation();
     setIsModalOpen(true);
   };
+
+  const withdraw = useAuthStore((state) => state.withdraw);
 
   // 사용자 정보 가져오기
   useEffect(() => {
@@ -97,7 +102,7 @@ export default function MyPage() {
         <div>
           <div className="text-2xl font-bold">{formatPoint(userInfo.point)}</div>
           <div className="text-xs text-gray-500 mt-1 cursor-pointer" onClick={handleShowModal}>
-            {userInfo.isCertified ? '인증됨' : '추천인 코드 입력'}
+            {userInfo.certified ? '인증됨' : '추천인 코드 입력'}
           </div>
         </div>
         <button
@@ -119,20 +124,41 @@ export default function MyPage() {
         <button className="w-full text-left px-4 py-4 border-b text-base" onClick={handleShowModal}>
           구매내역 보기
         </button>
-        <button className="w-full text-left px-4 py-4 border-b text-base">회원정보 수정</button>
+        <button
+          className="w-full text-left px-4 py-4 border-b text-base"
+          onClick={() => navigate('/profile-edit')}
+        >
+          회원정보 변경
+        </button>
         <button className="w-full text-left px-4 py-4 border-b text-base">자주 묻는 질문</button>
         <button className="w-full text-left px-4 py-4 border-b text-base">문의하기</button>
-        <button className="w-full text-left px-4 py-4 border-b text-base text-red-500">
+        <button
+          className="w-full text-left px-4 py-4 border-b text-base text-red-500"
+          onClick={() => setIsWithdrawModalOpen(true)}
+        >
           회원탈퇴
         </button>
       </div>
 
-      {/* 하단 네비게이션 바는 별도 컴포넌트로 분리 추천 */}
       <SimpleModal
         open={isModalOpen}
         title="⚒️ 서비스 준비중"
         message={`서비스 준비중입니다.\n 곧 더 나은 모습으로 찾아뵙겠습니다.`}
         onClose={() => setIsModalOpen(false)}
+      />
+
+      <SimpleModal
+        open={isWithdrawModalOpen}
+        title="회원탈퇴"
+        message="정말로 탈퇴하시겠습니까?"
+        leftButtonText="취소"
+        rightButtonText="확인"
+        onLeftClick={() => setIsWithdrawModalOpen(false)}
+        onRightClick={() => {
+          withdraw(navigate);
+          setIsWithdrawModalOpen(false);
+        }}
+        onClose={() => setIsWithdrawModalOpen(false)}
       />
     </div>
   );

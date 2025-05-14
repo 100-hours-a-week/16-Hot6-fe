@@ -144,7 +144,7 @@ const Home = () => {
               {mainData.popularSetups.map((setup) => (
                 <div
                   key={setup.postId}
-                  className="flex-none w-[180px] border rounded-lg overflow-hidden relative"
+                  className="flex-none w-[180px] border rounded-lg overflow-hidden relative cursor-pointer"
                   onClick={() => navigate(`/posts/${setup.postId}`)}
                 >
                   {/* 스크랩 버튼 */}
@@ -243,7 +243,7 @@ const Home = () => {
               {mainData.recommendedItems.map((item) => (
                 <div
                   key={item.itemId}
-                  className="flex-none w-[180px] border rounded-lg overflow-hidden relative"
+                  className="flex-none w-[180px] border rounded-lg overflow-hidden relative cursor-pointer"
                   onClick={() => window.open(item.purchaseUrl, '_blank')}
                 >
                   {/* 스크랩 버튼 */}
@@ -342,7 +342,7 @@ const Home = () => {
                 mainData.todayDeals.map((deal) => (
                   <div
                     key={deal.itemId}
-                    className="flex items-center space-x-4 bg-white rounded-lg p-4 border border-gray-200"
+                    className="flex items-center space-x-4 bg-white rounded-lg p-4 border border-gray-200 cursor-pointer"
                   >
                     <div className="w-24 h-24 bg-gray-100 rounded-lg flex-shrink-0">
                       <img
@@ -407,7 +407,7 @@ const Home = () => {
                   .map((_, i) => (
                     <div
                       key={i}
-                      className="flex items-center space-x-4 bg-white rounded-lg p-4 border border-gray-200"
+                      className="flex items-center space-x-4 bg-white rounded-lg p-4 border border-gray-200 cursor-pointer"
                       onClick={handleShowModal}
                     >
                       <div className="w-24 h-24 bg-gray-100 rounded-lg flex-shrink-0"></div>
@@ -442,6 +442,7 @@ const Home = () => {
       {/* SimpleModal */}
       <SimpleModal
         open={showModal}
+        title="⚒️ 서비스 준비중"
         onClose={() => setShowModal(false)}
         message={`서비스 준비중입니다.\n 곧 더 나은 모습으로 찾아뵙겠습니다.`}
       />

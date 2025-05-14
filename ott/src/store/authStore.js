@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import axios from '@/api/axios.js';
 import { getConfig } from '@/config/index';
 const { BASE_URL } = getConfig();
+import axiosInstance from '@/api/axios';
 
 const useAuthStore = create((set) => ({
   accessToken: localStorage.getItem('accessToken'),
@@ -65,6 +66,26 @@ const useAuthStore = create((set) => ({
       }
     } catch (error) {
       console.error('로그아웃 실패:', error);
+    }
+  },
+
+  // 회원탈퇴
+  withdraw: async (navigate) => {
+    try {
+      const response = await axiosInstance.delete('/users');
+      if (response.data.status === 200) {
+        localStorage.removeItem('accessToken');
+        set({
+          accessToken: null,
+          user: null,
+          isAuthenticated: false,
+        });
+        if (navigate) navigate('/');
+      } else {
+        console.error('회원탈퇴 실패:', response.data);
+      }
+    } catch (error) {
+      console.error('회원탈퇴 실패:', error);
     }
   },
 

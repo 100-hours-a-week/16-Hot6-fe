@@ -14,6 +14,7 @@ import PostEditor from './pages/PostEditor';
 import Posts from './pages/Posts';
 import PostDetail from './pages/PostDetail';
 import MyPage from './pages/MyPage';
+import ProfileEdit from './pages/ProfileEdit';
 
 const App = () => {
   return (
@@ -43,6 +44,7 @@ const App = () => {
         <Route path="/ai-images/:imageId" element={<AiGenerationResult />} />
         <Route path="/post-editor" element={<PostEditor />} />
         <Route path="/posts/:postId" element={<PostDetail />} />
+        <Route path="/profile-edit" element={<ProfileEdit />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
