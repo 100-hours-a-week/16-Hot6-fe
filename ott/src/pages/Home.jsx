@@ -238,7 +238,15 @@ const Home = () => {
           </div>
           {/* 가로 스크롤 컨테이너 */}
           <div className="relative">
-            <div className="flex overflow-x-auto scrollbar-hide gap-3 -mx-4 px-4">
+            <div
+              className="flex overflow-x-auto gap-3 no-scrollbar"
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch',
+                scrollSnapType: 'x mandatory',
+              }}
+            >
               {/* 아이템 카드 6개 */}
               {mainData.recommendedItems.map((item) => (
                 <div

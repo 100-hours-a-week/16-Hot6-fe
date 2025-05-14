@@ -3,12 +3,39 @@ import { useParams, useNavigate } from 'react-router-dom';
 import TopBar from '@/components/common/TopBar';
 import axiosInstance from '@/api/axios';
 import SimpleModal from '@/components/common/SimpleModal';
+import CommentBottomSheet from '@/components/common/CommentBottomSheet';
+import Toast from '@/components/common/Toast';
 
 // 날짜 포맷 함수
 function formatDate(dateStr) {
   const createdUTC = new Date(dateStr);
   const date = new Date(createdUTC.getTime() + 9 * 60 * 60 * 1000);
   return `${date.getFullYear()}년 ${String(date.getMonth() + 1).padStart(2, '0')}월 ${String(date.getDate()).padStart(2, '0')}일 ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+
+//
+function formatCommentDate(createdAtStr) {
+  const KST_OFFSET = 9 * 60 * 60 * 1000; // 9시간(ms)
+  const now = new Date();
+  const createdUTC = new Date(createdAtStr);
+  const createdKST = new Date(createdUTC.getTime() + KST_OFFSET);
+  const diffMs = now.getTime() - createdKST.getTime();
+  const diffMin = Math.floor(diffMs / (1000 * 60));
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+
+  if (diffMin < 1) {
+    return '방금 전';
+  } else if (diffMin < 60) {
+    return `${diffMin}분 전`;
+  } else if (diffHour < 24) {
+    return `${diffHour}시간 전`;
+  } else if (diffDay < 7) {
+    return `${diffDay}일 전`;
+  } else {
+    const pad = (n) => n.toString().padStart(2, '0');
+    return `${createdKST.getFullYear()}년 ${pad(createdKST.getMonth() + 1)}월 ${pad(createdKST.getDate())}일 ${pad(createdKST.getHours())}:${pad(createdKST.getMinutes())}`;
+  }
 }
 
 const formatLikeCount = (count) => {
@@ -22,11 +49,23 @@ export default function PostDetail() {
   const { postId } = useParams();
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [commentPageInfo, setCommentPageInfo] = useState({
+    size: 10,
+    hasNext: false,
+    lastCommentId: null,
+  });
+  const [commentInput, setCommentInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [carouselIdx, setCarouselIdx] = useState(0);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDeleteErrorToast, setShowDeleteErrorToast] = useState(false);
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+  const [editComment, setEditComment] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [toast, setToast] = useState('');
 
   // 게시글 정보 불러오기
   useEffect(() => {
@@ -43,6 +82,30 @@ export default function PostDetail() {
 
     fetchPost();
   }, [postId]);
+
+  // 댓글 목록 불러오기
+  const fetchComments = async (isFirst = true, lastCommentId = null) => {
+    try {
+      const params = { size: 10 };
+      if (!isFirst && lastCommentId) params.lastCommentId = lastCommentId;
+      const res = await axiosInstance.get(`/posts/${postId}/comments`, { params });
+      const { comments: newComments, pageInfo } = res.data.data;
+      setComments((prev) => (isFirst ? newComments : [...prev, ...newComments]));
+      setCommentPageInfo(pageInfo);
+    } catch (e) {
+      // 에러 처리
+    }
+  };
+
+  useEffect(() => {
+    fetchComments(true);
+  }, [postId]);
+
+  useEffect(() => {
+    if (!isBottomSheetOpen) {
+      fetchComments(true); // 댓글 목록 최신화
+    }
+  }, [isBottomSheetOpen]);
 
   // 좋아요 토글 핸들러 추가
   const handleLike = async (postId) => {
@@ -71,6 +134,14 @@ export default function PostDetail() {
     }
   };
 
+  // 댓글 등록 함수 예시
+  const handleCommentSubmit = () => {
+    if (commentInput.trim().length === 0) return;
+    // 실제 등록 로직 추가
+    // setComments([...comments, ...]);
+    setCommentInput('');
+  };
+
   const handleEdit = () => {
     navigate(`/post-editor?postId=${postId}&mode=edit`);
   };
@@ -89,6 +160,11 @@ export default function PostDetail() {
         setShowDeleteErrorToast(false);
       }, 3000);
     }
+  };
+
+  const handleEditComment = (comment) => {
+    setEditComment(comment);
+    setIsBottomSheetOpen(true);
   };
 
   // 로딩 중일 때
@@ -282,8 +358,88 @@ export default function PostDetail() {
 
       {/* 댓글 영역 */}
       <div className="px-4 mt-8">
-        <div className="font-bold mb-2">{post.commentCount}개의 댓글</div>
+        <div className="font-bold mb-4">{post.commentCount}개의 댓글</div>
+
         {/* 댓글 목록은 별도 API로 불러오는 것이 좋습니다 */}
+        <div className="space-y-4">
+          {comments.slice(0, 5).map((c) => (
+            <div key={c.commentId} className="flex items-start gap-2">
+              <img
+                src={c.author.profileImageUrl}
+                alt="profile"
+                className="w-8 h-8 rounded-full object-cover"
+              />
+              <div className="flex-1">
+                <div className="flex items-center">
+                  <div className="flex items-center gap-2 flex-1">
+                    <span className="font-semibold text-sm">{c.author.nickname}</span>
+                    <span className="text-xs text-gray-400">{formatCommentDate(c.createdAt)}</span>
+                  </div>
+                  {c.owner && (
+                    <div className="flex gap-2">
+                      <button
+                        className="text-gray-400 text-xs"
+                        onClick={() =>
+                          handleEditComment({ commentId: c.commentId, content: c.content })
+                        }
+                      >
+                        수정
+                      </button>
+                      <button
+                        className="text-red-500 text-xs"
+                        onClick={() => {
+                          setDeleteTarget({ commentId: c.commentId });
+                          setIsDeleteModalOpen(true);
+                        }}
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <div className="text-sm mt-1">{c.content}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* 전체보기 버튼 또는 안내 문구 */}
+        {post.commentCount > 0 ? (
+          <button
+            className="w-full text-center text-gray-500 py-3 flex items-center justify-center gap-1"
+            onClick={() => setIsBottomSheetOpen(true)}
+          >
+            {post.commentCount}개의 댓글 전체보기
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              className="inline-block align-middle text-gray-800"
+            >
+              <path
+                d="M9 6l6 6-6 6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        ) : (
+          <div className="w-full text-center text-lg text-black py-3">
+            첫번째 댓글을 남겨주세요!
+          </div>
+        )}
+      </div>
+
+      {/* 댓글 입력창 */}
+      <div className="fixed max-w-[768px] bottom-0 w-full bg-white border-t px-4 py-2 flex items-center">
+        <input
+          className="flex-1 border rounded px-3 py-2"
+          placeholder="댓글을 입력해주세요."
+          onFocus={() => setIsBottomSheetOpen(true)}
+        />
+        <button className="ml-2 px-4 py-2 bg-gray-200 text-gray-400 rounded">등록</button>
       </div>
 
       {/* 삭제 확인 모달 */}
@@ -297,11 +453,43 @@ export default function PostDetail() {
       />
 
       {/* 삭제 실패 토스트 */}
-      {showDeleteErrorToast && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg">
-          삭제에 실패했습니다. 잠시 후 다시 시도해주세요.
-        </div>
-      )}
+      {showDeleteErrorToast && <Toast message="삭제에 실패했습니다. 잠시 후 다시 시도해주세요." />}
+      <Toast message={toast} />
+
+      <SimpleModal
+        open={isDeleteModalOpen}
+        title="댓글 삭제"
+        message={`해당 댓글을 삭제하시겠습니까?\n 삭제한 댓글은 되돌릴 수 없습니다.`}
+        leftButtonText="취소"
+        rightButtonText="삭제"
+        onLeftClick={() => setIsDeleteModalOpen(false)}
+        onRightClick={async () => {
+          try {
+            console.log(`/comments/${deleteTarget.commentId}`);
+            await axiosInstance.delete(`/comments/${deleteTarget.commentId}`);
+            setToast('댓글이 삭제되었어요.');
+            fetchComments(true);
+          } catch {
+            setToast('댓글 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.');
+          } finally {
+            setIsDeleteModalOpen(false);
+            setTimeout(() => setToast(''), 3000);
+          }
+        }}
+        onClose={() => setIsDeleteModalOpen(false)}
+      />
+
+      {/* BottomSheet 컴포넌트 */}
+      <CommentBottomSheet
+        open={isBottomSheetOpen}
+        onClose={() => {
+          setIsBottomSheetOpen(false);
+          setEditComment(null);
+        }}
+        postId={postId}
+        editComment={editComment}
+        setEditComment={setEditComment}
+      />
     </div>
   );
 }
