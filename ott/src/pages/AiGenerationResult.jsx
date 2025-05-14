@@ -3,6 +3,8 @@ import axiosInstance from '@/api/axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import TopBar from '../components/common/TopBar';
 import SimpleModal from '@/components/common/SimpleModal';
+import { addScrap, removeScrap } from '@/api/scraps';
+import Toast from '../components/common/Toast';
 
 const AIGeneratedResult = () => {
   const { imageId } = useParams();
@@ -10,6 +12,7 @@ const AIGeneratedResult = () => {
   const [loading, setLoading] = useState(true);
   const [showForbiddenModal, setShowForbiddenModal] = useState(false);
   const navigate = useNavigate();
+  const [toast, setToast] = useState('');
 
   useEffect(() => {
     axiosInstance
@@ -21,21 +24,40 @@ const AIGeneratedResult = () => {
       .catch((err) => {
         console.log('에러 발생:', err);
         setLoading(false);
-        console.log('에러 발생:', err);
-        setLoading(false);
         if (err.response && err.response.status === 403) {
           console.log('403 에러');
           setShowForbiddenModal(true);
         } else {
           // 다른 에러는 그냥 빈 객체로 (렌더링 시 체크 필요)
           setData(null);
-          // 다른 에러는 그냥 빈 객체로 (렌더링 시 체크 필요)
-          setData(null);
         }
       });
   }, [imageId]);
 
-  // 로딩 중이면 로딩 표시
+  // 스크랩 토글 핸들러
+  const handleScrap = async (productId, scrapped) => {
+    try {
+      if (scrapped) {
+        await removeScrap({ type: 'PRODUCT', targetId: productId });
+        setToast('스크랩이 취소되었어요.');
+      } else {
+        await addScrap({ type: 'PRODUCT', targetId: productId });
+        setToast('스크랩이 추가되었어요.');
+      }
+      // UI 상태 업데이트
+      setData((prev) => ({
+        ...prev,
+        products: prev.products.map((p) =>
+          p.productId === productId ? { ...p, scraped: !scrapped } : p,
+        ),
+      }));
+    } catch {
+      setToast('스크랩 처리에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setTimeout(() => setToast(''), 1500);
+    }
+  };
+
   // 로딩 중이면 로딩 표시
   if (loading) return <div className="flex justify-center items-center h-screen">로딩중...</div>;
 
@@ -87,10 +109,10 @@ const AIGeneratedResult = () => {
 
       {/* 추천 상품 리스트 */}
       <div className="px-4">
-        {data.products.map((product, idx) => (
+        {data.products.map((product) => (
           <div
             key={product.productId}
-            className={`flex items-center w-full py-5 border-b last:border-b-0 cursor-pointer`}
+            className="flex items-center w-full py-5 border-b last:border-b-0 cursor-pointer"
             onClick={() => window.open(product.purchaseLink, '_blank')}
           >
             <div className="w-20 h-20 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
@@ -108,30 +130,32 @@ const AIGeneratedResult = () => {
             </div>
             {/* 스크랩 버튼 */}
             <button
-              type="button"
-              aria-label={product.scraped ? '스크랩 해제' : '스크랩'}
-              className="ml-2 w-8 h-8 flex items-center justify-center"
-              tabIndex={0}
               onClick={(e) => {
                 e.stopPropagation();
-                console.log('스크랩 버튼 클릭');
+                handleScrap(product.productId, product.scraped);
               }}
             >
-              {product.scarped ? (
-                <svg className="w-6 h-6" fill="#222" viewBox="0 0 24 24">
-                  <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              {product.scraped ? (
+                <svg className="w-6 h-6" fill="#2563eb" stroke="#2563eb" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                  />
                 </svg>
               ) : (
                 <svg
                   className="w-6 h-6"
                   fill="none"
-                  stroke="#222"
+                  stroke="#2563eb"
                   strokeWidth="2"
                   viewBox="0 0 24 24"
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
+                    strokeWidth={2}
                     d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
                   />
                 </svg>
@@ -142,14 +166,16 @@ const AIGeneratedResult = () => {
       </div>
 
       {/* 하단 안내 버튼 */}
-      <div className="w-full max-w-[640px] px-4 mx-auto mt-8">
+      <div className="fixed bottom-1 left-1/2 -translate-x-1/2 w-full max-w-[580px] px-4 mx-auto mt-8">
         <button
-          className="w-full bg-black rounded-xl py-3 text-center text-white text-base"
+          className="w-full bg-gray-800 rounded-xl py-3 text-center text-white text-base"
           onClick={() => navigate(`/post-editor?imageId=${data.image.imageId}`)}
         >
           게시글 작성하러 가기
         </button>
       </div>
+
+      <Toast message={toast} />
     </div>
   );
 };
