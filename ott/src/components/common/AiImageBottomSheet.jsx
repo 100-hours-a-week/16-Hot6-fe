@@ -1,8 +1,8 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import axiosInstance from '../../services/axiosInstance';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axiosInstance from '@/api/axios';
 
-function AiImageBottomSheet({ open, onClose, onSelect }) {
+export default function AiImageBottomSheet({ open, onClose, onSelect }) {
   const [selected, setSelected] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [aiImageList, setAiImageList] = useState([]);
@@ -26,11 +26,11 @@ function AiImageBottomSheet({ open, onClose, onSelect }) {
           params: {
             type: 'post',
             size: 10,
-            lastImageId: isInitial ? null : lastImageId,
+            lastPostId: isInitial ? null : lastImageId,
           },
         });
 
-        const { images, hasNext: nextHasNext } = res.data.data;
+        const { images, hasNext: nextHasNext, lastPostId: lastPostId } = res.data.data;
 
         if (isInitial) {
           setAiImageList(images);
@@ -39,9 +39,7 @@ function AiImageBottomSheet({ open, onClose, onSelect }) {
         }
 
         setHasNext(nextHasNext);
-        if (images.length > 0) {
-          setLastImageId(images[images.length - 1].aiImageId);
-        }
+        setLastImageId(lastPostId);
       } catch (error) {
         console.error('AI 이미지 목록 조회 실패:', error);
       } finally {
@@ -69,15 +67,20 @@ function AiImageBottomSheet({ open, onClose, onSelect }) {
   }, [handleScroll]);
 
   useEffect(() => {
-    if (open) {
-      fetchAiImages(true);
-    }
-  }, [open, fetchAiImages]);
+    if (!open) return;
+    // 열릴 때마다 상태 초기화
+    setAiImageList([]);
+    setLastImageId(null);
+    setHasNext(true);
+
+    // 한 번만 초기 호출
+    fetchAiImages(true);
+  }, [open]);
 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white max-w-[640px] mx-auto">
+    <div className="fixed inset-0 z-50 flex flex-col bg-white max-w-[768px] mx-auto">
       {/* TopBar */}
       <div className="flex items-center justify-between px-4 h-12 border-b relative">
         <button className="p-2 -ml-2" onClick={onClose} aria-label="닫기">
@@ -132,7 +135,7 @@ function AiImageBottomSheet({ open, onClose, onSelect }) {
         }}
       >
         <div ref={bottomRef} className="overflow-y-auto h-full px-4 pt-4 pb-20">
-          {aiImageList.length > 0 ? (
+          {!isLoading && aiImageList.length > 0 ? (
             <div className="space-y-3">
               {aiImageList.map((item) => (
                 <div
@@ -213,5 +216,3 @@ function AiImageBottomSheet({ open, onClose, onSelect }) {
     </div>
   );
 }
-
-export default AiImageBottomSheet;
