@@ -5,7 +5,7 @@ import axiosInstance from '@/api/axios';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 function validateNickname(nickname) {
-  const regex = /^[A-Za-z0-9가-힣]{4,20}$/;
+  const regex = /^[A-Za-z0-9가-힣]{2,20}$/;
   return regex.test(nickname);
 }
 
@@ -115,7 +115,7 @@ export default function ProfileEdit() {
     setNickname(value);
     if (!validateNickname(value)) {
       setNicknameError(
-        '* 닉네임은 4~20자 이내의 완성형 한글(가–힣), 영문, 숫자로 이루어져야 합니다.',
+        '* 닉네임은 2~20자 이내의 공백 제외 완성형 한글(가–힣), 영문, 숫자로 이루어져야 합니다.',
       );
     } else {
       setNicknameError('');
@@ -127,7 +127,7 @@ export default function ProfileEdit() {
     setKakaoNickname(value);
     if (!validateNickname(value)) {
       setKakaoNicknameError(
-        '* 닉네임은 4~20자 이내의 완성형 한글(가–힣), 영문, 숫자로 이루어져야 합니다.',
+        '* 닉네임은 2~20자 이내의 공백 제외 완성형 한글(가–힣), 영문, 숫자로 이루어져야 합니다.',
       );
     } else {
       setKakaoNicknameError('');
@@ -138,13 +138,13 @@ export default function ProfileEdit() {
   const handleSave = async () => {
     if (!validateNickname(nickname)) {
       setNicknameError(
-        '* 닉네임은 4~20자 이내의 완성형 한글(가–힣), 영문, 숫자로 이루어져야 합니다.',
+        '* 닉네임은 2~20자 이내의 공백 제외 완성형 한글(가–힣), 영문, 숫자로 이루어져야 합니다.',
       );
       return;
     }
     if (!validateNickname(kakaoNickname)) {
       setKakaoNicknameError(
-        '* 닉네임은 4~20자 이내의 완성형 한글(가–힣), 영문, 숫자로 이루어져야 합니다.',
+        '* 닉네임은 2~20자 이내의 공백 제외 완성형 한글(가–힣), 영문, 숫자로 이루어져야 합니다.',
       );
       return;
     }
@@ -152,8 +152,9 @@ export default function ProfileEdit() {
     try {
       const formData = new FormData();
       formData.append('nicknameCommunity', nickname);
-      formData.append('nicknameKakao', kakaoNickname);
-
+      if (kakaoNickname) {
+        formData.append('nicknameKakao', kakaoNickname);
+      }
       if (profileFile) {
         // 이미지 리사이즈
         const resizedBlob = await resizeImage(profileFile, 1024);
