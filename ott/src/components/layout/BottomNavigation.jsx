@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import useAuthStore from '@/store/authStore';
+import SimpleModal from '@/components/common/SimpleModal';
 
 // SVG 아이콘 import
 import homeOutlinedIcon from '@/assets/icons/navigation/home-outlined.svg';
@@ -18,6 +19,7 @@ const BottomNavigation = ({ checkDeskAIAvailability }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const navigationItems = [
     {
@@ -54,37 +56,62 @@ const BottomNavigation = ({ checkDeskAIAvailability }) => {
     }
   };
 
+  const handleSpecialPriceClick = (e) => {
+    e.preventDefault();
+    setIsModalOpen(true);
+  };
+
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[768px] bg-white border-t border-gray-200 safe-area-bottom">
-      <div className="grid grid-cols-5 h-16">
-        {navigationItems.map((item) =>
-          item.label === '데스크' ? (
-            <button
-              key={item.path}
-              onClick={handleDeskClick}
-              className={`flex flex-col items-center justify-center space-y-1 w-full h-full ${
-                location.pathname === item.path ? 'text-blue-500' : 'text-gray-500'
-              }`}
-              type="button"
-            >
-              <img src={item.icon} alt={item.label} className="w-6 h-6" />
-              <span className="text-xs">{item.label}</span>
-            </button>
-          ) : (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex flex-col items-center justify-center space-y-1 ${
-                location.pathname === item.path ? 'text-blue-500' : 'text-gray-500'
-              }`}
-            >
-              <img src={item.icon} alt={item.label} className="w-6 h-6" />
-              <span className="text-xs">{item.label}</span>
-            </Link>
-          ),
-        )}
-      </div>
-    </nav>
+    <>
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[768px] bg-white border-t border-gray-200 safe-area-bottom">
+        <div className="grid grid-cols-5 h-16">
+          {navigationItems.map((item) =>
+            item.label === '데스크' ? (
+              <button
+                key={item.path}
+                onClick={handleDeskClick}
+                className={`flex flex-col items-center justify-center space-y-1 w-full h-full ${
+                  location.pathname === item.path ? 'text-blue-500' : 'text-gray-500'
+                }`}
+                type="button"
+              >
+                <img src={item.icon} alt={item.label} className="w-6 h-6" />
+                <span className="text-xs">{item.label}</span>
+              </button>
+            ) : item.label === '특가' ? (
+              <button
+                key={item.path}
+                onClick={handleSpecialPriceClick}
+                className={`flex flex-col items-center justify-center space-y-1 w-full h-full ${
+                  location.pathname === item.path ? 'text-blue-500' : 'text-gray-500'
+                }`}
+                type="button"
+              >
+                <img src={item.icon} alt={item.label} className="w-6 h-6" />
+                <span className="text-xs">{item.label}</span>
+              </button>
+            ) : (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex flex-col items-center justify-center space-y-1 ${
+                  location.pathname === item.path ? 'text-blue-500' : 'text-gray-500'
+                }`}
+              >
+                <img src={item.icon} alt={item.label} className="w-6 h-6" />
+                <span className="text-xs">{item.label}</span>
+              </Link>
+            ),
+          )}
+        </div>
+      </nav>
+      <SimpleModal
+        open={isModalOpen}
+        title="⚒️ 서비스 준비중"
+        message={`서비스 준비중입니다.\n 곧 더 나은 모습으로 찾아뵙겠습니다.`}
+        onClose={() => setIsModalOpen(false)}
+      />
+    </>
   );
 };
 

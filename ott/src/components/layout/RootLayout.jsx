@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './Header'; // Header 컴포넌트 import
 import BottomNavigation from './BottomNavigation';
@@ -7,9 +7,11 @@ import useDeskAICheck from '@/hooks/useDeskAICheck';
 import SimpleModal from '@/components/common/SimpleModal';
 import ImageGenerationLoader from '@/components/common/ImageGenerationLoader';
 import LoginModal from '@/components/common/LoginModal';
+import Toast from '@/components/common/Toast';
 
 const RootLayout = () => {
   const { checkDeskAIAvailability, modal, setModal } = useDeskAICheck();
+  const [toast, setToast] = useState('');
 
   return (
     // 전체 컨테이너에 최소/최대 너비 설정
@@ -35,10 +37,10 @@ const RootLayout = () => {
         <Header /> {/* Header 컴포넌트 사용 */}
         {/* 메인 컨텐츠 */}
         <main className="flex-1 w-full pt-14 pb-16 relative">
-          <Outlet />
+          <Outlet context={{ toast, setToast }} />
         </main>
         <Footer /> {/* Footer 추가 */}
-        <ImageGenerationLoader />
+        {/* <ImageGenerationLoader /> */}
         {/* 하단 네비게이션 컴포넌트 */}
         <BottomNavigation checkDeskAIAvailability={checkDeskAIAvailability} />
         <SimpleModal
@@ -47,6 +49,7 @@ const RootLayout = () => {
           onClose={() => setModal({ open: false, message: '' })}
         />
         <LoginModal />
+        <Toast message={toast} />
       </div>
     </div>
   );
