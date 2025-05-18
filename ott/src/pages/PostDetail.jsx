@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import TopBar from '@/components/common/TopBar';
 import axiosInstance from '@/api/axios';
+import axios from 'axios';
 import SimpleModal from '@/components/common/SimpleModal';
 import CommentBottomSheet from '@/components/common/CommentBottomSheet';
 import Toast from '@/components/common/Toast';
@@ -75,7 +76,7 @@ export default function PostDetail() {
 
   const fetchPost = async () => {
     try {
-      const response = await axiosInstance.get(`/posts/${postId}`);
+      const response = await axios.get(`/posts/${postId}`);
       setPost(response.data.data);
     } catch (err) {
       setError('게시글을 불러오는데 실패했습니다.');
@@ -89,7 +90,7 @@ export default function PostDetail() {
     try {
       const params = { size: 10 };
       if (!isFirst && lastCommentId) params.lastCommentId = lastCommentId;
-      const res = await axiosInstance.get(`/posts/${postId}/comments`, { params });
+      const res = await axios.get(`/posts/${postId}/comments`, { params });
       const { comments: newComments, pageInfo } = res.data.data;
       setComments((prev) => (isFirst ? newComments : [...prev, ...newComments]));
       setCommentPageInfo(pageInfo);
