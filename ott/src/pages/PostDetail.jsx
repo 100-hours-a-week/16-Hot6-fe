@@ -1,13 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import TopBar from '@/components/common/TopBar';
-import axiosInstance from '@/api/axios';
+import axiosInstance from '../api/axios';
 import axios from 'axios';
 import SimpleModal from '@/components/common/SimpleModal';
 import CommentBottomSheet from '@/components/common/CommentBottomSheet';
 import Toast from '@/components/common/Toast';
 import { addLike, removeLike } from '@/api/likes';
 import { addScrap, removeScrap } from '@/api/scraps';
+import { getConfig } from '@/config/index';
+
+const { BASE_URL } = getConfig();
+const axiosBaseInstance = axios.create({
+  baseURL: BASE_URL,
+  timeout: 5000,
+});
+
+// 요청 인터셉터
+axiosBaseInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    console.log('error 인터셉트', error);
+    return Promise.reject(error);
+  },
+);
 
 // 날짜 포맷 함수
 function formatDate(dateStr) {
@@ -76,7 +98,7 @@ export default function PostDetail() {
 
   const fetchPost = async () => {
     try {
-      const response = await axios.get(`/posts/${postId}`);
+      const response = await axiosBaseInstance.get(`/posts/${postId}`);
       setPost(response.data.data);
     } catch (err) {
       setError('게시글을 불러오는데 실패했습니다.');
@@ -90,7 +112,7 @@ export default function PostDetail() {
     try {
       const params = { size: 10 };
       if (!isFirst && lastCommentId) params.lastCommentId = lastCommentId;
-      const res = await axios.get(`/posts/${postId}/comments`, { params });
+      const res = await axiosInstance.get(`/posts/${postId}/comments`, { params });
       const { comments: newComments, pageInfo } = res.data.data;
       setComments((prev) => (isFirst ? newComments : [...prev, ...newComments]));
       setCommentPageInfo(pageInfo);
@@ -436,14 +458,14 @@ export default function PostDetail() {
             </svg>
           </button>
         ) : (
-          <div className="w-full text-center text-lg text-black py-3">
+          <div className="w-full text-center text-lg text-black py-3 mt-5">
             첫번째 댓글을 남겨주세요!
           </div>
         )}
       </div>
 
       {/* 댓글 입력창 */}
-      <div className="fixed max-w-[768px] bottom-0 w-full bg-white border-t px-4 py-2 flex items-center">
+      <div className="fixed max-w-[768px] bottom-1 w-full bg-white border-t px-4 py-2 flex items-center">
         <input
           className="flex-1 border rounded px-3 py-2"
           placeholder="댓글을 입력해주세요."
