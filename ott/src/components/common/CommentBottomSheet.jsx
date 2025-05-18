@@ -315,7 +315,7 @@ export default function CommentBottomSheet({ open, onClose, postId, editComment,
             }}
           />
           <button
-            className={`ml-2 px-4 py-2 rounded font-semibold transition
+            className={`ml-2 px-4 py-2 rounded font-semibold transition whitespace-nowrap
               ${isValid ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
             disabled={!isValid}
             onClick={handleRegisterOrEdit}

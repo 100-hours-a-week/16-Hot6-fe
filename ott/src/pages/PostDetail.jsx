@@ -465,13 +465,15 @@ export default function PostDetail() {
       </div>
 
       {/* 댓글 입력창 */}
-      <div className="fixed max-w-[768px] bottom-1 w-full bg-white border-t px-4 py-2 flex items-center">
+      <div className="fixed max-w-[768px] bottom-0 w-full bg-white border-t px-4 py-2 flex items-center">
         <input
           className="flex-1 border rounded px-3 py-2"
           placeholder="댓글을 입력해주세요."
           onFocus={() => setIsBottomSheetOpen(true)}
         />
-        <button className="ml-2 px-4 py-2 bg-gray-200 text-gray-400 rounded">등록</button>
+        <button className="ml-2 px-4 py-2 bg-gray-200 text-gray-400 rounded whitespace-nowrap">
+          등록
+        </button>
       </div>
 
       {/* 삭제 확인 모달 */}
