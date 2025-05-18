@@ -44,6 +44,9 @@ export default {
         toastin: 'toastin 0.4s cubic-bezier(0.4,0,0.2,1)',
         toastout: 'toastout 0.4s cubic-bezier(0.4,0,0.2,1)',
       },
+      fontFamily: {
+        sans: ['Pretendard', 'sans-serif'],
+      },
     },
   },
   plugins: [],

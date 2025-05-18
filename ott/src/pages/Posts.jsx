@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams, useOutletContext } from 'react-router-dom';
-import axiosInstance from '@/api/axios';
 import axios from 'axios';
+import { getConfig } from '@/config/index';
 import { addLike, removeLike } from '@/api/likes';
 import { addScrap, removeScrap } from '@/api/scraps';
 import Toast from '../components/common/Toast';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+
+const { BASE_URL } = getConfig();
 
 const CATEGORY_MAP = [
   { label: '전체', value: 'ALL' },
@@ -18,6 +20,26 @@ const SORT_MAP = [
   { label: '좋아요순', value: 'LIKE' },
   // { label: '스크랩순', value: 'SCRAP' },
 ];
+
+const axiosBaseInstance = axios.create({
+  baseURL: BASE_URL,
+  timeout: 5000,
+});
+
+// 요청 인터셉터
+axiosBaseInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    console.log('error 인터셉트', error);
+    return Promise.reject(error);
+  },
+);
 
 function formatDate(createdAtStr) {
   const KST_OFFSET = 9 * 60 * 60 * 1000; // 9시간(ms)
@@ -87,8 +109,8 @@ export default function Posts() {
       if (!isFirst && pagination.lastPostId) {
         params.lastPostId = pagination.lastPostId;
       }
-      console.log('hi');
-      const res = await axios.get('/posts', { params });
+      const res = await axiosBaseInstance.get('/posts', { params });
+      console.log(res);
       const { posts: newPosts, pagination: newPagination } = res.data.data;
       setPosts((prev) => (isFirst ? newPosts : [...prev, ...newPosts]));
       setPagination({
