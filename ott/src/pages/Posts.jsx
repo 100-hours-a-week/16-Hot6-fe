@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams, useOutletContext } from 'react-router-dom';
 import axiosInstance from '@/api/axios';
+import axios from 'axios';
 import { addLike, removeLike } from '@/api/likes';
 import { addScrap, removeScrap } from '@/api/scraps';
 import Toast from '../components/common/Toast';
@@ -86,8 +87,8 @@ export default function Posts() {
       if (!isFirst && pagination.lastPostId) {
         params.lastPostId = pagination.lastPostId;
       }
-
-      const res = await axiosInstance.get('/posts', { params });
+      console.log('hi');
+      const res = await axios.get('/posts', { params });
       const { posts: newPosts, pagination: newPagination } = res.data.data;
       setPosts((prev) => (isFirst ? newPosts : [...prev, ...newPosts]));
       setPagination({
@@ -239,14 +240,14 @@ export default function Posts() {
   // 첫 진입 시
   useEffect(() => {
     // 액세스 토큰 헬스 체크
-    (async () => {
-      try {
-        await axiosInstance.get('/users/me');
-      } catch (error) {
-        // 에러가 발생해도 무시
-        console.error('사용자 정보 요청 실패:', error);
-      }
-    })();
+    // (async () => {
+    //   try {
+    //     await axiosInstance.get('/users/me');
+    //   } catch (error) {
+    //     // 에러가 발생해도 무시
+    //     console.error('사용자 정보 요청 실패:', error);
+    //   }
+    // })();
     fetchPosts(true);
   }, []);
 

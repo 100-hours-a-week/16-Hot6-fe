@@ -25,6 +25,7 @@ export default function MyPage() {
   };
 
   const withdraw = useAuthStore((state) => state.withdraw);
+  const surveyUrl = 'https://forms.gle/YSV9DpJ1U3Cc1Dzw9';
 
   // 사용자 정보 가져오기
   useEffect(() => {
@@ -130,14 +131,23 @@ export default function MyPage() {
         >
           회원정보 변경
         </button>
-        <button className="w-full text-left px-4 py-4 border-b text-base">자주 묻는 질문</button>
-        <button className="w-full text-left px-4 py-4 border-b text-base">문의하기</button>
+        <button className="w-full text-left px-4 py-4 border-b text-base" onClick={handleShowModal}>
+          자주 묻는 질문
+        </button>
         <button
+          className="w-full text-left px-4 py-4 border-b text-base"
+          onClick={() => {
+            window.open(surveyUrl, '_blank');
+          }}
+        >
+          문의하기
+        </button>
+        {/* <button
           className="w-full text-left px-4 py-4 border-b text-base text-red-500"
           onClick={() => setIsWithdrawModalOpen(true)}
         >
           회원탈퇴
-        </button>
+        </button> */}
       </div>
 
       <SimpleModal
@@ -147,7 +157,7 @@ export default function MyPage() {
         onClose={() => setIsModalOpen(false)}
       />
 
-      <SimpleModal
+      {/* <SimpleModal
         open={isWithdrawModalOpen}
         title="회원탈퇴"
         message="정말로 탈퇴하시겠습니까?"
@@ -159,7 +169,7 @@ export default function MyPage() {
           setIsWithdrawModalOpen(false);
         }}
         onClose={() => setIsWithdrawModalOpen(false)}
-      />
+      /> */}
     </div>
   );
 }
