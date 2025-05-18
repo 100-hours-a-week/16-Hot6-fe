@@ -297,10 +297,10 @@ export default function CommentBottomSheet({ open, onClose, postId, editComment,
           {loading && <div className="text-center py-2 text-gray-400">불러오는 중...</div>}
         </div>
         {/* 댓글 입력창 */}
-        <div className="border-t px-4 py-2 flex items-center">
+        <div className="border-t px-4 py-2 flex items-center gap-2">
           <input
             ref={inputRef}
-            className="flex-1 border rounded px-3 py-2 focus:border-blue-500 outline-none"
+            className="flex-1 min-w-0 border rounded px-3 py-2 focus:border-blue-500 outline-none"
             placeholder="댓글을 입력해주세요."
             value={commentInput}
             onChange={(e) => {
@@ -315,7 +315,7 @@ export default function CommentBottomSheet({ open, onClose, postId, editComment,
             }}
           />
           <button
-            className={`ml-2 px-4 py-2 rounded font-semibold transition whitespace-nowrap
+            className={`shrink-0 px-4 py-2 rounded font-semibold transition whitespace-nowrap
               ${isValid ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
             disabled={!isValid}
             onClick={handleRegisterOrEdit}
