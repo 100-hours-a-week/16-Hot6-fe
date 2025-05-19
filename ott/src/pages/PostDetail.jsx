@@ -1,12 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import TopBar from '@/components/common/TopBar';
-import axiosInstance from '@/api/axios';
+import axiosInstance from '../api/axios';
+import axios from 'axios';
 import SimpleModal from '@/components/common/SimpleModal';
 import CommentBottomSheet from '@/components/common/CommentBottomSheet';
 import Toast from '@/components/common/Toast';
 import { addLike, removeLike } from '@/api/likes';
 import { addScrap, removeScrap } from '@/api/scraps';
+import { getConfig } from '@/config/index';
+
+const { BASE_URL } = getConfig();
+const axiosBaseInstance = axios.create({
+  baseURL: BASE_URL,
+  timeout: 5000,
+});
+
+// 요청 인터셉터
+axiosBaseInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    console.log('error 인터셉트', error);
+    return Promise.reject(error);
+  },
+);
 
 // 날짜 포맷 함수
 function formatDate(dateStr) {
@@ -75,7 +98,7 @@ export default function PostDetail() {
 
   const fetchPost = async () => {
     try {
-      const response = await axiosInstance.get(`/posts/${postId}`);
+      const response = await axiosBaseInstance.get(`/posts/${postId}`);
       setPost(response.data.data);
     } catch (err) {
       setError('게시글을 불러오는데 실패했습니다.');
@@ -435,20 +458,22 @@ export default function PostDetail() {
             </svg>
           </button>
         ) : (
-          <div className="w-full text-center text-lg text-black py-3">
+          <div className="w-full text-center text-lg text-black py-3 mt-5">
             첫번째 댓글을 남겨주세요!
           </div>
         )}
       </div>
 
       {/* 댓글 입력창 */}
-      <div className="fixed max-w-[768px] bottom-0 w-full bg-white border-t px-4 py-2 flex items-center">
+      <div className="fixed max-w-[768px] bottom-0 w-full bg-white border-t px-4 py-2 flex items-center gap-2">
         <input
-          className="flex-1 border rounded px-3 py-2"
+          className="flex-1 min-w-0 border rounded px-3 py-2"
           placeholder="댓글을 입력해주세요."
           onFocus={() => setIsBottomSheetOpen(true)}
         />
-        <button className="ml-2 px-4 py-2 bg-gray-200 text-gray-400 rounded">등록</button>
+        <button className="shrink-0 px-4 py-2 bg-gray-200 text-gray-400 rounded whitespace-nowrap">
+          등록
+        </button>
       </div>
 
       {/* 삭제 확인 모달 */}
