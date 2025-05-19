@@ -129,6 +129,9 @@ export default function Posts() {
 
   // 카테고리 변경 핸들러
   const handleCategoryChange = (newCategory) => {
+    // 같은 카테고리를 클릭한 경우 아무 동작도 하지 않음
+    if (category === newCategory) return;
+
     setCategory(newCategory);
     setSearchParams((prev) => {
       prev.set('category', newCategory);
