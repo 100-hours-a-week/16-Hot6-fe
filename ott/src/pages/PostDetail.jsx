@@ -112,7 +112,7 @@ export default function PostDetail() {
     try {
       const params = { size: 10 };
       if (!isFirst && lastCommentId) params.lastCommentId = lastCommentId;
-      const res = await axiosInstance.get(`/posts/${postId}/comments`, { params });
+      const res = await axiosBaseInstance.get(`/posts/${postId}/comments`, { params });
       const { comments: newComments, pageInfo } = res.data.data;
       setComments((prev) => (isFirst ? newComments : [...prev, ...newComments]));
       setCommentPageInfo(pageInfo);
