@@ -86,6 +86,8 @@ export default function Posts() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [pagination, setPagination] = useState({
     lastPostId: null,
+    lastLikeCount: null,
+    lastViewCount: null,
     hasNext: true,
     size: 10,
   });
@@ -97,35 +99,51 @@ export default function Posts() {
 
   // 게시글 불러오기 함수
   const fetchPosts = async (isFirst = false) => {
-    if (isFetching || (!pagination.hasNext && !isFirst)) return;
-    setIsFetching(true);
-    try {
-      const params = {
-        category: category !== 'ALL' ? category : undefined,
-        sort,
-        size: pagination.size,
-      };
+  if (isFetching || (!pagination.hasNext && !isFirst)) return;
+  setIsFetching(true);
+  try {
+    const params = {
+      category: category !== 'ALL' ? category : undefined,
+      sort,
+      size: pagination.size,
+    };
 
-      if (!isFirst && pagination.lastPostId) {
+    // 페이징 처리 (좋아요순, 조회수순, 최신순 구분)
+    if (!isFirst) {
+      console.log(pagination);
+      if (sort === 'LIKE' && pagination.lastLikeCount !== null) {
+        params.lastLikeCount = pagination.lastLikeCount;
+        params.lastPostId = pagination.lastPostId;
+      } else if (sort === 'VIEW' && pagination.lastViewCount !== null) {
+        params.lastViewCount = pagination.lastViewCount;
+        params.lastPostId = pagination.lastPostId;
+      } else {
         params.lastPostId = pagination.lastPostId;
       }
-      const res = await axiosBaseInstance.get('/posts', { params });
-      console.log(res);
-      const { posts: newPosts, pagination: newPagination } = res.data.data;
-      setPosts((prev) => (isFirst ? newPosts : [...prev, ...newPosts]));
-      setPagination({
-        lastPostId: newPagination.lastPostId,
-        hasNext: newPagination.hasNext,
-        size: newPagination.size,
-      });
-      setError(null);
-    } catch (e) {
-      setError('게시글 목록을 불러오지 못했습니다.');
-    } finally {
-      setIsFetching(false);
-      setLoading(false);
     }
-  };
+    console.log(params);
+    // API 요청
+    const res = await axiosBaseInstance.get('/posts', { params });
+    const { posts: newPosts, pagination: newPagination } = res.data.data;
+
+    // 상태 업데이트
+    setPosts((prev) => (isFirst ? newPosts : [...prev, ...newPosts]));
+    setPagination((prev) => ({
+      lastPostId: newPagination.lastPostId,
+      lastLikeCount: newPagination.lastLikeCount ?? prev.lastLikeCount,
+      lastViewCount: newPagination.lastViewCount ?? prev.lastViewCount,
+      hasNext: newPagination.hasNext,
+      size: newPagination.size,
+    }));
+
+    setError(null);
+  } catch (e) {
+    setError('게시글 목록을 불러오지 못했습니다.');
+  } finally {
+    setIsFetching(false);
+    setLoading(false);
+  }
+};
 
   // 카테고리 변경 핸들러
   const handleCategoryChange = (newCategory) => {
@@ -140,6 +158,8 @@ export default function Posts() {
     setPosts([]); // 기존 게시글 목록 초기화
     setPagination({
       lastPostId: null,
+      lastLikeCount: null,
+      lastViewCount: null,
       hasNext: true,
       size: 10,
     });
@@ -155,6 +175,8 @@ export default function Posts() {
     setPosts([]); // 기존 게시글 목록 초기화
     setPagination({
       lastPostId: null,
+      lastLikeCount: null,
+      lastViewCount: null,
       hasNext: true,
       size: 10,
     });
