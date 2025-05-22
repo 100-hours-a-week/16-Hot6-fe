@@ -1,0 +1,41 @@
+name: Frontend Prod Build
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    environment: prod
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+        working-directory: ott
+
+      - name: Build React app (production)
+        run: yarn build --mode production
+        working-directory: ott
+
+      - name: Archive production build
+        run: |
+          cd ott/dist
+          zip -r ../../frontend-prod-build.zip .
+          cd ../..
+
+      - name: Create GitHub Release and Upload Artifact
+        uses: softprops/action-gh-release@v1
+        with:
+          files: frontend-prod-build.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
