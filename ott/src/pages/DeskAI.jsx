@@ -6,6 +6,7 @@ import useImageGenerationStore from '@/store/imageGenerationStore';
 import useDeskAICheck from '@/hooks/useDeskAICheck';
 import Toast from '../components/common/Toast';
 
+// 이미지 리사이즈
 function resizeImage(file, maxSize = 1024) {
   return new Promise((resolve, reject) => {
     const img = new window.Image();
