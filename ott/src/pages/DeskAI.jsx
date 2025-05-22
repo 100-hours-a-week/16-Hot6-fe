@@ -174,10 +174,6 @@ const DeskAI = () => {
     }
   };
 
-  // 이미지 업로드 or 생성 버튼 클릭
-  const handleButtonClick = async () => {
-    if (quota === 0) return;
-
   // 숨겨진 파일 입력 트리거 (이 함수는 이제 이미지 없을 때 업로드 영역 클릭 시 사용)
   const triggerFileInput = () => {
     if (fileInputRef.current) {
@@ -267,7 +263,7 @@ const DeskAI = () => {
             image && !loading ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-400 cursor-not-allowed'
           }`}
           onClick={requestImageGeneration} // 이미지 생성 요청 함수 호출
-          disabled={!image || loading} // 이미지가 없거나 로딩 중일 때 비활성화
+          disabled={!image || loading || quota === 0} // 이미지가 없거나 로딩 중일 때 비활성화
         >
           {loading
             ? '생성 중...'
