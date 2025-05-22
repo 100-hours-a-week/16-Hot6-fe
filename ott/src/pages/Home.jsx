@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useOutletContext, useLocation } from 'react-router-dom';
 import axiosInstance from '@/api/axios';
-import SimpleModal from '@/components/common/SimpleModal';
-import useDeskAICheck from '@/hooks/useDeskAICheck';
+import { addScrap, removeScrap } from '@/api/scraps';
 import mainImage from '@/assets/images/main.webp';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { addScrap, removeScrap } from '@/api/scraps';
+import SimpleModal from '@/components/common/SimpleModal';
+import useDeskAICheck from '@/hooks/useDeskAICheck';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -106,7 +106,7 @@ const Home = () => {
       <SimpleModal
         open={modal.open}
         message={modal.message}
-        onClose={() => setModal({ open: false, message: '' })}
+        onClose={() => setModal({ open: false, message: '', onConfirm: null })}
       />
 
       {/* 메인 이미지 섹션 */}
@@ -190,7 +190,7 @@ const Home = () => {
                       </svg>
                     ) : (
                       <svg
-                        className="w-5 h-5"
+                        className="w-5 h5"
                         fill="none"
                         stroke="#2563eb"
                         strokeWidth="2"
