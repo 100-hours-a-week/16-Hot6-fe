@@ -165,7 +165,10 @@ const DeskAI = () => {
   return (
     <div className="px-4 mb-8">
       <div className="max-w-[640px] mx-auto bg-white min-h-screen px-4 pt-6 flex flex-col items-center">
-        <h2 className="text-2xl font-bold text-center mb-6">당신의 책상을 완성하세요</h2>
+        <h2 className="text-2xl font-bold text-center mb-6">
+          당신의 책상 사진을 올리면
+          <br></br>AI가 최적의 데스크셋업을 추천해드려요
+        </h2>
 
         {/* 이미지 미리보기 영역 */}
         <div className="relative w-full max-w-lg aspect-square bg-gray-100 rounded-2xl overflow-hidden mb-4 flex items-center justify-center">
@@ -185,9 +188,16 @@ const DeskAI = () => {
             </>
           ) : (
             <span className="text-gray-400 text-center px-4">
-              이곳에 업로드된 이미지가 표시됩니다.
+              책상 전체가 잘 보이도록 사진을 올려주세요
+              <br></br>• 실물 책상 or 원하는 스타일 예시
             </span>
           )}
+        </div>
+
+        {/* 세부 가이드 추가 */}
+        <div className="w-full max-w-lg text-sm text-gray-500 mb-6">
+          <p>• 파일 형식: JPG, PNG (최대 5MB)</p>
+          <p>• 책상 전면과 주변 소품이 모두 보이게 촬영해주세요</p>
         </div>
 
         {/* 파일 업로드 input (숨김) */}
