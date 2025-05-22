@@ -1,9 +1,9 @@
-import React, { useRef, useState, useEffect } from 'react';
 import axiosInstance from '@/api/axios';
-import { useNavigate } from 'react-router-dom';
 import SimpleModal from '@/components/common/SimpleModal';
-import useImageGenerationStore from '@/store/imageGenerationStore';
 import useDeskAICheck from '@/hooks/useDeskAICheck';
+import useImageGenerationStore from '@/store/imageGenerationStore';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Toast from '../components/common/Toast';
 
 function resizeImage(file, maxSize = 1024) {
@@ -58,7 +58,7 @@ const DeskAI = () => {
   const navigate = useNavigate();
   const [lastRequestTime, setLastRequestTime] = useState(0);
   const setImageId = useImageGenerationStore((state) => state.setImageId);
-  const { checkDeskAIAvailability, modal, setModal } = useDeskAICheck();
+  const { checkDeskAIAvailability, modal, setModal, quota } = useDeskAICheck();
   const [toast, setToast] = useState('');
 
   useEffect(() => {
@@ -174,6 +174,10 @@ const DeskAI = () => {
     }
   };
 
+  // 이미지 업로드 or 생성 버튼 클릭
+  const handleButtonClick = async () => {
+    if (quota === 0) return;
+
   // 숨겨진 파일 입력 트리거 (이 함수는 이제 이미지 없을 때 업로드 영역 클릭 시 사용)
   const triggerFileInput = () => {
     if (fileInputRef.current) {
@@ -265,7 +269,12 @@ const DeskAI = () => {
           onClick={requestImageGeneration} // 이미지 생성 요청 함수 호출
           disabled={!image || loading} // 이미지가 없거나 로딩 중일 때 비활성화
         >
-          {loading ? '생성 중...' : '이미지 생성'}
+          {loading
+            ? '생성 중...'
+            : quota === 0
+              ? '오늘 생성 횟수를 모두 사용했어요'
+              : '이미지 생성'}
+
         </button>
 
         {/* 에러 메시지 */}
@@ -274,6 +283,13 @@ const DeskAI = () => {
             {error}
           </div>
         )}
+
+        {quota !== null && (
+          <p className="text-gray-600 text-sm mb-2">
+            🪄 오늘 남은 이미지 생성 가능 횟수: <strong>{quota}회</strong>
+          </p>
+        )}
+
         {/* Toast 메시지 표시 */}
         <Toast message={toast} />
 
