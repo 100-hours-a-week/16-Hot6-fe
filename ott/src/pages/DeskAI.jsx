@@ -260,7 +260,9 @@ const DeskAI = () => {
         {/* 이미지 생성 버튼 */}
         <button
           className={`w-full max-w-lg h-12 rounded-xl text-white text-lg font-semibold mb-4 transition-colors duration-200 ${
-            image && !loading ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-400 cursor-not-allowed'
+            image && !loading && quota > 0
+              ? 'bg-blue-500 hover:bg-blue-600'
+              : 'bg-gray-400 cursor-not-allowed'
           }`}
           onClick={requestImageGeneration} // 이미지 생성 요청 함수 호출
           disabled={!image || loading || quota === 0} // 이미지가 없거나 로딩 중일 때 비활성화
@@ -270,7 +272,6 @@ const DeskAI = () => {
             : quota === 0
               ? '오늘 생성 횟수를 모두 사용했어요'
               : '이미지 생성'}
-
         </button>
 
         {/* 에러 메시지 */}
