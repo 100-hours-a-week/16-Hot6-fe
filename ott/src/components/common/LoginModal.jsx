@@ -1,38 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import SimpleModal from '@/components/common/SimpleModal';
+import useGlobalModal from '@/hooks/useGlobalModal';
 import { useNavigate } from 'react-router-dom';
-import SimpleModal from './SimpleModal';
 
 const LoginModal = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [message, setMessage] = useState('');
-  const [redirectUrl, setRedirectUrl] = useState('');
+  const { modal, setModal } = useGlobalModal();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const handleLoginRequired = (event) => {
-      setMessage(event.detail.message);
-      setRedirectUrl(event.detail.redirectUrl);
-      setIsOpen(true);
-    };
+  if (!modal.open) return null;
 
-    window.addEventListener('loginRequired', handleLoginRequired);
-    return () => window.removeEventListener('loginRequired', handleLoginRequired);
-  }, []);
-
-  const handleClose = () => {
-    setIsOpen(false);
-    // 로그인 페이지로 이동하면서 현재 페이지 URL을 state로 전달
-    navigate('/login', { state: { from: redirectUrl } });
-  };
-
+  // 로그인 필요 모달만 보여주는 용도로 사용!
   return (
     <SimpleModal
-      open={isOpen}
-      message={message}
-      onClose={handleClose}
-      showCancel={true}
-      confirmText="로그인하기"
-      cancelText="나중에"
+      open={modal.open}
+      message="로그인 후 다시 시도해주세요."
+      rightButtonText="로그인하기"
+      onLeftClick={() => setModal({ ...modal, open: false })}
+      onRightClick={() => {
+        setModal({ ...modal, open: false });
+        navigate('/login');
+      }}
+      onClose={() => setModal({ ...modal, open: false })}
     />
   );
 };

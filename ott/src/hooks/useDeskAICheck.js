@@ -24,13 +24,7 @@ const useDeskAICheck = () => {
     } catch (err) {
       console.log('checkDeskAIAvailability error', err);
 
-      if (err.response?.status === 401) {
-        setModal({
-          open: true,
-          message: '로그인이 필요한 기능입니다.\n로그인 후 다시 시도해주세요.',
-          onConfirm: null,
-        });
-      } else if (err.response?.status === 403) {
+      if (err.response?.status === 403) {
         setModal({
           open: true,
           message: `오늘 이미지 생성 횟수(1회)를 모두 소진했습니다.\n내일 다시 시도해주세요.`,

@@ -1,11 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate, useSearchParams, useOutletContext } from 'react-router-dom';
-import axios from 'axios';
-import { getConfig } from '@/config/index';
 import { addLike, removeLike } from '@/api/likes';
 import { addScrap, removeScrap } from '@/api/scraps';
-import Toast from '../components/common/Toast';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { getConfig } from '@/config/index';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
 
 const { BASE_URL } = getConfig();
 
@@ -23,7 +22,7 @@ const SORT_MAP = [
 
 const axiosBaseInstance = axios.create({
   baseURL: BASE_URL,
-  timeout: 5000,
+  timeout: 0,
 });
 
 // 요청 인터셉터
@@ -99,51 +98,51 @@ export default function Posts() {
 
   // 게시글 불러오기 함수
   const fetchPosts = async (isFirst = false) => {
-  if (isFetching || (!pagination.hasNext && !isFirst)) return;
-  setIsFetching(true);
-  try {
-    const params = {
-      category: category !== 'ALL' ? category : undefined,
-      sort,
-      size: pagination.size,
-    };
+    if (isFetching || (!pagination.hasNext && !isFirst)) return;
+    setIsFetching(true);
+    try {
+      const params = {
+        category: category !== 'ALL' ? category : undefined,
+        sort,
+        size: pagination.size,
+      };
 
-    // 페이징 처리 (좋아요순, 조회수순, 최신순 구분)
-    if (!isFirst) {
-      console.log(pagination);
-      if (sort === 'LIKE' && pagination.lastLikeCount !== null) {
-        params.lastLikeCount = pagination.lastLikeCount;
-        params.lastPostId = pagination.lastPostId;
-      } else if (sort === 'VIEW' && pagination.lastViewCount !== null) {
-        params.lastViewCount = pagination.lastViewCount;
-        params.lastPostId = pagination.lastPostId;
-      } else {
-        params.lastPostId = pagination.lastPostId;
+      // 페이징 처리 (좋아요순, 조회수순, 최신순 구분)
+      if (!isFirst) {
+        console.log(pagination);
+        if (sort === 'LIKE' && pagination.lastLikeCount !== null) {
+          params.lastLikeCount = pagination.lastLikeCount;
+          params.lastPostId = pagination.lastPostId;
+        } else if (sort === 'VIEW' && pagination.lastViewCount !== null) {
+          params.lastViewCount = pagination.lastViewCount;
+          params.lastPostId = pagination.lastPostId;
+        } else {
+          params.lastPostId = pagination.lastPostId;
+        }
       }
+      console.log(params);
+      // API 요청
+      const res = await axiosBaseInstance.get('/posts', { params });
+      const { posts: newPosts, pagination: newPagination } = res.data.data;
+
+      // 상태 업데이트
+      setPosts((prev) => (isFirst ? newPosts : [...prev, ...newPosts]));
+      setPagination((prev) => ({
+        lastPostId: newPagination.lastPostId,
+        lastLikeCount: newPagination.lastLikeCount ?? prev.lastLikeCount,
+        lastViewCount: newPagination.lastViewCount ?? prev.lastViewCount,
+        hasNext: newPagination.hasNext,
+        size: newPagination.size,
+      }));
+
+      setError(null);
+    } catch (e) {
+      setError('게시글 목록을 불러오지 못했습니다.');
+    } finally {
+      setIsFetching(false);
+      setLoading(false);
     }
-    console.log(params);
-    // API 요청
-    const res = await axiosBaseInstance.get('/posts', { params });
-    const { posts: newPosts, pagination: newPagination } = res.data.data;
-
-    // 상태 업데이트
-    setPosts((prev) => (isFirst ? newPosts : [...prev, ...newPosts]));
-    setPagination((prev) => ({
-      lastPostId: newPagination.lastPostId,
-      lastLikeCount: newPagination.lastLikeCount ?? prev.lastLikeCount,
-      lastViewCount: newPagination.lastViewCount ?? prev.lastViewCount,
-      hasNext: newPagination.hasNext,
-      size: newPagination.size,
-    }));
-
-    setError(null);
-  } catch (e) {
-    setError('게시글 목록을 불러오지 못했습니다.');
-  } finally {
-    setIsFetching(false);
-    setLoading(false);
-  }
-};
+  };
 
   // 카테고리 변경 핸들러
   const handleCategoryChange = (newCategory) => {
@@ -245,7 +244,8 @@ export default function Posts() {
         prev.map((post) => (post.postId === id ? { ...post, scrapped: !post.scrapped } : post)),
       );
       setToast(post.scrapped ? '스크랩이 취소되었어요.' : '스크랩이 추가되었어요.');
-    } catch {
+    } catch (err) {
+      if (err.response?.status === 401) return;
       setToast('전송에 실패했습니다. 잠시 후 다시 시도해주세요.');
     } finally {
       setTimeout(() => setToast(''), 1500);
@@ -272,7 +272,8 @@ export default function Posts() {
             : post,
         ),
       );
-    } catch {
+    } catch (err) {
+      if (err.response?.status === 401) return;
       setToast('전송에 실패했습니다. 잠시 후 다시 시도해주세요.');
     } finally {
       setTimeout(() => setToast(''), 1500);

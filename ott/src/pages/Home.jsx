@@ -76,6 +76,10 @@ const Home = () => {
         ),
       }));
     } catch (err) {
+      if (err.response?.status === 401) {
+        // 아무것도 하지 않음 (전역 모달에서 처리됨)
+        return;
+      }
       setToast('전송에 실패했습니다. 잠시 후 다시 시도해주세요.');
     } finally {
       setTimeout(() => setToast(''), 1500);
