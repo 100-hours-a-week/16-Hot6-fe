@@ -16,6 +16,7 @@ import NotFound from './pages/NotFound';
 import OrderPage from './pages/Order';
 import OrderDetail from './pages/OrderDetail';
 import OrderList from './pages/OrderList';
+import PointHistory from './pages/PointHistory';
 import PostDetail from './pages/PostDetail';
 import PostEditor from './pages/PostEditor';
 import Posts from './pages/Posts';
@@ -39,6 +40,7 @@ const App = () => {
             <Route path="/orders/:orderId" element={<OrderDetail />} />
             <Route path="/orders/:orderId/payment" element={<OrderPage />} />
             <Route path="/my-scraps" element={<ScrapList />} />
+            <Route path="/my-point-history" element={<PointHistory />} />
             {/* 보호된 라우트들도 여기에 추가 */}
           </Route>
           <Route path="/login" element={<Login />} />

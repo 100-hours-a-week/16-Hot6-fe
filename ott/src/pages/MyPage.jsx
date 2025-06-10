@@ -108,7 +108,7 @@ export default function MyPage() {
         </div>
         <button
           className="px-4 py-2 bg-gray-700 text-white rounded text-sm font-semibold"
-          onClick={handleShowModal}
+          onClick={() => navigate('/my-point-history')}
         >
           포인트 내역
         </button>
