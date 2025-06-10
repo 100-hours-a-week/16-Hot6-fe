@@ -1,7 +1,7 @@
 import SimpleModal from '@/components/common/SimpleModal';
 import { getConfig } from '@/config/index';
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const { BASE_URL } = getConfig();
@@ -47,29 +47,51 @@ function formatStatus(status) {
 }
 export default function OrderList() {
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState({ size: 5, lastOrderId: null, hasNext: true });
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const [toast, setToast] = useState('');
   const [orderIdToDelete, setOrderIdToDelete] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const observer = useRef();
+
+  const fetchOrders = async (isNext = false) => {
+    if (loading || (!pagination.hasNext && isNext)) return;
+    setLoading(true);
+    try {
+      const params = { size: 5 };
+      if (isNext && pagination.lastOrderId) params.cursorId = pagination.lastOrderId;
+      const response = await axiosBaseInstance.get('/orders', { params });
+      const { orders: newOrders, pagination: newPagination } = response.data.data;
+      setOrders((prev) => (isNext ? [...prev, ...newOrders] : newOrders));
+      setPagination(newPagination);
+      setError(null);
+    } catch {
+      setError('주문 내역을 불러오지 못했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const response = await axiosBaseInstance.get('/orders');
-        setOrders(response.data.data.orders);
-        setError(null);
-      } catch {
-        setError('주문 내역을 불러오지 못했습니다.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchOrders();
+    fetchOrders(false);
   }, []);
 
-  // 삭제 모달에서 '예' 클릭 시 실제 삭제
+  const lastItemRef = useCallback(
+    (node) => {
+      if (loading) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new window.IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && pagination.hasNext) {
+          fetchOrders(true);
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [loading, pagination.hasNext],
+  );
+
   const handleDeleteOrder = async () => {
     if (!orderIdToDelete) return;
     try {
@@ -84,7 +106,7 @@ export default function OrderList() {
     }
   };
 
-  if (loading) {
+  if (!orders.length && loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
@@ -104,11 +126,8 @@ export default function OrderList() {
     return <div className="text-center py-8 text-gray-500">주문 내역이 없습니다.</div>;
   }
 
-  const paidOrders = orders.filter((order) => order.orderStatus !== 'ORDERED');
-
   return (
     <div className="max-w-[480px] mx-auto min-h-screen bg-white pb-24">
-      {/* 상단 네비게이션/타이틀 */}
       <div className="sticky top-0 z-40 bg-white border-b">
         <div className="flex items-center h-14 px-4">
           <button onClick={() => navigate(-1)} className="mr-2">
@@ -126,15 +145,17 @@ export default function OrderList() {
           <span className="font-bold text-lg">주문 내역</span>
         </div>
       </div>
-      {/* 주문 리스트 */}
       <div className="px-4 pt-4 space-y-6">
-        {paidOrders.map((order) => {
+        {orders.map((order, idx) => {
           const products = order.products || order.product || [];
           const totalAmount = products.reduce((sum, item) => sum + item.amount * item.quantity, 0);
 
           return (
-            <div key={order.orderId} className="border rounded-xl p-4 bg-gray-50 mb-4 relative">
-              {/* 삭제(X) 버튼 */}
+            <div
+              key={order.orderId}
+              className="border rounded-xl p-4 bg-gray-50 mb-4 relative"
+              ref={idx === orders.length - 1 ? lastItemRef : null}
+            >
               <button
                 className="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-xl font-bold"
                 onClick={() => {
@@ -187,14 +208,13 @@ export default function OrderList() {
             </div>
           );
         })}
+        {loading && <div className="w-full text-center py-4 text-gray-400">불러오는 중...</div>}
       </div>
-      {/* 토스트 메시지 */}
       {toast && (
         <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg z-50">
           {toast}
         </div>
       )}
-      {/* 삭제 확인 모달 */}
       <SimpleModal
         open={showDeleteModal}
         message="주문 내역을 삭제하시겠습니까?"
