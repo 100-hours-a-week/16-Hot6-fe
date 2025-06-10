@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
 import axiosInstance from '@/api/axios';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import SimpleModal from '@/components/common/SimpleModal';
-import { useNavigate } from 'react-router-dom';
 import useAuthStore from '@/store/authStore';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function MyPage() {
   // 사용자 정보 상태 관리
@@ -122,8 +122,11 @@ export default function MyPage() {
         >
           나의 게시글 보기
         </button>
-        <button className="w-full text-left px-4 py-4 border-b text-base" onClick={handleShowModal}>
-          구매내역 보기
+        <button
+          className="w-full text-left px-4 py-4 border-b text-base"
+          onClick={() => navigate('/orders')}
+        >
+          주문내역 보기
         </button>
         <button
           className="w-full text-left px-4 py-4 border-b text-base"

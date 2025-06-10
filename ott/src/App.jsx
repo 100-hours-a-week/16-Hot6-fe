@@ -13,6 +13,9 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import MyPage from './pages/MyPage';
 import NotFound from './pages/NotFound';
+import OrderPage from './pages/Order';
+import OrderDetail from './pages/OrderDetail';
+import OrderList from './pages/OrderList';
 import PostDetail from './pages/PostDetail';
 import PostEditor from './pages/PostEditor';
 import Posts from './pages/Posts';
@@ -31,6 +34,9 @@ const App = () => {
             <Route path="/desk" element={<DeskAI />} />
             <Route path="/posts" element={<Posts />} />
             <Route path="/mypage" element={<MyPage />} />
+            <Route path="/orders" element={<OrderList />} />
+            <Route path="/orders/:orderId" element={<OrderDetail />} />
+            <Route path="/orders/:orderId/payment" element={<OrderPage />} />
             {/* 보호된 라우트들도 여기에 추가 */}
           </Route>
           <Route path="/login" element={<Login />} />
