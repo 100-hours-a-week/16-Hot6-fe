@@ -1,3 +1,4 @@
+import SimpleModal from '@/components/common/SimpleModal';
 import { getConfig } from '@/config/index';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
@@ -49,6 +50,9 @@ export default function OrderList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const [toast, setToast] = useState('');
+  const [orderIdToDelete, setOrderIdToDelete] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -64,6 +68,21 @@ export default function OrderList() {
     };
     fetchOrders();
   }, []);
+
+  // 삭제 모달에서 '예' 클릭 시 실제 삭제
+  const handleDeleteOrder = async () => {
+    if (!orderIdToDelete) return;
+    try {
+      await axiosBaseInstance.post(`/orders/${orderIdToDelete}`);
+      setOrders((prev) => prev.filter((order) => order.orderId !== orderIdToDelete));
+      setToast('주문 내역이 삭제되었습니다.');
+    } catch {
+      setToast('주문 내역 삭제에 실패했습니다.');
+    } finally {
+      setShowDeleteModal(false);
+      setOrderIdToDelete(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -114,7 +133,18 @@ export default function OrderList() {
           const totalAmount = products.reduce((sum, item) => sum + item.amount * item.quantity, 0);
 
           return (
-            <div key={order.orderId} className="border rounded-xl p-4 bg-gray-50 mb-4">
+            <div key={order.orderId} className="border rounded-xl p-4 bg-gray-50 mb-4 relative">
+              {/* 삭제(X) 버튼 */}
+              <button
+                className="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-xl font-bold"
+                onClick={() => {
+                  setOrderIdToDelete(order.orderId);
+                  setShowDeleteModal(true);
+                }}
+                aria-label="주문 내역 삭제"
+              >
+                ×
+              </button>
               <div className="flex flex-col mb-2">
                 <span className="text-base font-bold text-gray-1000 mb-1">
                   {formatStatus(order.orderStatus)}
@@ -158,6 +188,23 @@ export default function OrderList() {
           );
         })}
       </div>
+      {/* 토스트 메시지 */}
+      {toast && (
+        <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg z-50">
+          {toast}
+        </div>
+      )}
+      {/* 삭제 확인 모달 */}
+      <SimpleModal
+        open={showDeleteModal}
+        message="주문 내역을 삭제하시겠습니까?"
+        onClose={() => {
+          setShowDeleteModal(false);
+          setOrderIdToDelete(null);
+        }}
+        onRightClick={handleDeleteOrder}
+        rightButtonText="예"
+      />
     </div>
   );
 }
