@@ -20,6 +20,7 @@ import PostDetail from './pages/PostDetail';
 import PostEditor from './pages/PostEditor';
 import Posts from './pages/Posts';
 import ProfileEdit from './pages/ProfileEdit';
+import ScrapList from './pages/ScrapList';
 
 const App = () => {
   return (
@@ -37,6 +38,7 @@ const App = () => {
             <Route path="/orders" element={<OrderList />} />
             <Route path="/orders/:orderId" element={<OrderDetail />} />
             <Route path="/orders/:orderId/payment" element={<OrderPage />} />
+            <Route path="/my-scraps" element={<ScrapList />} />
             {/* 보호된 라우트들도 여기에 추가 */}
           </Route>
           <Route path="/login" element={<Login />} />

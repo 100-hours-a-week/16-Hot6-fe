@@ -84,7 +84,7 @@ export default function MyPage() {
           </svg>
           <span className="text-xs mt-1">알림</span>
         </button>
-        <button className="flex flex-col items-center" onClick={handleShowModal}>
+        <button className="flex flex-col items-center" onClick={() => navigate('/my-scraps')}>
           <svg width="28" height="28" fill="none" stroke="#222" strokeWidth="2" viewBox="0 0 24 24">
             <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
           </svg>
