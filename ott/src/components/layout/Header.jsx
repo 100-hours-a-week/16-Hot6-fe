@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import logo from '@/assets/images/logo/logo.svg';
 import SimpleModal from '@/components/common/SimpleModal';
-const Header = () => {
-  const [showModal, setShowModal] = useState(false);
+import React from 'react';
+import { Link } from 'react-router-dom';
+
+const Header = ({ showModal, setShowModal }) => {
   // 모달 표시 핸들러
   const handleShowModal = (e) => {
     e.stopPropagation();

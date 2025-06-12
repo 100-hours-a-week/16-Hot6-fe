@@ -1,7 +1,7 @@
 import axiosInstance from '@/api/axios';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import SimpleModal from '@/components/common/SimpleModal';
-import useAuthStore from '@/store/authStore';
+import Header from '@/components/layout/Header';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -16,15 +16,47 @@ export default function MyPage() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [isRecommendationModalOpen, setIsRecommendationModalOpen] = useState(false);
+  const [recommendationCode, setRecommendationCode] = useState('');
+  const [nicknameKakao, setNicknameKakao] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [recommendationError, setRecommendationError] = useState(null);
   const navigate = useNavigate();
-  const handleShowModal = (e) => {
-    e.stopPropagation();
-    setIsModalOpen(true);
+
+  const handleRecommendationSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setRecommendationError(null);
+    try {
+      await axiosInstance.post('/users/recommendation-code', {
+        code: recommendationCode,
+        nicknameKakao,
+      });
+      setSuccess(true);
+      setTimeout(() => {
+        setIsRecommendationModalOpen(false);
+        setSuccess(false);
+        setRecommendationCode('');
+        setNicknameKakao('');
+        window.location.reload();
+      }, 500);
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        setRecommendationError('추천인 코드가 유효하지 않습니다.');
+      } else {
+        setRecommendationError('추천인 코드 등록에 실패했습니다.');
+        setTimeout(() => {
+          setIsRecommendationModalOpen(false);
+          navigate('/my-page');
+        }, 500);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const withdraw = useAuthStore((state) => state.withdraw);
   const surveyUrl = 'https://forms.gle/YSV9DpJ1U3Cc1Dzw9';
 
   // 사용자 정보 가져오기
@@ -60,6 +92,7 @@ export default function MyPage() {
 
   return (
     <div className="max-w-[480px] mx-auto min-h-screen bg-white pb-24">
+      <Header showModal={showModal} setShowModal={setShowModal} />
       {/* 프로필 영역 */}
       <div className="flex flex-col items-center py-6">
         <img
@@ -73,7 +106,13 @@ export default function MyPage() {
 
       {/* 바로가기 버튼들 */}
       <div className="flex justify-center gap-8 py-4">
-        <button className="flex flex-col items-center" onClick={handleShowModal}>
+        <button
+          className="flex flex-col items-center"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowModal(true);
+          }}
+        >
           <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
@@ -90,7 +129,13 @@ export default function MyPage() {
           </svg>
           <span className="text-xs mt-1">스크랩</span>
         </button>
-        <button className="flex flex-col items-center" onClick={handleShowModal}>
+        <button
+          className="flex flex-col items-center"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowModal(true);
+          }}
+        >
           <svg width="28" height="28" fill="#222" viewBox="0 0 24 24">
             <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm-1-13h2v6h-2zm0 8h2v2h-2z" />
           </svg>
@@ -102,8 +147,18 @@ export default function MyPage() {
       <div className="mx-4 my-4 p-4 border rounded flex items-center justify-between">
         <div>
           <div className="text-2xl font-bold">{formatPoint(userInfo.point)}</div>
-          <div className="text-xs text-gray-500 mt-1 cursor-pointer" onClick={handleShowModal}>
-            {userInfo.certified ? '인증됨' : '추천인 코드 입력'}
+          <div
+            className={`text-xs mt-1 cursor-pointer px-4 py-2 rounded ${userInfo.certified ? 'text-black bg-transparent pl-0' : 'text-white bg-gray-700'}`}
+            onClick={
+              userInfo.certified
+                ? undefined
+                : (e) => {
+                    e.stopPropagation();
+                    setIsRecommendationModalOpen(true);
+                  }
+            }
+          >
+            {userInfo.certified ? '카테부 인증 완료' : '추천인 코드 입력'}
           </div>
         </div>
         <button
@@ -118,7 +173,7 @@ export default function MyPage() {
       <div className="mt-4">
         <button
           className="w-full text-left px-4 py-4 border-b text-base "
-          onClick={handleShowModal}
+          onClick={() => setShowModal(true)}
         >
           나의 게시글 보기
         </button>
@@ -134,7 +189,10 @@ export default function MyPage() {
         >
           회원정보 변경
         </button>
-        <button className="w-full text-left px-4 py-4 border-b text-base" onClick={handleShowModal}>
+        <button
+          className="w-full text-left px-4 py-4 border-b text-base"
+          onClick={() => setShowModal(true)}
+        >
           자주 묻는 질문
         </button>
         <button
@@ -154,25 +212,53 @@ export default function MyPage() {
       </div>
 
       <SimpleModal
-        open={isModalOpen}
-        title="⚒️ 서비스 준비중"
-        message={`서비스 준비중입니다.\n 곧 더 나은 모습으로 찾아뵙겠습니다.`}
-        onClose={() => setIsModalOpen(false)}
-      />
-
-      {/* <SimpleModal
-        open={isWithdrawModalOpen}
-        title="회원탈퇴"
-        message="정말로 탈퇴하시겠습니까?"
-        leftButtonText="취소"
-        rightButtonText="확인"
-        onLeftClick={() => setIsWithdrawModalOpen(false)}
-        onRightClick={() => {
-          withdraw(navigate);
-          setIsWithdrawModalOpen(false);
+        open={isRecommendationModalOpen}
+        title={<span className="text-xl font-bold ">추천인 코드 입력</span>}
+        message={
+          <form onSubmit={handleRecommendationSubmit} className="w-full">
+            <div className="mb-4">
+              <input
+                type="text"
+                value={recommendationCode}
+                onChange={(e) => setRecommendationCode(e.target.value)}
+                className="w-full border rounded px-3 py-2 focus:outline-none focus:ring"
+                placeholder="추천인 코드를 입력하세요"
+                required
+              />
+            </div>
+            <div className="mb-6">
+              <input
+                type="text"
+                value={nicknameKakao}
+                onChange={(e) => setNicknameKakao(e.target.value)}
+                className="w-full border rounded px-3 py-2 focus:outline-none focus:ring"
+                placeholder="카테부 닉네임을 입력하세요"
+                required
+              />
+            </div>
+            {recommendationError && (
+              <div className="text-red-500 mb-4 text-center">{recommendationError}</div>
+            )}
+            {success && (
+              <div className="text-green-500 mb-4 text-center">등록이 완료되었습니다!</div>
+            )}
+            <button
+              type="submit"
+              className="w-full bg-gray-700 text-white py-2 rounded font-semibold disabled:opacity-50"
+              disabled={loading}
+            >
+              {loading ? '등록 중...' : '확인'}
+            </button>
+          </form>
+        }
+        onClose={() => {
+          setIsRecommendationModalOpen(false);
+          setRecommendationError(null);
+          setSuccess(false);
+          setRecommendationCode('');
+          setNicknameKakao('');
         }}
-        onClose={() => setIsWithdrawModalOpen(false)}
-      /> */}
+      />
     </div>
   );
 }

@@ -1,11 +1,16 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import TopBar from '@/components/common/TopBar';
 import axiosInstance from '@/api/axios';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import TopBar from '@/components/common/TopBar';
+import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function validateNickname(nickname) {
   const regex = /^[A-Za-z0-9가-힣]{2,20}$/;
+  return regex.test(nickname);
+}
+
+function validateKakaoNickname(nickname) {
+  const regex = /^[A-Za-z0-9가-힣]{2,20}\.[A-Za-z0-9가-힣]{2,20}$/;
   return regex.test(nickname);
 }
 
@@ -65,6 +70,9 @@ export default function ProfileEdit() {
   const [toast, setToast] = useState('');
   const [certified, setCertified] = useState(false);
   const fileInputRef = useRef();
+  const [originalNickname, setOriginalNickname] = useState('');
+  const [originalKakaoNickname, setOriginalKakaoNickname] = useState('');
+  const [originalProfileImg, setOriginalProfileImg] = useState(null);
 
   // 사용자 정보 가져오기
   useEffect(() => {
@@ -73,8 +81,11 @@ export default function ProfileEdit() {
         setIsLoading(true);
         const response = await axiosInstance.get('/users/me');
         setProfileImg(response.data.data.profileImagePath);
+        setOriginalProfileImg(response.data.data.profileImagePath);
         setNickname(response.data.data.nicknameCommunity);
+        setOriginalNickname(response.data.data.nicknameCommunity);
         setKakaoNickname(response.data.data.nicknameKakao);
+        setOriginalKakaoNickname(response.data.data.nicknameKakao);
         setCertified(response.data.data.certified);
       } catch (error) {
         console.error('사용자 정보 조회 실패:', error);
@@ -125,9 +136,9 @@ export default function ProfileEdit() {
   const handleKakaoNicknameChange = (e) => {
     const value = e.target.value;
     setKakaoNickname(value);
-    if (!validateNickname(value)) {
+    if (!validateKakaoNickname(value)) {
       setKakaoNicknameError(
-        '* 닉네임은 2~20자 이내의 공백 제외 완성형 한글(가–힣), 영문, 숫자로 이루어져야 합니다.',
+        "* 카카오 닉네임은 2~20자 이내의 공백 제외 완성형 한글(가–힣), 영문, 숫자로 이루어져야 하며, 중간에 '.'이 정확히 한 개 있어야 합니다.",
       );
     } else {
       setKakaoNicknameError('');
@@ -142,9 +153,9 @@ export default function ProfileEdit() {
       );
       return;
     }
-    if (!validateNickname(kakaoNickname)) {
+    if (!validateKakaoNickname(kakaoNickname)) {
       setKakaoNicknameError(
-        '* 닉네임은 2~20자 이내의 공백 제외 완성형 한글(가–힣), 영문, 숫자로 이루어져야 합니다.',
+        "* 카카오 닉네임은 2~20자 이내의 공백 제외 완성형 한글(가–힣), 영문, 숫자로 이루어져야 하며, 중간에 '.'이 정확히 한 개 있어야 합니다.",
       );
       return;
     }
@@ -175,8 +186,14 @@ export default function ProfileEdit() {
   };
 
   const isNicknameValid = validateNickname(nickname);
-  const isKakaoNicknameValid = validateNickname(kakaoNickname);
-  const isValid = isNicknameValid && isKakaoNicknameValid && (profileFile || profileImg);
+  const isKakaoNicknameValid = validateKakaoNickname(kakaoNickname);
+  const isProfileChanged = profileFile || profileImg !== originalProfileImg;
+  const isNicknameChanged = nickname !== originalNickname;
+  const isKakaoNicknameChanged = kakaoNickname !== originalKakaoNickname;
+  const isValid =
+    isNicknameValid &&
+    isKakaoNicknameValid &&
+    (isProfileChanged || isNicknameChanged || isKakaoNicknameChanged);
 
   return (
     <div className="max-w-[768px] mx-auto min-h-screen bg-white pb-24 relative">
@@ -266,7 +283,7 @@ export default function ProfileEdit() {
             className={`px-8 py-2 border rounded-lg font-semibold 
               ${
                 isValid
-                  ? 'bg-blue-500 text-white border-blue-500 hover:bg-blue-600'
+                  ? 'bg-gray-700 text-white border-blue-500 hover:bg-blue-600'
                   : 'bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed'
               }`}
             onClick={handleSave}
