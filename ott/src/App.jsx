@@ -11,7 +11,9 @@ import AiGenerationResult from './pages/AiGenerationResult';
 import DeskAI from './pages/DeskAI';
 import Home from './pages/Home';
 import Login from './pages/Login';
+import MyDeskImages from './pages/MyDeskImages';
 import MyPage from './pages/MyPage';
+import MyPosts from './pages/MyPosts';
 import NotFound from './pages/NotFound';
 import OrderPage from './pages/Order';
 import OrderDetail from './pages/OrderDetail';
@@ -41,6 +43,8 @@ const App = () => {
             <Route path="/orders/:orderId/payment" element={<OrderPage />} />
             <Route path="/my-scraps" element={<ScrapList />} />
             <Route path="/my-point-history" element={<PointHistory />} />
+            <Route path="/my-posts" element={<MyPosts />} />
+            <Route path="/my-desks" element={<MyDeskImages />} />
             {/* 보호된 라우트들도 여기에 추가 */}
           </Route>
           <Route path="/login" element={<Login />} />
