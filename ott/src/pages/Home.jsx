@@ -4,6 +4,7 @@ import mainImage from '@/assets/images/main.webp';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import SimpleModal from '@/components/common/SimpleModal';
 import useDeskAICheck from '@/hooks/useDeskAICheck';
+import useImageGenerationStore from '@/store/imageGenerationStore';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 
@@ -20,6 +21,7 @@ const Home = () => {
   const { checkDeskAIAvailability, modal, setModal } = useDeskAICheck();
   const [showModal, setShowModal] = useState(false);
   const location = useLocation();
+  const { status } = useImageGenerationStore();
 
   // 메인 데이터 조회
   useEffect(() => {
@@ -126,10 +128,15 @@ const Home = () => {
           <h1 className="text-xl font-bold mb-2 text-center">데스크테리어를 완성하세요</h1>
           <div className="w-full flex justify-center">
             <button
-              className="max-w-[280px] w-full py-3 bg-gray-400 text-white rounded-lg font-medium"
+              className={`max-w-[280px] w-full py-3 rounded-lg font-medium ${
+                status === 'generating'
+                  ? 'bg-gray-400 text-white cursor-not-allowed'
+                  : 'bg-gray-400 text-white'
+              }`}
               onClick={handleDeskClick}
+              disabled={status === 'generating'}
             >
-              데스크테리어 생성
+              {status === 'generating' ? '이미지 생성중...' : '데스크테리어 생성'}
             </button>
           </div>
           <p className="text-sm text-gray-600 mt-4 text-center">
