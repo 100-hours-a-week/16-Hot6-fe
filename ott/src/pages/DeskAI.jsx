@@ -189,7 +189,11 @@ const DeskAI = () => {
           당신의 책상 사진을 올리면
           <br></br> AI가 최적의 데스크셋업을 추천해드려요
         </h2>
-
+        {quota !== null && (
+          <p className="text-gray-600 text-base font-semibold mb-4 text-center">
+            🪄 오늘 남은 이미지 생성 가능 횟수: <strong>{quota}회</strong>
+          </p>
+        )}
         {/* 이미지 미리보기 영역 */}
         {imageUrl ? (
           // 이미지가 있을 경우
@@ -279,12 +283,6 @@ const DeskAI = () => {
           <div className="w-full bg-gray-200 text-center text-gray-700 rounded-lg py-3 mt-2">
             {error}
           </div>
-        )}
-
-        {quota !== null && (
-          <p className="text-gray-600 text-sm mb-2">
-            🪄 오늘 남은 이미지 생성 가능 횟수: <strong>{quota}회</strong>
-          </p>
         )}
 
         {/* Toast 메시지 표시 */}
