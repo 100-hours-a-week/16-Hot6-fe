@@ -105,42 +105,49 @@ export default function MyPage() {
       </div>
 
       {/* 바로가기 버튼들 */}
-      <div className="flex justify-center gap-8 py-4">
-        <button
-          className="flex flex-col items-center"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowModal(true);
-          }}
-        >
-          <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-            />
-          </svg>
-          <span className="text-xs mt-1">알림</span>
-        </button>
-        <button className="flex flex-col items-center" onClick={() => navigate('/my-scraps')}>
-          <svg width="28" height="28" fill="none" stroke="#222" strokeWidth="2" viewBox="0 0 24 24">
-            <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-          </svg>
-          <span className="text-xs mt-1">스크랩</span>
-        </button>
-        <button
-          className="flex flex-col items-center"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowModal(true);
-          }}
-        >
-          <svg width="28" height="28" fill="#222" viewBox="0 0 24 24">
-            <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm-1-13h2v6h-2zm0 8h2v2h-2z" />
-          </svg>
-          <span className="text-xs mt-1">데스크</span>
-        </button>
+      <div className="flex justify-between gap-8 py-4">
+        <div className="flex-1 flex justify-end">
+          <button
+            className="flex flex-col items-center"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowModal(true);
+            }}
+          >
+            <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+              />
+            </svg>
+            <span className="text-xs mt-1">알림</span>
+          </button>
+        </div>
+        <div className="flex-1 flex justify-center">
+          <button className="flex flex-col items-center" onClick={() => navigate('/my-scraps')}>
+            <svg
+              width="28"
+              height="28"
+              fill="none"
+              stroke="#222"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            </svg>
+            <span className="text-xs mt-1">스크랩</span>
+          </button>
+        </div>
+        <div className="flex-1 flex justify-start">
+          <button className="flex flex-col items-center" onClick={() => navigate('/my-desks')}>
+            <svg width="28" height="28" fill="#222" viewBox="0 0 24 24">
+              <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+            </svg>
+            <span className="text-xs mt-1">나의 데스크</span>
+          </button>
+        </div>
       </div>
 
       {/* 포인트/추천인 코드 */}
@@ -173,7 +180,7 @@ export default function MyPage() {
       <div className="mt-4">
         <button
           className="w-full text-left px-4 py-4 border-b text-base "
-          onClick={() => setShowModal(true)}
+          onClick={() => navigate('/my-posts')}
         >
           나의 게시글 보기
         </button>
