@@ -54,6 +54,7 @@ const DeskAI = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false); // 이미지 생성 요청 로딩 상태
   const [uploading, setUploading] = useState(false); // 이미지 업로드 자체의 로딩 상태 (파일 읽기 및 미리보기)
+  const [selectedConcept, setSelectedConcept] = useState('BASIC'); // 선택된 concept 상태 추가
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
   const [lastRequestTime, setLastRequestTime] = useState(0);
@@ -111,7 +112,7 @@ const DeskAI = () => {
 
   // 이미지 생성 요청 (업로드 및 AI 처리)
   const requestImageGeneration = async () => {
-    if (!image) return; // 이미지가 없으면 요청 보내지 않음
+    if (!image) return;
 
     const now = Date.now();
     if (now - lastRequestTime < 30 * 1000) {
@@ -119,7 +120,7 @@ const DeskAI = () => {
       return;
     }
     setLastRequestTime(now);
-    setLoading(true); // 이미지 생성 요청 로딩 시작
+    setLoading(true);
 
     try {
       // 1. 리사이즈
@@ -129,9 +130,10 @@ const DeskAI = () => {
       // 2. FormData 생성
       const formData = new FormData();
       formData.append('beforeImagePath', resizedFile);
+      formData.append('concept', selectedConcept); // concept 값 추가
 
       // 3. 전송
-      const response = await axiosInstance.post('/ai-images', formData, { timeout: 0 }); // timeout: 0 설정으로 무한 대기 가능
+      const response = await axiosInstance.post('/ai-images', formData, { timeout: 0 });
       const { aiImageId } = response.data.data;
 
       setImageId(aiImageId); // 전역 상태에 저장 (AI 결과 페이지에서 사용)
@@ -250,6 +252,46 @@ const DeskAI = () => {
         <div className="w-full max-w-lg text-sm text-gray-500 mb-6">
           <p>• 파일 형식: JPG, PNG (최대 5MB)</p>
           <p>• 책상 전면과 주변 소품이 모두 보이게 촬영해주세요</p>
+        </div>
+
+        {/* 스타일 선택 라디오 버튼 */}
+        <div className="w-full max-w-lg mb-6">
+          <p className="text-sm font-semibold mb-3">원하는 스타일을 선택해주세요</p>
+          <div className="flex flex-col gap-3">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="concept"
+                value="BASIC"
+                checked={selectedConcept === 'BASIC'}
+                onChange={(e) => setSelectedConcept(e.target.value)}
+                className="w-4 h-4 text-blue-600"
+              />
+              <span className="text-sm">기본 스타일</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="concept"
+                value="BASIC"
+                checked={selectedConcept === 'BASIC'}
+                onChange={(e) => setSelectedConcept(e.target.value)}
+                className="w-4 h-4 text-blue-600"
+              />
+              <span className="text-sm">미니멀 스타일</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="concept"
+                value="BASIC"
+                checked={selectedConcept === 'BASIC'}
+                onChange={(e) => setSelectedConcept(e.target.value)}
+                className="w-4 h-4 text-blue-600"
+              />
+              <span className="text-sm">모던 스타일</span>
+            </label>
+          </div>
         </div>
 
         {/* 파일 업로드 input (숨김) - 실제 파일 선택 창 역할 */}
