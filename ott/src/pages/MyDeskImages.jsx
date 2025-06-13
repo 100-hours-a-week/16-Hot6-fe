@@ -1,5 +1,7 @@
 import axiosInstance from '@/api/axios';
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Toast from '../components/common/Toast';
 
 function formatDate(createdAtStr) {
   const KST_OFFSET = 9 * 60 * 60 * 1000;
@@ -38,24 +40,57 @@ export default function MyDeskImages() {
   const [pagination, setPagination] = useState({ size: 10, lastAiImageId: null, hasNext: true });
   const [loading, setLoading] = useState(true);
   const [isFetching, setIsFetching] = useState(false);
+  const navigate = useNavigate();
+  const [toast, setToast] = useState('');
+
+  const handleImageClick = async (aiImageId) => {
+    if (!aiImageId) {
+      setToast('이미지를 불러올 수 없습니다.');
+      setTimeout(() => setToast(''), 1500);
+      return;
+    }
+
+    try {
+      await axiosInstance.get(`/ai-images/${aiImageId}`);
+      navigate(`/ai-images/${aiImageId}`);
+    } catch (err) {
+      console.log('에러 발생:', err);
+      setToast('이미지를 불러올 수 없습니다.');
+      setTimeout(() => setToast(''), 1500);
+    }
+  };
 
   const fetchImages = async (isFirst = false) => {
     if (isFetching || (!pagination.hasNext && !isFirst)) return;
     setIsFetching(true);
     try {
-      const params = { size: pagination.size };
-      if (!isFirst && pagination.lastAiImageId) params.cursorId = pagination.lastAiImageId;
-      const res = await axiosInstance.get('/users/me/desks', { params });
-      const { images: newImages, pagination: newPagination } = res.data.data;
-      setImages((prev) => (isFirst ? newImages : [...prev, ...newImages]));
-      setPagination({
-        size: newPagination.size,
-        lastAiImageId: newPagination.lastAiImageId,
-        hasNext: newPagination.hasNext,
+      const response = await axiosInstance.get('/users/me/desks', {
+        params: {
+          size: pagination.size,
+          cursorId: isFirst ? null : pagination.lastAiImageId,
+        },
       });
+
+      const newImages = response.data.data.images;
+
+      if (isFirst) {
+        setImages(newImages);
+      } else {
+        setImages((prev) => [...prev, ...newImages]);
+      }
+
+      setPagination({
+        size: pagination.size,
+        lastAiImageId: response.data.data.pagination.lastAiImageId,
+        hasNext: response.data.data.pagination.hasNext,
+      });
+    } catch (err) {
+      console.log('에러 발생:', err);
+      setToast('이미지를 불러올 수 없습니다.');
+      setTimeout(() => setToast(''), 1500);
     } finally {
-      setIsFetching(false);
       setLoading(false);
+      setIsFetching(false);
     }
   };
 
@@ -91,7 +126,10 @@ export default function MyDeskImages() {
               <div key={item.aiImageId} className="flex gap-4">
                 {/* Before */}
                 <div className="flex-1 flex flex-col items-center">
-                  <div className="w-full h-24 bg-gray-100 rounded flex items-center justify-center overflow-hidden mb-1">
+                  <div
+                    className="w-full h-24 bg-gray-100 rounded flex items-center justify-center overflow-hidden mb-1 cursor-pointer"
+                    onClick={() => handleImageClick(item.aiImageId)}
+                  >
                     {item.beforeImagePath ? (
                       <img
                         src={item.beforeImagePath}
@@ -106,7 +144,10 @@ export default function MyDeskImages() {
                 </div>
                 {/* After */}
                 <div className="flex-1 flex flex-col items-center">
-                  <div className="w-full h-24 bg-gray-100 rounded flex items-center justify-center overflow-hidden mb-1">
+                  <div
+                    className="w-full h-24 bg-gray-100 rounded flex items-center justify-center overflow-hidden mb-1 cursor-pointer"
+                    onClick={() => handleImageClick(item.aiImageId)}
+                  >
                     {item.afterImagePath ? (
                       <img
                         src={item.afterImagePath}
@@ -125,6 +166,7 @@ export default function MyDeskImages() {
         </div>
       ))}
       {loading && <div className="w-full text-center py-4 text-gray-400">불러오는 중...</div>}
+      <Toast message={toast} />
     </div>
   );
 }

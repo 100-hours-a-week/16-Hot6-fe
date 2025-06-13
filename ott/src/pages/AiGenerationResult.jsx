@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
 import axiosInstance from '@/api/axios';
-import { useParams, useNavigate } from 'react-router-dom';
-import TopBar from '../components/common/TopBar';
-import SimpleModal from '@/components/common/SimpleModal';
-import { addScrap, removeScrap } from '@/api/scraps';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import SimpleModal from '../components/common/SimpleModal';
 import Toast from '../components/common/Toast';
+import TopBar from '../components/common/TopBar';
 
 const AIGeneratedResult = () => {
   const { imageId } = useParams();
@@ -18,7 +17,10 @@ const AIGeneratedResult = () => {
     axiosInstance
       .get(`/ai-images/${imageId}`)
       .then((res) => {
-        setData(res.data.data);
+        setData({
+          image: res.data.data.image,
+          products: res.data.data.products,
+        });
         setLoading(false);
       })
       .catch((err) => {
@@ -37,23 +39,19 @@ const AIGeneratedResult = () => {
   // 스크랩 토글 핸들러
   const handleScrap = async (productId, scrapped) => {
     try {
-      if (scrapped) {
-        await removeScrap({ type: 'PRODUCT', targetId: productId });
-        setToast('스크랩이 취소되었어요.');
-      } else {
-        await addScrap({ type: 'PRODUCT', targetId: productId });
-        setToast('스크랩이 추가되었어요.');
-      }
-      // UI 상태 업데이트
+      await axiosInstance.post(`/products/${productId}/scrap`, {
+        scrapped: !scrapped,
+      });
+      // 스크랩 상태 업데이트
       setData((prev) => ({
         ...prev,
-        products: prev.products.map((p) =>
-          p.productId === productId ? { ...p, scraped: !scrapped } : p,
+        products: prev.products.map((product) =>
+          product.productId === productId ? { ...product, isScrapped: !scrapped } : product,
         ),
       }));
-    } catch {
-      setToast('스크랩 처리에 실패했습니다. 잠시 후 다시 시도해주세요.');
-    } finally {
+    } catch (err) {
+      console.log('에러 발생:', err);
+      setToast('스크랩 상태를 변경할 수 없습니다.');
       setTimeout(() => setToast(''), 1500);
     }
   };
@@ -132,10 +130,10 @@ const AIGeneratedResult = () => {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                handleScrap(product.productId, product.scraped);
+                handleScrap(product.productId, product.isScrapped);
               }}
             >
-              {product.scraped ? (
+              {product.isScrapped ? (
                 <svg className="w-6 h-6" fill="#2563eb" stroke="#2563eb" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -166,14 +164,16 @@ const AIGeneratedResult = () => {
       </div>
 
       {/* 하단 안내 버튼 */}
-      <div className="fixed bottom-1 left-1/2 -translate-x-1/2 w-full max-w-[580px] px-4 mx-auto mt-8">
-        <button
-          className="w-full bg-gray-800 rounded-xl py-3 text-center text-white text-base"
-          onClick={() => navigate(`/post-editor?imageId=${data.image.imageId}`)}
-        >
-          게시글 작성하러 가기
-        </button>
-      </div>
+      {!data.image.postId && (
+        <div className="fixed bottom-1 left-1/2 -translate-x-1/2 w-full max-w-[580px] px-4 mx-auto mt-8">
+          <button
+            className="w-full bg-gray-800 rounded-xl py-3 text-center text-white text-base"
+            onClick={() => navigate(`/post-editor?imageId=${data.image.imageId}`)}
+          >
+            게시글 작성하러 가기
+          </button>
+        </div>
+      )}
 
       <Toast message={toast} />
     </div>
