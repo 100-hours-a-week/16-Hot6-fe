@@ -288,7 +288,7 @@ export default function OrderDetail() {
               className="mb-4 w-full py-2 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700"
               onClick={handleConfirmAll}
             >
-              전체 주문 확정
+              주문 확정
             </button>
           )}
         <div className="flex items-center mb-2">
@@ -345,7 +345,7 @@ export default function OrderDetail() {
                 <div className="flex-1 ml-4">
                   <p className="font-medium">
                     {item.name}
-                    {orderData.order.status === 'CONFIRMED' && (
+                    {item.status === 'CONFIRMED' && (
                       <span className="ml-2 text-xs text-blue-600">(주문 확정)</span>
                     )}
                   </p>
@@ -371,7 +371,7 @@ export default function OrderDetail() {
           </div>
           <div className="flex justify-between items-center mb-2">
             <span className="text-gray-600">총 상품 금액</span>
-            <span>{orderData.payment.paymentAmount.toLocaleString()} P</span>
+            <span>{orderData.payment.originalAmount.toLocaleString()} P</span>
           </div>
           <div className="flex justify-between items-center mb-2">
             <span className="text-gray-600">할인 금액</span>
@@ -391,10 +391,9 @@ export default function OrderDetail() {
       </div>
 
       {/* 환불 정보 표시 */}
-      {(orderData.order.status === 'PARTIALLY_REFUNDED' ||
-        orderData.order.status === 'REFUNDED' ||
-        orderData.order.status === 'CANCELED' ||
-        orderData.order.status === 'PARTIALLY_CANCELED') &&
+      {orderData.products.some(
+        (product) => product.status === 'CANCELED' || product.status === 'REFUNDED',
+      ) &&
         orderData.refund && (
           <div className="px-4 pt-0 pb-6">
             <h3 className="font-semibold mb-4">환불 정보</h3>
