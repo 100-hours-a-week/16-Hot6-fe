@@ -257,9 +257,9 @@ export default function Posts() {
     try {
       const post = posts.find((post) => post.postId === id);
       if (post.liked) {
-        await removeLike({ type: 'POST', targetId: id });
+        await removeLike({ postId: id });
       } else {
-        await addLike({ type: 'POST', targetId: id });
+        await addLike({ postId: id });
       }
       setPosts((prev) =>
         prev.map((post) =>
