@@ -135,9 +135,9 @@ export default function PostDetail() {
   const handleLike = async () => {
     try {
       if (post.liked) {
-        await removeLike({ type: 'POST', targetId: post.postId });
+        await removeLike({ postId: post.postId });
       } else {
-        await addLike({ type: 'POST', targetId: post.postId });
+        await addLike({ postId: post.postId });
       }
       setPost((prev) => ({
         ...prev,
