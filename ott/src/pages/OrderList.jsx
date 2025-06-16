@@ -123,7 +123,28 @@ export default function OrderList() {
   }
 
   if (!orders.length) {
-    return <div className="text-center py-8 text-gray-500">주문 내역이 없습니다.</div>;
+    return (
+      <div className="max-w-[480px] mx-auto min-h-screen bg-white pb-24">
+        <div className="sticky top-0 z-40 bg-white border-b">
+          <div className="flex items-center h-14 px-4">
+            <button onClick={() => navigate(-1)} className="mr-2">
+              <svg
+                width="24"
+                height="24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <span className="font-bold text-lg">주문 내역</span>
+          </div>
+        </div>
+        <div className="text-center text-gray-400 py-20">주문 내역이 없습니다.</div>
+      </div>
+    );
   }
 
   return (
