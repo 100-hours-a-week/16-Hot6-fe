@@ -10,7 +10,7 @@ function validateNickname(nickname) {
 }
 
 function validateKakaoNickname(nickname) {
-  const regex = /^[A-Za-z0-9가-힣]{2,20}\.[A-Za-z0-9가-힣]{2,20}$/;
+  const regex = /^[A-Za-z0-9]{2,20}\.[A-Za-z0-9]{2,20}$/;
   return regex.test(nickname);
 }
 
@@ -138,7 +138,7 @@ export default function ProfileEdit() {
     setKakaoNickname(value);
     if (!validateKakaoNickname(value)) {
       setKakaoNicknameError(
-        "* 카카오 닉네임은 2~20자 이내의 공백 제외 완성형 한글(가–힣), 영문, 숫자로 이루어져야 하며, 중간에 '.'이 정확히 한 개 있어야 합니다.",
+        "* 카테부 닉네임은 2~20자의 영문, 숫자만 사용하며, 중간에 '.'이 정확히 한 개 있어야 합니다. 한글은 사용할 수 없습니다.",
       );
     } else {
       setKakaoNicknameError('');
@@ -155,7 +155,7 @@ export default function ProfileEdit() {
     }
     if (!validateKakaoNickname(kakaoNickname)) {
       setKakaoNicknameError(
-        "* 카카오 닉네임은 2~20자 이내의 공백 제외 완성형 한글(가–힣), 영문, 숫자로 이루어져야 하며, 중간에 '.'이 정확히 한 개 있어야 합니다.",
+        "* 카테부 닉네임은 2~20자의 영문, 숫자만 사용하며, 중간에 '.'이 정확히 한 개 있어야 합니다. 한글은 사용할 수 없습니다.",
       );
       return;
     }
