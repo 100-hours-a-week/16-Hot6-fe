@@ -1,19 +1,19 @@
+import SimpleModal from '@/components/common/SimpleModal';
+import useAuthStore from '@/store/authStore';
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import useAuthStore from '@/store/authStore';
-import SimpleModal from '@/components/common/SimpleModal';
 
 // SVG 아이콘 import
-import homeOutlinedIcon from '@/assets/icons/navigation/home-outlined.svg';
-import homeFilledIcon from '@/assets/icons/navigation/home-filled.svg';
-import deskOutlinedIcon from '@/assets/icons/navigation/sparkles-outlined.svg';
-import deskFilledIcon from '@/assets/icons/navigation/sparkles-filled.svg';
-import uploadOutlinedIcon from '@/assets/icons/navigation/fire-outlined.svg';
-import uploadFilledIcon from '@/assets/icons/navigation/fire-filled.svg';
-import postsOutlinedIcon from '@/assets/icons/navigation/chatbubbles-outlined.svg';
 import postsFilledIcon from '@/assets/icons/navigation/chatbubbles-filled.svg';
-import mypageOutlinedIcon from '@/assets/icons/navigation/person-outlined.svg';
+import postsOutlinedIcon from '@/assets/icons/navigation/chatbubbles-outlined.svg';
+import uploadFilledIcon from '@/assets/icons/navigation/fire-filled.svg';
+import uploadOutlinedIcon from '@/assets/icons/navigation/fire-outlined.svg';
+import homeFilledIcon from '@/assets/icons/navigation/home-filled.svg';
+import homeOutlinedIcon from '@/assets/icons/navigation/home-outlined.svg';
 import mypageFilledIcon from '@/assets/icons/navigation/person-filled.svg';
+import mypageOutlinedIcon from '@/assets/icons/navigation/person-outlined.svg';
+import deskFilledIcon from '@/assets/icons/navigation/sparkles-filled.svg';
+import deskOutlinedIcon from '@/assets/icons/navigation/sparkles-outlined.svg';
 
 const BottomNavigation = ({ checkDeskAIAvailability }) => {
   const location = useLocation();
@@ -43,8 +43,8 @@ const BottomNavigation = ({ checkDeskAIAvailability }) => {
       label: '게시판',
     },
     {
-      path: isAuthenticated ? '/mypage' : '/login',
-      icon: location.pathname === '/mypage' ? mypageFilledIcon : mypageOutlinedIcon,
+      path: isAuthenticated ? '/my-page' : '/login',
+      icon: location.pathname === '/my-page' ? mypageFilledIcon : mypageOutlinedIcon,
       label: isAuthenticated ? '내 정보' : '로그인',
     },
   ];
