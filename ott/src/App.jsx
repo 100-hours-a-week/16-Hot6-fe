@@ -14,6 +14,7 @@ import Login from './pages/Login';
 import MyDeskImages from './pages/MyDeskImages';
 import MyPage from './pages/MyPage';
 import MyPosts from './pages/MyPosts';
+import MyScrap from './pages/MyScrap';
 import NotFound from './pages/NotFound';
 import OrderPage from './pages/Order';
 import OrderDetail from './pages/OrderDetail';
@@ -23,7 +24,8 @@ import PostDetail from './pages/PostDetail';
 import PostEditor from './pages/PostEditor';
 import Posts from './pages/Posts';
 import ProfileEdit from './pages/ProfileEdit';
-import ScrapList from './pages/ScrapList';
+import RecommendedProductDetail from './pages/RecommendedProductDetail';
+import RecommendedProducts from './pages/RecommendedProducts';
 
 const App = () => {
   return (
@@ -34,17 +36,19 @@ const App = () => {
         <LoginModal /> {/* 항상 모달이 뜰 수 있게 라우터/라우트 밖에 둡니다! */}
         <Routes>
           <Route element={<RootLayout />}>
-            <Route path="/" element={<Home />} />
+            <Route index element={<Home />} />
             <Route path="/desk" element={<DeskAI />} />
             <Route path="/posts" element={<Posts />} />
-            <Route path="/mypage" element={<MyPage />} />
+            <Route path="/my-page" element={<MyPage />} />
             <Route path="/orders" element={<OrderList />} />
             <Route path="/orders/:orderId" element={<OrderDetail />} />
             <Route path="/orders/:orderId/payment" element={<OrderPage />} />
-            <Route path="/my-scraps" element={<ScrapList />} />
+            <Route path="/my-scraps" element={<MyScrap />} />
             <Route path="/my-point-history" element={<PointHistory />} />
             <Route path="/my-posts" element={<MyPosts />} />
             <Route path="/my-desks" element={<MyDeskImages />} />
+            <Route path="/recommended-products" element={<RecommendedProducts />} />
+            <Route path="/recommended-products/:productId" element={<RecommendedProductDetail />} />
             {/* 보호된 라우트들도 여기에 추가 */}
           </Route>
           <Route path="/login" element={<Login />} />
