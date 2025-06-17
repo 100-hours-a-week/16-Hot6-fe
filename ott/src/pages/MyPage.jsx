@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function MyPage() {
+  console.log('MyPage 컴포넌트 렌더링');
   // 사용자 정보 상태 관리
   const [userInfo, setUserInfo] = useState({
     nicknameCommunity: '',
@@ -78,10 +79,12 @@ export default function MyPage() {
   }, []);
 
   if (isLoading) {
+    console.log('MyPage: Loading...');
     return <LoadingSpinner />;
   }
 
   if (error) {
+    console.log('MyPage: Error', error);
     return (
       <div className="flex justify-center items-center min-h-screen text-red-500">{error}</div>
     );
@@ -90,6 +93,7 @@ export default function MyPage() {
   // 포인트 3자리마다 콤마
   const formatPoint = (point) => point.toLocaleString() + 'P';
 
+  console.log('MyPage: 렌더링 return 직전');
   return (
     <div className="max-w-[480px] mx-auto min-h-screen bg-white pb-24">
       <Header showModal={showModal} setShowModal={setShowModal} />
