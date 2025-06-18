@@ -58,7 +58,7 @@ const BottomNavigation = ({ checkDeskAIAvailability }) => {
 
   const handleSpecialPriceClick = (e) => {
     e.preventDefault();
-    setIsModalOpen(true);
+    navigate('/products');
   };
 
   return (
