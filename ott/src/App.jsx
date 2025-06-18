@@ -20,9 +20,10 @@ import OrderPage from './pages/Order';
 import OrderDetail from './pages/OrderDetail';
 import OrderList from './pages/OrderList';
 import PointHistory from './pages/PointHistory';
-import PostDetail from './pages/PostDetail';
+// import PostDetail from './pages/PostDetail';
 import PostEditor from './pages/PostEditor';
 import Posts from './pages/Posts';
+import Products from './pages/Products';
 import ProfileEdit from './pages/ProfileEdit';
 import RecommendedProductDetail from './pages/RecommendedProductDetail';
 import RecommendedProducts from './pages/RecommendedProducts';
@@ -49,6 +50,7 @@ const App = () => {
             <Route path="/my-desks" element={<MyDeskImages />} />
             <Route path="/recommended-products" element={<RecommendedProducts />} />
             <Route path="/recommended-products/:productId" element={<RecommendedProductDetail />} />
+            <Route path="/products" element={<Products />} />
             {/* 보호된 라우트들도 여기에 추가 */}
           </Route>
           <Route path="/login" element={<Login />} />
@@ -56,6 +58,7 @@ const App = () => {
           <Route path="/post-editor" element={<PostEditor />} />
           <Route path="/ai-images/:imageId" element={<AiGenerationResult />} />
           <Route path="/posts/:postId" element={<PostDetail />} />
+          {/* <Route path="/products/:productId" element={<ProductDetail />} /> */}
           <Route path="/profile-edit" element={<ProfileEdit />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
