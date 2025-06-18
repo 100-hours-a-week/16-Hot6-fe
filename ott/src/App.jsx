@@ -23,6 +23,7 @@ import PointHistory from './pages/PointHistory';
 import PostDetail from './pages/PostDetail';
 import PostEditor from './pages/PostEditor';
 import Posts from './pages/Posts';
+import ProductDetail from './pages/ProductDetail';
 import Products from './pages/Products';
 import ProfileEdit from './pages/ProfileEdit';
 import RecommendedProductDetail from './pages/RecommendedProductDetail';
@@ -58,7 +59,7 @@ const App = () => {
           <Route path="/post-editor" element={<PostEditor />} />
           <Route path="/ai-images/:imageId" element={<AiGenerationResult />} />
           <Route path="/posts/:postId" element={<PostDetail />} />
-          {/* <Route path="/products/:productId" element={<ProductDetail />} /> */}
+          <Route path="/products/:productId" element={<ProductDetail />} />
           <Route path="/profile-edit" element={<ProfileEdit />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
