@@ -20,7 +20,7 @@ import OrderPage from './pages/Order';
 import OrderDetail from './pages/OrderDetail';
 import OrderList from './pages/OrderList';
 import PointHistory from './pages/PointHistory';
-// import PostDetail from './pages/PostDetail';
+import PostDetail from './pages/PostDetail';
 import PostEditor from './pages/PostEditor';
 import Posts from './pages/Posts';
 import Products from './pages/Products';
