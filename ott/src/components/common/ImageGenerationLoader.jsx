@@ -4,12 +4,24 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Toast from './Toast';
 
-const BottomBanner = ({ onClick }) => (
+const BottomBanner = ({ onClick, onClose }) => (
   <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-[90vw] max-w-sm bg-white rounded-xl shadow-lg p-4 flex flex-col items-center border border-gray-200">
+    <div className="w-full flex justify-end">
+      <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
     <span className="text-base font-semibold mb-2 text-gray-900">🎉 이미지 생성이 완료됐어요!</span>
     <button
       onClick={onClick}
-      className="mt-2 px-6 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition text-base"
+      className="mt-2 px-6 py-2 rounded-lg bg-gray-700 text-white font-semibold hover:bg-blue-700 transition text-base"
     >
       이미지 보러 가기
     </button>
@@ -49,7 +61,7 @@ const ImageGenerationLoader = () => {
           setShowFailToast(true);
           clearInterval(interval);
         }
-      } catch (e) {
+      } catch {
         setStatus('failed');
         setShowFailToast(true);
         clearInterval(interval);
@@ -102,6 +114,7 @@ const ImageGenerationLoader = () => {
             navigate(`/ai-images/${imageId}`);
             reset();
           }}
+          onClose={reset}
         />
       )}
 
