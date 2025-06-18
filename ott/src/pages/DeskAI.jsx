@@ -151,6 +151,12 @@ const DeskAI = () => {
           message: '책상 사진이 아닙니다.\n책상이 잘 나오도록 사진을 다시 업로드해주세요.',
           onConfirm: () => setModal({ open: false, message: '' }), // 확인 버튼 누르면 모달 닫기
         });
+      } else if (err.response && err.response.status === 403) {
+        setModal({
+          open: true,
+          message: '금일 이미지 생성 토큰을 모두 사용하셨습니다.',
+          onConfirm: () => setModal({ open: false, message: '' }),
+        });
       } else {
         setToast('이미지 생성 요청에 실패했습니다. 다시 시도해 주세요.');
         setTimeout(() => setToast(''), 1500); // 토스트 메시지 1.5초 후 사라짐
