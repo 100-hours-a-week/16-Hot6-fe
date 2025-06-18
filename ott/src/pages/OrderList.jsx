@@ -55,6 +55,7 @@ export default function OrderList() {
   const [orderIdToDelete, setOrderIdToDelete] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const observer = useRef();
+  const [forbiddenModal, setForbiddenModal] = useState(false);
 
   const fetchOrders = async (isNext = false) => {
     if (loading || (!pagination.hasNext && isNext)) return;
@@ -67,7 +68,11 @@ export default function OrderList() {
       setOrders((prev) => (isNext ? [...prev, ...newOrders] : newOrders));
       setPagination(newPagination);
       setError(null);
-    } catch {
+    } catch (err) {
+      if (err.response && err.response.status === 403) {
+        setForbiddenModal(true);
+        return;
+      }
       setError('주문 내역을 불러오지 못했습니다.');
     } finally {
       setLoading(false);
@@ -246,6 +251,21 @@ export default function OrderList() {
         onRightClick={handleDeleteOrder}
         rightButtonText="예"
       />
+      {forbiddenModal && (
+        <SimpleModal
+          open={forbiddenModal}
+          message="카테부 인증 회원만 이용 가능합니다."
+          onClose={() => {
+            setForbiddenModal(false);
+            navigate(-1);
+          }}
+          rightButtonText="확인"
+          onRightClick={() => {
+            setForbiddenModal(false);
+            navigate(-1);
+          }}
+        />
+      )}
     </div>
   );
 }

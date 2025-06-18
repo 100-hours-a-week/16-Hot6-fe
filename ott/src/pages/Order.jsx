@@ -14,6 +14,7 @@ export default function Order() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showPaymentErrorToast, setShowPaymentErrorToast] = useState(false);
   const [toast, setToast] = useState('');
+  const [forbiddenModal, setForbiddenModal] = useState(false);
 
   // 주문 상세 데이터 불러오기
   const fetchOrderData = async () => {
@@ -21,7 +22,11 @@ export default function Order() {
       const response = await axios.get(`/orders/${orderId}`);
       setOrderData(response.data.data);
       setError(null);
-    } catch {
+    } catch (err) {
+      if (err.response && err.response.status === 403) {
+        setForbiddenModal(true);
+        return;
+      }
       setError('주문 정보를 불러오지 못했습니다.');
     } finally {
       setLoading(false);
@@ -31,7 +36,9 @@ export default function Order() {
   // 결제 처리
   const handlePayment = async () => {
     try {
-      await axios.post(`/orders/${orderId}/payments`);
+      await axios.post(`/orders/${orderId}/payments`, {
+        point: payment.paymentAmount,
+      });
       setToast('결제가 완료되었습니다.');
       navigate('/orders');
     } catch {
@@ -177,6 +184,22 @@ export default function Order() {
         <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg">
           {toast}
         </div>
+      )}
+
+      {forbiddenModal && (
+        <SimpleModal
+          open={forbiddenModal}
+          message="카테부 인증 회원만 이용 가능합니다."
+          onClose={() => {
+            setForbiddenModal(false);
+            navigate(-1);
+          }}
+          rightButtonText="확인"
+          onRightClick={() => {
+            setForbiddenModal(false);
+            navigate(-1);
+          }}
+        />
       )}
     </>
   );

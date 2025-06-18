@@ -43,6 +43,9 @@ export default function OrderDetail() {
   const [showActionModal, setShowActionModal] = useState(false);
   const [actionType, setActionType] = useState(''); // 'cancel' or 'refund'
   const [toast, setToast] = useState('');
+  const [forbiddenModal, setForbiddenModal] = useState(false);
+  const [showRefundModal, setShowRefundModal] = useState(false);
+  const [showRefundErrorToast, setShowRefundErrorToast] = useState(false);
 
   // 선택 가능한 상품 id 목록 계산
   const canSelectProductIds = useMemo(() => {
@@ -114,6 +117,10 @@ export default function OrderDetail() {
       setOrderData(response.data.data);
       setError(null);
     } catch (error) {
+      if (error.response && error.response.status === 403) {
+        setForbiddenModal(true);
+        return;
+      }
       console.error('주문 정보 조회 실패:', error);
       setError('주문 정보를 불러오지 못했습니다.');
     } finally {
@@ -201,6 +208,18 @@ export default function OrderDetail() {
       fetchOrderData();
     } catch {
       setToast('주문 확정에 실패했습니다.');
+    }
+  };
+
+  // 환불 처리
+  const handleRefund = async () => {
+    try {
+      await axiosBaseInstance.patch(`/orders/${orderId}/payments/${orderData.payment.id}`);
+      setToast('환불이 완료되었습니다.');
+      navigate('/orders');
+    } catch {
+      setShowRefundErrorToast(true);
+      setTimeout(() => setShowRefundErrorToast(false), 3000);
     }
   };
 
@@ -445,6 +464,48 @@ export default function OrderDetail() {
         message={`선택한 상품을 ${actionType === 'cancel' ? '취소' : '환불'}하시겠습니까?`}
         rightButtonText="예"
       />
+
+      {forbiddenModal && (
+        <SimpleModal
+          open={forbiddenModal}
+          message="카테부 인증 회원만 이용 가능합니다."
+          onClose={() => {
+            setForbiddenModal(false);
+            navigate(-1);
+          }}
+          rightButtonText="확인"
+          onRightClick={() => {
+            setForbiddenModal(false);
+            navigate(-1);
+          }}
+        />
+      )}
+
+      {/* 환불 버튼 */}
+      {orderData.order.status === 'COMPLETED' && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t z-50">
+          <button
+            className="w-full py-3 bg-red-500 text-white rounded text-sm font-semibold hover:bg-red-600"
+            onClick={() => setShowRefundModal(true)}
+          >
+            환불하기
+          </button>
+        </div>
+      )}
+
+      <SimpleModal
+        open={showRefundModal}
+        onClose={() => setShowRefundModal(false)}
+        onConfirm={handleRefund}
+        message="환불을 진행하시겠습니까?"
+        rightButtonText="환불하기"
+      />
+
+      {showRefundErrorToast && (
+        <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg">
+          환불 처리에 실패했습니다.
+        </div>
+      )}
     </div>
   );
 }
