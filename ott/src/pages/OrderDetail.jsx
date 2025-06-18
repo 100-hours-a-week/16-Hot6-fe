@@ -482,7 +482,8 @@ export default function OrderDetail() {
       )}
 
       {/* 환불 버튼 */}
-      {orderData.order.status === 'COMPLETED' && (
+      {orderData.order.status === 'PAID' || orderData.order.status === 'PARTIALLY_CANCELED' || orderData.order.status === 'DELIVERED'
+      || orderData.order.status === 'PARTIALLY_REFUNDED' && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t z-50">
           <button
             className="w-full py-3 bg-red-500 text-white rounded text-sm font-semibold hover:bg-red-600"
