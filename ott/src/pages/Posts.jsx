@@ -120,7 +120,7 @@ export default function Posts() {
           params.lastPostId = pagination.lastPostId;
         }
       }
-      console.log(params);
+
       // API 요청
       const res = await axiosBaseInstance.get('/posts', { params });
       const { posts: newPosts, pagination: newPagination } = res.data.data;
