@@ -41,8 +41,6 @@ const RootLayout = () => {
         <main className={`flex-1 w-full pb-16 relative${hideGlobalUI ? '' : ' pt-14'}`}>
           <Outlet context={{ toast, setToast }} />
         </main>
-        <Footer /> {/* Footer 추가 */}
-        {/* <ImageGenerationLoader /> */}
         {/* 하단 네비게이션 컴포넌트 */}
         {!hideGlobalUI && <Footer />}
         {!hideGlobalUI && <BottomNavigation checkDeskAIAvailability={checkDeskAIAvailability} />}
