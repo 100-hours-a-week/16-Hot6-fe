@@ -192,7 +192,7 @@ export default function ProfileEdit() {
   const isKakaoNicknameChanged = kakaoNickname !== originalKakaoNickname;
   const isValid =
     isNicknameValid &&
-    isKakaoNicknameValid &&
+    (certified ? isKakaoNicknameValid : true) &&
     (isProfileChanged || isNicknameChanged || isKakaoNicknameChanged);
 
   return (
@@ -283,7 +283,7 @@ export default function ProfileEdit() {
             className={`px-8 py-2 border rounded-lg font-semibold 
               ${
                 isValid
-                  ? 'bg-gray-700 text-white border-blue-500 hover:bg-blue-600'
+                  ? 'bg-gray-700 text-white hover:bg-blue-600'
                   : 'bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed'
               }`}
             onClick={handleSave}
