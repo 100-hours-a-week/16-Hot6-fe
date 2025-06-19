@@ -1,6 +1,8 @@
 import axiosInstance from '@/api/axios';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import TopBar from '../components/common/TopBar';
 
 export default function MyScrap() {
   console.log('MyScrap 컴포넌트 렌더링');
@@ -48,37 +50,38 @@ export default function MyScrap() {
   );
 
   return (
-    <div className="max-w-[480px] mx-auto min-h-screen bg-white pb-24 px-4">
-      {console.log('MyScrap 렌더링 return', scraps, loading)}
-      <h2 className="text-xl font-bold my-4 text-center">스크랩 목록</h2>
-      {scraps.length === 0 && !loading ? (
-        <div className="text-center text-gray-400 py-20">스크랩한 항목이 없습니다.</div>
-      ) : (
-        <div className="grid grid-cols-2 gap-4">
-          {scraps.map((item, idx) => (
-            <div
-              key={item.scrapId}
-              ref={idx === scraps.length - 1 ? lastItemRef : null}
-              className="border rounded-lg p-2 cursor-pointer"
-              onClick={() => {
-                if (item.type === 'POST') navigate(`/posts/${item.targetId}`);
-                else if (item.type === 'PRODUCT') navigate(`/desk-products/${item.targetId}`);
-                else if (item.type === 'SERVICE_PRODUCT') navigate(`/products/${item.targetId}`);
-              }}
-            >
-              <img
-                src={item.thumbnailUrl}
-                alt="썸네일"
-                className="w-full h-24 object-cover rounded"
-              />
-              <div className="mt-2 text-xs text-gray-500">
-                {item.type === 'POST' ? '게시글' : '제품'}
+    <div className="max-w-[768px] mx-auto min-h-screen bg-white pb-24 px-4">
+      <TopBar title="스크랩 목록" />
+      <div className="max-w-[480px] mx-auto mt-4">
+        {scraps.length === 0 && !loading ? (
+          <div className="text-center text-gray-400 py-20">스크랩한 항목이 없습니다.</div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4">
+            {scraps.map((item, idx) => (
+              <div
+                key={item.scrapId}
+                ref={idx === scraps.length - 1 ? lastItemRef : null}
+                className="border rounded-lg p-2 cursor-pointer"
+                onClick={() => {
+                  if (item.type === 'POST') navigate(`/posts/${item.targetId}`);
+                  else if (item.type === 'PRODUCT') navigate(`/desk-products/${item.targetId}`);
+                  else if (item.type === 'SERVICE_PRODUCT') navigate(`/products/${item.targetId}`);
+                }}
+              >
+                <img
+                  src={item.thumbnailUrl}
+                  alt="썸네일"
+                  className="w-full h-24 object-cover rounded"
+                />
+                <div className="mt-2 text-xs text-gray-500">
+                  {item.type === 'POST' ? '게시글' : '제품'}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-      {loading && <div className="w-full text-center py-4 text-gray-400">불러오는 중...</div>}
+            ))}
+          </div>
+        )}
+      </div>
+      {loading && <LoadingSpinner />}
     </div>
   );
 }
