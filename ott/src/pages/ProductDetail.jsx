@@ -108,13 +108,9 @@ function ProductDetail() {
     if (orderOptions.length === 0) return;
 
     const orderItems = orderOptions.map(({ variant, quantity }) => {
-      const promo = variant.promotions?.[0];
       return {
-        productId: variant.variant_id,
-        ...(promo && { promotionId: promo.promotion_id }),
-        originalPrice: variant.price,
+        variantId: variant.variant_id,
         quantity,
-        discountPrice: promo ? promo.discount_price : 0,
       };
     });
 
