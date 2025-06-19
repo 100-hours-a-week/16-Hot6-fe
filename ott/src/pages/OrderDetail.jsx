@@ -257,256 +257,252 @@ export default function OrderDetail() {
     selectedProducts.filter((id) => canSelectProductIds.includes(id)).length > 0;
 
   return (
-    <div className="max-w-[480px] mx-auto min-h-screen bg-white">
-      <TopBar
-        title="주문/결제"
-        showBack
-        className="fixed top-0 left-1/2 -translate-x-1/2 w-full z-40 h-14 bg-white flex items-center px-4"
-        style={{
-          maxWidth: '480px',
-          minWidth: 'min(320px, 100%)',
-          paddingTop: 'env(safe-area-inset-top)',
-        }}
-      />
-      <div style={{ height: '48px' }} />
-      {/* 주문 일시/번호 (결제완료 시) */}
-      {shouldShowOrderInfo(orderData.order.status) && (
-        <div className="px-4 pt-0 pb-6">
-          <h3 className="font-semibold mb-2">결제 완료</h3>
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm">
-              <span className="text-gray-500">주문 번호:</span> {orderData.order.orderNumber}
-            </p>
-            <p className="text-sm">
-              <span className="text-gray-500">주문 일시:</span>{' '}
-              {formatDate(orderData.order.orderedAt)}
-            </p>
-          </div>
-        </div>
-      )}
-
-      <div className="px-4 pt-0">
-        <h3 className="font-semibold mb-4">주문자 정보</h3>
-        <div className="bg-gray-50 rounded-lg p-4">
-          <p className="text-sm">
-            <span className="text-gray-500">닉네임:</span> {orderData.user.nicknameKakao}
-          </p>
-          <p className="text-sm mt-1">
-            <span className="text-gray-500">이메일:</span> {orderData.user.email}
-          </p>
-        </div>
-      </div>
-
-      <div className="px-4 pt-6">
-        <h3 className="font-semibold mb-4">주문상품</h3>
-        {/* 전체 주문 확정 버튼 (DELIVERED, PARTIALLY_REFUNDED 상태 & DELIVERED 상품 존재 시) */}
-        {(orderData.order.status === 'DELIVERED' ||
-          orderData.order.status === 'PARTIALLY_REFUNDED') &&
-          orderData.products.some((item) => item.status === 'DELIVERED') && (
-            <button
-              className="mb-4 w-full py-2 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700"
-              onClick={handleConfirmAll}
-            >
-              주문 확정
-            </button>
-          )}
-        <div className="flex items-center mb-2">
-          <input
-            type="checkbox"
-            className="mr-2"
-            checked={allChecked}
-            onChange={handleAllCheck}
-            disabled={canSelectProductIds.length === 0}
-          />
-          <span className="text-sm">전체 선택</span>
-        </div>
-        <div className="space-y-4">
-          {orderData.products.map((item) => {
-            const productKey = item.id;
-            // 주문 취소 체크박스 조건
-            const canCancel =
-              (orderData.order.status === 'PAID' ||
-                orderData.order.status === 'PARTIALLY_CANCELED') &&
-              item.status === 'PAID';
-            // 환불 체크박스 조건
-            const canRefund =
-              (orderData.order.status === 'DELIVERED' ||
-                orderData.order.status === 'PARTIALLY_REFUNDED') &&
-              item.status === 'DELIVERED';
-            // 체크박스 비활성화 조건 - 현재 상품의 상태만 확인
-            const isCheckboxDisabled = ['REFUNDED', 'CANCELED', 'CONFIRMED'].includes(item.status);
-            // 체크박스 표시 조건
-            const showCheckbox = canCancel || canRefund || isCheckboxDisabled;
-
-            return (
-              <div key={productKey} className="flex items-center p-4 bg-gray-50 rounded-lg">
-                {showCheckbox && (
-                  <input
-                    type="checkbox"
-                    className="mr-2"
-                    checked={selectedProducts.includes(productKey)}
-                    onChange={() => handleProductCheck(productKey)}
-                    disabled={isCheckboxDisabled}
-                  />
-                )}
-                <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative">
-                  <img
-                    src={item.imagePath}
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                  />
-                  <div
-                    className={`absolute top-0 left-0 right-0 ${getStatusColor(item.status)} text-white text-xs py-1 px-2 text-center`}
-                  >
-                    {getStatusText(item.status)}
-                  </div>
-                </div>
-                <div className="flex-1 ml-4">
-                  <p className="font-medium">
-                    {item.name}
-                    {item.status === 'CONFIRMED' && (
-                      <span className="ml-2 text-xs text-blue-600">(주문 확정)</span>
-                    )}
-                  </p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {item.price.toLocaleString()} P × {item.quantity}개
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium">{(item.price * item.quantity).toLocaleString()} P</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="px-4 pt-6 pb-6">
-        <h3 className="font-semibold mb-4">결제 정보</h3>
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-gray-600">결제 수단</span>
-            <span>{orderData.payment.paymentMethod}</span>
-          </div>
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-gray-600">총 상품 금액</span>
-            <span>{orderData.payment.originalAmount.toLocaleString()} P</span>
-          </div>
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-gray-600">할인 금액</span>
-            <span className="text-red-500">
-              -{orderData.payment.discountAmount.toLocaleString()} P
-            </span>
-          </div>
-          <div className="border-t pt-2 mt-2">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">총 결제 금액</span>
-              <span className="text-xl font-bold">
-                {orderData.payment.paymentAmount.toLocaleString()} P
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 환불 정보 표시 */}
-      {orderData.products.some(
-        (product) => product.status === 'CANCELED' || product.status === 'REFUNDED',
-      ) &&
-        orderData.refund && (
+    <div className="max-w-[768px] mx-auto min-h-screen bg-white">
+      <TopBar title="주문 상세내역" showBack />
+      <div className="max-w-[480px] mx-auto">
+        {/* 주문 일시/번호 (결제완료 시) */}
+        {shouldShowOrderInfo(orderData.order.status) && (
           <div className="px-4 pt-0 pb-6">
-            <h3 className="font-semibold mb-4">환불 정보</h3>
+            <h3 className="font-semibold mb-2">결제 완료</h3>
             <div className="bg-gray-50 rounded-lg p-4">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-600">환불 수단</span>
-                <span>{orderData.refund.refundMethod}</span>
-              </div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-600">환불 금액</span>
-                <span className="text-blue-600 font-bold">
-                  {orderData.refund.refundAmount.toLocaleString()} P
-                </span>
-              </div>
+              <p className="text-sm">
+                <span className="text-gray-500">주문 번호:</span> {orderData.order.orderNumber}
+              </p>
+              <p className="text-sm">
+                <span className="text-gray-500">주문 일시:</span>{' '}
+                {formatDate(orderData.order.orderedAt)}
+              </p>
             </div>
           </div>
         )}
 
-      {/* 주문 취소/환불 버튼 */}
-      {(orderData.order.status === 'PAID' ||
-        orderData.order.status === 'PARTIALLY_CANCELED' ||
-        orderData.order.status === 'PARTIALLY_REFUNDED' ||
-        orderData.order.status === 'DELIVERED') && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t z-50">
-          <button
-            className="w-full py-3 bg-gray-700 text-white rounded text-sm font-semibold hover:bg-gray-300
+        <div className="px-4 pt-0">
+          <h3 className="font-semibold mb-4">주문자 정보</h3>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <p className="text-sm">
+              <span className="text-gray-500">닉네임:</span> {orderData.user.nicknameKakao}
+            </p>
+            <p className="text-sm mt-1">
+              <span className="text-gray-500">이메일:</span> {orderData.user.email}
+            </p>
+          </div>
+        </div>
+
+        <div className="px-4 pt-6">
+          <h3 className="font-semibold mb-4">주문상품</h3>
+          {/* 전체 주문 확정 버튼 (DELIVERED, PARTIALLY_REFUNDED 상태 & DELIVERED 상품 존재 시) */}
+          {(orderData.order.status === 'DELIVERED' ||
+            orderData.order.status === 'PARTIALLY_REFUNDED') &&
+            orderData.products.some((item) => item.status === 'DELIVERED') && (
+              <button
+                className="mb-4 w-full py-2 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700"
+                onClick={handleConfirmAll}
+              >
+                주문 확정
+              </button>
+            )}
+          <div className="flex items-center mb-2">
+            <input
+              type="checkbox"
+              className="mr-2"
+              checked={allChecked}
+              onChange={handleAllCheck}
+              disabled={canSelectProductIds.length === 0}
+            />
+            <span className="text-sm">전체 선택</span>
+          </div>
+          <div className="space-y-4">
+            {orderData.products.map((item) => {
+              const productKey = item.id;
+              // 주문 취소 체크박스 조건
+              const canCancel =
+                (orderData.order.status === 'PAID' ||
+                  orderData.order.status === 'PARTIALLY_CANCELED') &&
+                item.status === 'PAID';
+              // 환불 체크박스 조건
+              const canRefund =
+                (orderData.order.status === 'DELIVERED' ||
+                  orderData.order.status === 'PARTIALLY_REFUNDED') &&
+                item.status === 'DELIVERED';
+              // 체크박스 비활성화 조건 - 현재 상품의 상태만 확인
+              const isCheckboxDisabled = ['REFUNDED', 'CANCELED', 'CONFIRMED'].includes(
+                item.status,
+              );
+              // 체크박스 표시 조건
+              const showCheckbox = canCancel || canRefund || isCheckboxDisabled;
+
+              return (
+                <div key={productKey} className="flex items-center p-4 bg-gray-50 rounded-lg">
+                  {showCheckbox && (
+                    <input
+                      type="checkbox"
+                      className="mr-2"
+                      checked={selectedProducts.includes(productKey)}
+                      onChange={() => handleProductCheck(productKey)}
+                      disabled={isCheckboxDisabled}
+                    />
+                  )}
+                  <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative">
+                    <img
+                      src={item.imagePath}
+                      alt={item.name}
+                      className="w-full h-full object-cover"
+                    />
+                    <div
+                      className={`absolute top-0 left-0 right-0 ${getStatusColor(item.status)} text-white text-xs py-1 px-2 text-center`}
+                    >
+                      {getStatusText(item.status)}
+                    </div>
+                  </div>
+                  <div className="flex-1 ml-4">
+                    <p className="font-medium">
+                      {item.name}
+                      {item.status === 'CONFIRMED' && (
+                        <span className="ml-2 text-xs text-blue-600">(주문 확정)</span>
+                      )}
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {item.price.toLocaleString()} P × {item.quantity}개
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium">{(item.price * item.quantity).toLocaleString()} P</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="px-4 pt-6 pb-6">
+          <h3 className="font-semibold mb-4">결제 정보</h3>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-gray-600">결제 수단</span>
+              <span>{orderData.payment.paymentMethod}</span>
+            </div>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-gray-600">총 상품 금액</span>
+              <span>{orderData.payment.originalAmount.toLocaleString()} P</span>
+            </div>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-gray-600">할인 금액</span>
+              <span className="text-red-500">
+                -{orderData.payment.discountAmount.toLocaleString()} P
+              </span>
+            </div>
+            <div className="border-t pt-2 mt-2">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">총 결제 금액</span>
+                <span className="text-xl font-bold">
+                  {orderData.payment.paymentAmount.toLocaleString()} P
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 환불 정보 표시 */}
+        {orderData.products.some(
+          (product) => product.status === 'CANCELED' || product.status === 'REFUNDED',
+        ) &&
+          orderData.refund && (
+            <div className="px-4 pt-0 pb-6">
+              <h3 className="font-semibold mb-4">환불 정보</h3>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-gray-600">환불 수단</span>
+                  <span>{orderData.refund.refundMethod}</span>
+                </div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-gray-600">환불 금액</span>
+                  <span className="text-blue-600 font-bold">
+                    {orderData.refund.refundAmount.toLocaleString()} P
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+        {/* 주문 취소/환불 버튼 */}
+        {(orderData.order.status === 'PAID' ||
+          orderData.order.status === 'PARTIALLY_CANCELED' ||
+          orderData.order.status === 'PARTIALLY_REFUNDED' ||
+          orderData.order.status === 'DELIVERED') && (
+          <div className="fixed bottom-0 p-4 bg-white border-t z-50">
+            <button
+              className="w-full py-3 bg-gray-700 text-white rounded text-sm font-semibold hover:bg-gray-300
     disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed"
-            onClick={handleCancelOrRefund}
-            disabled={!isButtonEnabled}
-          >
-            {orderData.order.status === 'PAID' || orderData.order.status === 'PARTIALLY_CANCELED'
-              ? '주문 취소'
-              : '환불하기'}
-          </button>
-        </div>
-      )}
+              onClick={handleCancelOrRefund}
+              disabled={!isButtonEnabled}
+            >
+              {orderData.order.status === 'PAID' || orderData.order.status === 'PARTIALLY_CANCELED'
+                ? '주문 취소'
+                : '환불하기'}
+            </button>
+          </div>
+        )}
 
-      {toast && (
-        <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg">
-          {toast}
-        </div>
-      )}
+        {toast && (
+          <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg">
+            {toast}
+          </div>
+        )}
 
-      {/* 주문 취소/환불 확인 모달 */}
-      <SimpleModal
-        open={showActionModal}
-        onClose={() => setShowActionModal(false)}
-        onRightClick={handleActionConfirm}
-        message={`선택한 상품을 ${actionType === 'cancel' ? '취소' : '환불'}하시겠습니까?`}
-        rightButtonText="예"
-      />
-
-      {forbiddenModal && (
+        {/* 주문 취소/환불 확인 모달 */}
         <SimpleModal
-          open={forbiddenModal}
-          message="카테부 인증 회원만 이용 가능합니다."
-          onClose={() => {
-            setForbiddenModal(false);
-            navigate(-1);
-          }}
-          rightButtonText="확인"
-          onRightClick={() => {
-            setForbiddenModal(false);
-            navigate(-1);
-          }}
+          open={showActionModal}
+          onClose={() => setShowActionModal(false)}
+          onRightClick={handleActionConfirm}
+          message={`선택한 상품을 ${actionType === 'cancel' ? '취소' : '환불'}하시겠습니까?`}
+          rightButtonText="예"
         />
-      )}
 
-      {/* 환불 버튼 */}
-      {orderData.order.status === 'PAID' || orderData.order.status === 'PARTIALLY_CANCELED' || orderData.order.status === 'DELIVERED'
-      || orderData.order.status === 'PARTIALLY_REFUNDED' && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t z-50">
-          <button
-            className="w-full py-3 bg-red-500 text-white rounded text-sm font-semibold hover:bg-red-600"
-            onClick={() => setShowRefundModal(true)}
-          >
-            환불하기
-          </button>
-        </div>
-      )}
+        {forbiddenModal && (
+          <SimpleModal
+            open={forbiddenModal}
+            message="카테부 인증 회원만 이용 가능합니다."
+            onClose={() => {
+              setForbiddenModal(false);
+              navigate(-1);
+            }}
+            rightButtonText="확인"
+            onRightClick={() => {
+              setForbiddenModal(false);
+              navigate(-1);
+            }}
+          />
+        )}
 
-      <SimpleModal
-        open={showRefundModal}
-        onClose={() => setShowRefundModal(false)}
-        onConfirm={handleRefund}
-        message="환불을 진행하시겠습니까?"
-        rightButtonText="환불하기"
-      />
+        {/* 환불 버튼 */}
+        {orderData.order.status === 'PAID' ||
+          orderData.order.status === 'PARTIALLY_CANCELED' ||
+          orderData.order.status === 'DELIVERED' ||
+          (orderData.order.status === 'PARTIALLY_REFUNDED' && (
+            <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t z-50">
+              <button
+                className="w-full py-3 bg-red-500 text-white rounded text-sm font-semibold hover:bg-red-600"
+                onClick={() => setShowRefundModal(true)}
+              >
+                환불하기
+              </button>
+            </div>
+          ))}
 
-      {showRefundErrorToast && (
-        <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg">
-          환불 처리에 실패했습니다.
-        </div>
-      )}
+        <SimpleModal
+          open={showRefundModal}
+          onClose={() => setShowRefundModal(false)}
+          onConfirm={handleRefund}
+          message="환불을 진행하시겠습니까?"
+          rightButtonText="환불하기"
+        />
+
+        {showRefundErrorToast && (
+          <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg">
+            환불 처리에 실패했습니다.
+          </div>
+        )}
+      </div>
     </div>
   );
 }
