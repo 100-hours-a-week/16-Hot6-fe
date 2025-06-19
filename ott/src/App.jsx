@@ -43,13 +43,8 @@ const App = () => {
             <Route path="/desk" element={<DeskAI />} />
             <Route path="/posts" element={<Posts />} />
             <Route path="/my-page" element={<MyPage />} />
-            <Route path="/orders" element={<OrderList />} />
             <Route path="/orders/:orderId" element={<OrderDetail />} />
             <Route path="/orders/:orderId/payment" element={<OrderPage />} />
-            <Route path="/my-scraps" element={<MyScrap />} />
-            <Route path="/my-point-history" element={<PointHistory />} />
-            <Route path="/my-posts" element={<MyPosts />} />
-            <Route path="/my-desks" element={<MyDeskImages />} />
             <Route path="/recommended-products" element={<RecommendedProducts />} />
             <Route path="/recommended-products/:productId" element={<RecommendedProductDetail />} />
             <Route path="/products" element={<Products />} />
@@ -58,6 +53,11 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/oauth-success" element={<OAuth2RedirectHandler />} />
           <Route path="/post-editor" element={<PostEditor />} />
+          <Route path="/my-scraps" element={<MyScrap />} />
+          <Route path="/my-desks" element={<MyDeskImages />} />
+          <Route path="/my-posts" element={<MyPosts />} />
+          <Route path="/orders" element={<OrderList />} />
+          <Route path="/my-point-history" element={<PointHistory />} />
           <Route path="/ai-images/:imageId" element={<AiGenerationResult />} />
           <Route path="/posts/:postId" element={<PostDetail />} />
           <Route path="/products/:productId" element={<ProductDetail />} />

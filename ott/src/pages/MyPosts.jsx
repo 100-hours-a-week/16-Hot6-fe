@@ -2,6 +2,7 @@ import axiosInstance from '@/api/axios';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import TopBar from '../components/common/TopBar';
 
 function formatDate(createdAtStr) {
   const KST_OFFSET = 9 * 60 * 60 * 1000;
@@ -94,9 +95,9 @@ export default function MyPosts() {
     );
 
   return (
-    <div className="max-w-[480px] mx-auto min-h-screen bg-white pb-24">
-      <h2 className="text-xl font-bold my-4 text-center">나의 게시글</h2>
-      <div className="px-4 pt-4 space-y-6">
+    <div className="max-w-[768px] mx-auto min-h-screen bg-white pb-24 px-4">
+      <TopBar title="나의 게시글" showBack />
+      <div className="max-w-[480px] mx-auto px-4 pt-4 space-y-6">
         {posts.length === 0 && (
           <div className="text-center text-gray-400 py-20">작성한 게시글이 없습니다.</div>
         )}

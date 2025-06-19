@@ -1,7 +1,9 @@
 import axiosInstance from '@/api/axios';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 import Toast from '../components/common/Toast';
+import TopBar from '../components/common/TopBar';
 
 function formatDate(createdAtStr) {
   const KST_OFFSET = 9 * 60 * 60 * 1000;
@@ -116,60 +118,62 @@ export default function MyDeskImages() {
   const grouped = groupByDate(images);
 
   return (
-    <div className="max-w-[480px] mx-auto min-h-screen bg-white pb-24 px-4">
-      <h2 className="text-xl font-bold my-4 text-center">나의 데스크 보기</h2>
-      {Object.keys(grouped).length === 0 && !loading ? (
-        <div className="text-center text-gray-400 py-20">생성한 데스크 이미지가 없습니다.</div>
-      ) : (
-        Object.entries(grouped).map(([label, group]) => (
-          <div key={label} className="mb-6">
-            <div className="font-bold text-lg mb-2">{label}</div>
-            <div className="flex flex-col gap-4">
-              {group.map((item) => (
-                <div key={item.aiImageId} className="flex gap-4">
-                  {/* Before */}
-                  <div className="flex-1 flex flex-col items-center">
-                    <div
-                      className="w-full h-24 bg-gray-100 rounded flex items-center justify-center overflow-hidden mb-1 cursor-pointer"
-                      onClick={() => handleImageClick(item.aiImageId)}
-                    >
-                      {item.beforeImagePath ? (
-                        <img
-                          src={item.beforeImagePath}
-                          alt="Before"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-gray-400">Before</span>
-                      )}
+    <div className="max-w-[768px] mx-auto min-h-screen bg-white pb-24 px-4">
+      <TopBar title="나의 데스크 보기" />
+      <div className="max-w-[480px] mx-auto mt-4">
+        {Object.keys(grouped).length === 0 && !loading ? (
+          <div className="text-center text-gray-400 py-20">생성한 데스크 이미지가 없습니다.</div>
+        ) : (
+          Object.entries(grouped).map(([label, group]) => (
+            <div key={label} className="mb-6">
+              <div className="font-bold text-lg mb-2">{label}</div>
+              <div className="flex flex-col gap-4">
+                {group.map((item) => (
+                  <div key={item.aiImageId} className="flex gap-4">
+                    {/* Before */}
+                    <div className="flex-1 flex flex-col items-center">
+                      <div
+                        className="w-full h-24 bg-gray-100 rounded flex items-center justify-center overflow-hidden mb-1 cursor-pointer"
+                        onClick={() => handleImageClick(item.aiImageId)}
+                      >
+                        {item.beforeImagePath ? (
+                          <img
+                            src={item.beforeImagePath}
+                            alt="Before"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-gray-400">Before</span>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500 text-center">Before</div>
                     </div>
-                    <div className="text-xs text-gray-500 text-center">Before</div>
-                  </div>
-                  {/* After */}
-                  <div className="flex-1 flex flex-col items-center">
-                    <div
-                      className="w-full h-24 bg-gray-100 rounded flex items-center justify-center overflow-hidden mb-1 cursor-pointer"
-                      onClick={() => handleImageClick(item.aiImageId)}
-                    >
-                      {item.afterImagePath ? (
-                        <img
-                          src={item.afterImagePath}
-                          alt="After"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-gray-400">After</span>
-                      )}
+                    {/* After */}
+                    <div className="flex-1 flex flex-col items-center">
+                      <div
+                        className="w-full h-24 bg-gray-100 rounded flex items-center justify-center overflow-hidden mb-1 cursor-pointer"
+                        onClick={() => handleImageClick(item.aiImageId)}
+                      >
+                        {item.afterImagePath ? (
+                          <img
+                            src={item.afterImagePath}
+                            alt="After"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-gray-400">After</span>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500 text-center">After</div>
                     </div>
-                    <div className="text-xs text-gray-500 text-center">After</div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        ))
-      )}
-      {loading && <div className="w-full text-center py-4 text-gray-400">불러오는 중...</div>}
+          ))
+        )}
+      </div>
+      {loading && <LoadingSpinner />}
       <Toast message={toast} />
     </div>
   );
