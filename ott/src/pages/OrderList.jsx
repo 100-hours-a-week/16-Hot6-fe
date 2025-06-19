@@ -3,6 +3,8 @@ import { getConfig } from '@/config/index';
 import axios from 'axios';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import TopBar from '../components/common/TopBar';
 
 const { BASE_URL } = getConfig();
 const axiosBaseInstance = axios.create({
@@ -129,49 +131,17 @@ export default function OrderList() {
 
   if (!orders.length) {
     return (
-      <div className="max-w-[480px] mx-auto min-h-screen bg-white pb-24">
-        <div className="sticky top-0 z-40 bg-white border-b">
-          <div className="flex items-center h-14 px-4">
-            <button onClick={() => navigate(-1)} className="mr-2">
-              <svg
-                width="24"
-                height="24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <span className="font-bold text-lg">주문 내역</span>
-          </div>
-        </div>
+      <div className="max-w-[768px] mx-auto min-h-screen bg-white pb-24">
+        <TopBar title="주문 내역" showBack />
         <div className="text-center text-gray-400 py-20">주문 내역이 없습니다.</div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-[480px] mx-auto min-h-screen bg-white pb-24">
-      <div className="sticky top-0 z-40 bg-white border-b">
-        <div className="flex items-center h-14 px-4">
-          <button onClick={() => navigate(-1)} className="mr-2">
-            <svg
-              width="24"
-              height="24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <span className="font-bold text-lg">주문 내역</span>
-        </div>
-      </div>
-      <div className="px-4 pt-4 space-y-6">
+    <div className="max-w-[768px] mx-auto min-h-screen bg-white pb-24">
+      <TopBar title="주문 내역" showBack />
+      <div className="max-w-[480px] mx-auto px-4 pt-4 space-y-6">
         {orders.map((order, idx) => {
           const products = order.products || order.product || [];
           const totalAmount = products.reduce((sum, item) => sum + item.amount * item.quantity, 0);
@@ -234,7 +204,7 @@ export default function OrderList() {
             </div>
           );
         })}
-        {loading && <div className="w-full text-center py-4 text-gray-400">불러오는 중...</div>}
+        {loading && <LoadingSpinner />}
       </div>
       {toast && (
         <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg z-50">

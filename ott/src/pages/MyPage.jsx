@@ -232,7 +232,7 @@ export default function MyPage() {
                 type="text"
                 value={recommendationCode}
                 onChange={(e) => setRecommendationCode(e.target.value)}
-                className="w-full border rounded px-3 py-2 focus:outline-none focus:ring"
+                className="w-full border rounded px-3 py-2 focus:outline-none focus:ring text-sm"
                 placeholder="추천인 코드를 입력하세요"
                 required
               />
@@ -242,8 +242,8 @@ export default function MyPage() {
                 type="text"
                 value={nicknameKakao}
                 onChange={(e) => setNicknameKakao(e.target.value)}
-                className="w-full border rounded px-3 py-2 focus:outline-none focus:ring"
-                placeholder="카테부 닉네임을 입력하세요"
+                className="w-full border rounded px-3 py-2 focus:outline-none focus:ring text-sm"
+                placeholder="카테부 닉네임을 입력하세요 (예: kakao.kim)"
                 required
               />
             </div>

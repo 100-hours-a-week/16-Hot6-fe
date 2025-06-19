@@ -1,5 +1,6 @@
 import axiosInstance from '@/api/axios';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import TopBar from '../components/common/TopBar';
 
 function formatDate(dateStr) {
   const date = new Date(dateStr);
@@ -65,9 +66,9 @@ export default function PointHistory() {
   );
 
   return (
-    <div className="max-w-[480px] mx-auto min-h-screen bg-white pb-24 px-4">
-      <h2 className="text-xl font-bold my-4 text-center">포인트 내역</h2>
-      <div className="divide-y">
+    <div className="max-w-[768px] mx-auto min-h-screen bg-white pb-24 px-4">
+      <TopBar title="포인트 내역" showBack />
+      <div className="max-w-[480px] mx-auto divide-y">
         {point.map((item, idx) => (
           <div
             key={item.historyId}
