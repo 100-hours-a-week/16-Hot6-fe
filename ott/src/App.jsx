@@ -19,6 +19,7 @@ import NotFound from './pages/NotFound';
 import OrderPage from './pages/Order';
 import OrderDetail from './pages/OrderDetail';
 import OrderList from './pages/OrderList';
+import Payment from './pages/Payment';
 import PointHistory from './pages/PointHistory';
 import PostDetail from './pages/PostDetail';
 import PostEditor from './pages/PostEditor';
@@ -61,6 +62,7 @@ const App = () => {
           <Route path="/posts/:postId" element={<PostDetail />} />
           <Route path="/products/:productId" element={<ProductDetail />} />
           <Route path="/profile-edit" element={<ProfileEdit />} />
+          <Route path="/payment/:orderId" element={<Payment />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
