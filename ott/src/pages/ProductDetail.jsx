@@ -108,13 +108,9 @@ function ProductDetail() {
     if (orderOptions.length === 0) return;
 
     const orderItems = orderOptions.map(({ variant, quantity }) => {
-      const promo = variant.promotions?.[0];
       return {
-        productId: variant.variant_id,
-        ...(promo && { promotionId: promo.promotion_id }),
-        originalPrice: variant.price,
+        variantId: variant.variant_id,
         quantity,
-        discountPrice: promo ? promo.discount_price : 0,
       };
     });
 
@@ -122,6 +118,7 @@ function ProductDetail() {
       const res = await axiosInstance.post('/orders', { products: orderItems });
       // 성공 처리 (예: 주문 완료 페이지 이동, 토스트 등)
       console.log('주문 성공', res.data);
+      navigate(`/payment/${res.data.data.orderId}`);
     } catch (err) {
       // 실패 처리 (예: 토스트 등)
       console.error('주문 실패', err);

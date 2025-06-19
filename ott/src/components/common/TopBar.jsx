@@ -9,10 +9,10 @@ const TopBar = ({ title, onBackClick, className = '', showBack = true }) => {
 
   useEffect(() => {
     const handleScroll = () => {
-      // 스크롤 위치에 따라 alpha/blur 계산 (최대 0.12, blur 16px)
+      // 스크롤 위치에 따라 alpha/blur 계산 (최대 0.08, blur 8px)
       const y = Math.min(window.scrollY, 80); // 0~80px까지만 반영
-      const alpha = 0.12 * (y / 80);
-      const blur = 2 + 14 * (y / 80); // 2~16px
+      const alpha = 0.08 * (y / 80);
+      const blur = 2 + 6 * (y / 80); // 2~8px
       setShadowStyle(
         y > 0
           ? {

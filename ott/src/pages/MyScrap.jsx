@@ -64,7 +64,8 @@ export default function MyScrap() {
                 className="border rounded-lg p-2 cursor-pointer"
                 onClick={() => {
                   if (item.type === 'POST') navigate(`/posts/${item.targetId}`);
-                  else if (item.type === 'PRODUCT') navigate(`/desk-products/${item.targetId}`);
+                  else if (item.type === 'PRODUCT')
+                    navigate(`/recommended-products/${item.targetId}`);
                   else if (item.type === 'SERVICE_PRODUCT') navigate(`/products/${item.targetId}`);
                 }}
               >

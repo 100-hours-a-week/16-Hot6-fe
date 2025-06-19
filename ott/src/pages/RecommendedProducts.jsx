@@ -5,6 +5,7 @@ import { getConfig } from '@/config/index';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import TopBar from '../components/common/TopBar';
 
 const { BASE_URL } = getConfig();
 
@@ -156,76 +157,79 @@ export default function RecommendedProducts() {
   }
 
   return (
-    <div className="max-w-[480px] mx-auto min-h-screen bg-white">
-      {/* 상품 리스트 */}
-      <div className="px-4 pt-4 space-y-4">
-        {deskProducts.length === 0 ? (
-          <div className="text-center text-gray-400 py-20">추천 제품이 없습니다.</div>
-        ) : (
-          deskProducts.map((product) => (
-            <div
-              key={product.productId}
-              className="flex items-center space-x-4 bg-white rounded-lg p-4 border border-gray-200 cursor-pointer"
-              onClick={() => navigate(`/recommended-products/${product.productId}`)}
-            >
-              <div className="w-24 h-24 bg-gray-100 rounded-lg flex-shrink-0">
-                {product.imageUrl ? (
-                  <img
-                    src={product.imageUrl}
-                    alt={product.productName}
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                ) : (
-                  <span className="text-gray-400">이미지 없음</span>
-                )}
-              </div>
-              <div className="flex-1">
-                <h3 className="font-medium mb-1">{product.productName}</h3>
-                <p className="text-sm text-gray-600 mb-2">
-                  {Number(product.price).toLocaleString()}원
-                </p>
-                <div className="flex items-center space-x-2">
-                  <span className="px-2 py-1 bg-gray-100 rounded text-xs">
-                    {product.subCategory}
-                  </span>
-                </div>
-              </div>
-              <button
-                className="w-8 h-8 flex items-center justify-center"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleScrap(product.productId);
-                }}
+    <div className="max-w-[768px] mx-auto min-h-screen bg-white">
+      <TopBar title="추천 제품" showBack />
+      <div className="max-w-[480px] mx-auto">
+        {/* 상품 리스트 */}
+        <div className="px-4 pt-4 space-y-4">
+          {deskProducts.length === 0 ? (
+            <div className="text-center text-gray-400 py-20">추천 제품이 없습니다.</div>
+          ) : (
+            deskProducts.map((product) => (
+              <div
+                key={product.productId}
+                className="flex items-center space-x-4 bg-white rounded-lg p-4 border border-gray-200 cursor-pointer"
+                onClick={() => navigate(`/recommended-products/${product.productId}`)}
               >
-                {product.scrapped ? (
-                  <svg className="w-5 h-5" fill="#2563eb" stroke="#2563eb" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                <div className="w-24 h-24 bg-gray-100 rounded-lg flex-shrink-0">
+                  {product.imageUrl ? (
+                    <img
+                      src={product.imageUrl}
+                      alt={product.productName}
+                      className="w-full h-full object-cover rounded-lg"
                     />
-                  </svg>
-                ) : (
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="#2563eb"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
-                    />
-                  </svg>
-                )}
-              </button>
-            </div>
-          ))
-        )}
+                  ) : (
+                    <span className="text-gray-400">이미지 없음</span>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-medium mb-1">{product.productName}</h3>
+                  <p className="text-sm text-gray-600 mb-2">
+                    {Number(product.price).toLocaleString()}원
+                  </p>
+                  <div className="flex items-center space-x-2">
+                    <span className="px-2 py-1 bg-gray-100 rounded text-xs">
+                      {product.subCategory}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  className="w-8 h-8 flex items-center justify-center"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleScrap(product.productId);
+                  }}
+                >
+                  {product.scrapped ? (
+                    <svg className="w-5 h-5" fill="#2563eb" stroke="#2563eb" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="#2563eb"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                      />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            ))
+          )}
+        </div>
       </div>
       <Toast message={toast} />
     </div>

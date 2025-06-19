@@ -162,7 +162,7 @@ export default function OrderList() {
               >
                 ×
               </button>
-              <div className="flex flex-col mb-2">
+              <div className="flex flex-col mb-3">
                 <span className="text-base font-bold text-gray-1000 mb-1">
                   {formatStatus(order.orderStatus)}
                 </span>
@@ -196,9 +196,10 @@ export default function OrderList() {
                   </div>
                 ))}
               </div>
-              <div className="flex justify-end mt-2">
+              <div className="flex justify-end items-center mt-2">
+                <span className="text-sm text-gray-700 mr-1">총 결제금액:</span>
                 <span className="text-base font-bold text-gray-1000">
-                  총 결제금액: {totalAmount.toLocaleString()}P
+                  {totalAmount.toLocaleString()}P
                 </span>
               </div>
             </div>
