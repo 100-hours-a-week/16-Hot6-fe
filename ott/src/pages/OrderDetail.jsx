@@ -41,11 +41,12 @@ export default function OrderDetail() {
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [allChecked, setAllChecked] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
-  const [actionType, setActionType] = useState(''); // 'cancel' or 'refund'
   const [toast, setToast] = useState('');
   const [forbiddenModal, setForbiddenModal] = useState(false);
   const [showRefundModal, setShowRefundModal] = useState(false);
   const [showRefundErrorToast, setShowRefundErrorToast] = useState(false);
+  const [selectedRefundReason, setSelectedRefundReason] = useState('');
+  const [selectedCancelReason, setSelectedCancelReason] = useState('');
 
   // 선택 가능한 상품 id 목록 계산
   const canSelectProductIds = useMemo(() => {
@@ -77,10 +78,16 @@ export default function OrderDetail() {
   // 상품 상태에 따른 텍스트 반환
   const getStatusText = (status) => {
     switch (status) {
+      case 'PENDING':
+        return '결제대기';
       case 'DELIVERED':
         return '배송완료';
-      case 'REFUNDED':
+      case 'REFUND_REQUEST':
+        return '환불요청';
+      case 'REFUND_APPROVED':
         return '환불완료';
+      case 'REFUND_REJECTED':
+        return '환불거절';
       case 'CANCELED':
         return '취소완료';
       case 'PAID':
@@ -97,8 +104,8 @@ export default function OrderDetail() {
     switch (status) {
       case 'DELIVERED':
         return 'bg-gray-500';
-      case 'REFUNDED':
-        return 'bg-gray-500';
+      case 'REFUND_APPROVED':
+        return 'bg-red-500';
       case 'CANCELED':
         return 'bg-gray-500';
       case 'PAID':
@@ -154,52 +161,6 @@ export default function OrderDetail() {
     );
   }, [selectedProducts, canSelectProductIds]);
 
-  // 주문 취소/환불 버튼 핸들러
-  const handleCancelOrRefund = () => {
-    setActionType(orderData.order.status === 'PAID' ? 'cancel' : 'refund');
-    setShowActionModal(true);
-  };
-
-  // 주문 취소/환불 API 호출
-  const handleActionConfirm = async () => {
-    try {
-      // 취소/환불 상태 분기
-      const status = orderData.order.status;
-      const isCancel = status === 'PAID' || status === 'PARTIALLY_CANCELED';
-      const isRefund = status === 'DELIVERED' || status === 'PARTIALLY_REFUNDED';
-      const allSelected =
-        canSelectProductIds.length > 0 && selectedProducts.length === canSelectProductIds.length;
-      if (isCancel) {
-        if (allSelected) {
-          // 전체 취소
-          await axiosBaseInstance.patch(`/orders/${orderId}/cancel`);
-        } else {
-          // 부분 취소
-          await axiosBaseInstance.patch(`/orders/${orderId}/partially-cancel`, {
-            orderItemIds: selectedProducts,
-          });
-        }
-        setToast('주문이 취소되었습니다.');
-      } else if (isRefund) {
-        if (allSelected) {
-          // 전체 환불
-          await axiosBaseInstance.patch(`/orders/${orderId}/refund`);
-        } else {
-          // 부분 환불
-          await axiosBaseInstance.patch(`/orders/${orderId}/partially-refund`, {
-            orderItemIds: selectedProducts,
-          });
-        }
-        setToast('환불이 완료되었습니다.');
-      }
-      setShowActionModal(false);
-      navigate('/orders');
-    } catch {
-      setToast('처리에 실패했습니다.');
-      setShowActionModal(false);
-    }
-  };
-
   // 주문 전체 확정 API
   const handleConfirmAll = async () => {
     try {
@@ -213,13 +174,65 @@ export default function OrderDetail() {
 
   // 환불 처리
   const handleRefund = async () => {
+    if (!selectedRefundReason) {
+      setToast('환불 사유를 선택해주세요.');
+      return;
+    }
+
     try {
-      await axiosBaseInstance.patch(`/orders/${orderId}/payments/${orderData.payment.id}`);
-      setToast('환불이 완료되었습니다.');
+      await axiosBaseInstance.patch(`/orders/${orderId}/refund/request`, {
+        orderItemIds: selectedProducts,
+        refundReason: selectedRefundReason,
+      });
+      setToast('환불 요청이 완료되었습니다.');
+      setShowRefundModal(false);
+      setSelectedRefundReason('');
       navigate('/orders');
     } catch {
       setShowRefundErrorToast(true);
       setTimeout(() => setShowRefundErrorToast(false), 3000);
+    }
+  };
+
+  // 주문 취소/환불 버튼 핸들러
+  const handleCancelOrRefund = () => {
+    const status = orderData.order.status;
+    if (status === 'PAID' || status === 'PARTIALLY_CANCELED') {
+      setShowActionModal(true);
+    } else {
+      setShowRefundModal(true);
+    }
+  };
+
+  // 주문 취소 API 호출
+  const handleCancelConfirm = async () => {
+    if (!selectedCancelReason) {
+      setToast('취소 사유를 선택해주세요.');
+      return;
+    }
+
+    try {
+      const allSelected =
+        canSelectProductIds.length > 0 && selectedProducts.length === canSelectProductIds.length;
+      if (allSelected) {
+        // 전체 취소
+        await axiosBaseInstance.patch(`/orders/${orderId}/cancel`, {
+          cancelReason: selectedCancelReason,
+        });
+      } else {
+        // 부분 취소
+        await axiosBaseInstance.patch(`/orders/${orderId}/partially-cancel`, {
+          orderItemIds: selectedProducts,
+          cancelReason: selectedCancelReason,
+        });
+      }
+      setToast('주문이 취소되었습니다.');
+      setShowActionModal(false);
+      setSelectedCancelReason('');
+      navigate('/orders');
+    } catch {
+      setToast('주문 취소에 실패했습니다.');
+      setShowActionModal(false);
     }
   };
 
@@ -325,9 +338,13 @@ export default function OrderDetail() {
                   orderData.order.status === 'PARTIALLY_REFUNDED') &&
                 item.status === 'DELIVERED';
               // 체크박스 비활성화 조건 - 현재 상품의 상태만 확인
-              const isCheckboxDisabled = ['REFUNDED', 'CANCELED', 'CONFIRMED'].includes(
-                item.status,
-              );
+              const isCheckboxDisabled = [
+                'REFUND_REQUEST',
+                'REFUND_APPROVED',
+                'REFUND_REJECTED',
+                'CANCELED',
+                'CONFIRMED',
+              ].includes(item.status);
               // 체크박스 표시 조건
               const showCheckbox = canCancel || canRefund || isCheckboxDisabled;
 
@@ -427,12 +444,18 @@ export default function OrderDetail() {
         {/* 주문 취소/환불 버튼 */}
         {(orderData.order.status === 'PAID' ||
           orderData.order.status === 'PARTIALLY_CANCELED' ||
-          orderData.order.status === 'PARTIALLY_REFUNDED' ||
-          orderData.order.status === 'DELIVERED') && (
-          <div className="fixed bottom-0 p-4 bg-white border-t z-50">
+          orderData.order.status === 'DELIVERED' ||
+          orderData.order.status === 'PARTIALLY_REFUNDED') && (
+          <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t z-50">
             <button
-              className="w-full py-3 bg-gray-700 text-white rounded text-sm font-semibold hover:bg-gray-300
-    disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed"
+              className={`w-full py-3 rounded text-sm font-semibold transition-colors ${
+                isButtonEnabled
+                  ? orderData.order.status === 'PAID' ||
+                    orderData.order.status === 'PARTIALLY_CANCELED'
+                    ? 'bg-gray-700 text-white hover:bg-gray-600'
+                    : 'bg-red-500 text-white hover:bg-red-600'
+                  : 'bg-gray-300 text-gray-400 cursor-not-allowed'
+              }`}
               onClick={handleCancelOrRefund}
               disabled={!isButtonEnabled}
             >
@@ -449,13 +472,56 @@ export default function OrderDetail() {
           </div>
         )}
 
-        {/* 주문 취소/환불 확인 모달 */}
+        {/* 주문 취소 확인 모달 */}
         <SimpleModal
           open={showActionModal}
-          onClose={() => setShowActionModal(false)}
-          onRightClick={handleActionConfirm}
-          message={`선택한 상품을 ${actionType === 'cancel' ? '취소' : '환불'}하시겠습니까?`}
-          rightButtonText="예"
+          onClose={() => {
+            setShowActionModal(false);
+            setSelectedCancelReason('');
+          }}
+          message={
+            <div className="space-y-4">
+              <p className="text-center mb-4">취소 사유를 선택해주세요</p>
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="cancelReason"
+                    value="CHANGE_COLOR"
+                    checked={selectedCancelReason === 'CHANGE_COLOR'}
+                    onChange={(e) => setSelectedCancelReason(e.target.value)}
+                    className="w-4 h-4 text-blue-600"
+                  />
+                  <span className="text-sm">다른 색상 구매</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="cancelReason"
+                    value="WRONG_ORDER"
+                    checked={selectedCancelReason === 'WRONG_ORDER'}
+                    onChange={(e) => setSelectedCancelReason(e.target.value)}
+                    className="w-4 h-4 text-blue-600"
+                  />
+                  <span className="text-sm">주문 실수</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="cancelReason"
+                    value="CHANGE_MIND"
+                    checked={selectedCancelReason === 'CHANGE_MIND'}
+                    onChange={(e) => setSelectedCancelReason(e.target.value)}
+                    className="w-4 h-4 text-blue-600"
+                  />
+                  <span className="text-sm">단순 변심</span>
+                </label>
+              </div>
+            </div>
+          }
+          onRightClick={handleCancelConfirm}
+          rightButtonText="취소하기"
+          showCancel={true}
         />
 
         {forbiddenModal && (
@@ -474,27 +540,56 @@ export default function OrderDetail() {
           />
         )}
 
-        {/* 환불 버튼 */}
-        {orderData.order.status === 'PAID' ||
-          orderData.order.status === 'PARTIALLY_CANCELED' ||
-          orderData.order.status === 'DELIVERED' ||
-          (orderData.order.status === 'PARTIALLY_REFUNDED' && (
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t z-50">
-              <button
-                className="w-full py-3 bg-red-500 text-white rounded text-sm font-semibold hover:bg-red-600"
-                onClick={() => setShowRefundModal(true)}
-              >
-                환불하기
-              </button>
-            </div>
-          ))}
-
+        {/* 환불 사유 선택 모달 */}
         <SimpleModal
           open={showRefundModal}
-          onClose={() => setShowRefundModal(false)}
+          onClose={() => {
+            setShowRefundModal(false);
+            setSelectedRefundReason('');
+          }}
+          message={
+            <div className="space-y-4">
+              <p className="text-center mb-4">환불 사유를 선택해주세요</p>
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="refundReason"
+                    value="CUSTOMER_REQUEST"
+                    checked={selectedRefundReason === 'CHANGE_MIND'}
+                    onChange={(e) => setSelectedRefundReason(e.target.value)}
+                    className="w-4 h-4 text-blue-600"
+                  />
+                  <span className="text-sm">단순 변심</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="refundReason"
+                    value="WRONG_PRODUCT"
+                    checked={selectedRefundReason === 'WRONG_PRODUCT'}
+                    onChange={(e) => setSelectedRefundReason(e.target.value)}
+                    className="w-4 h-4 text-blue-600"
+                  />
+                  <span className="text-sm">다른 상품 배송</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="refundReason"
+                    value="DEFECTIVE_PRODUCT"
+                    checked={selectedRefundReason === 'DEFECTIVE_PRODUCT'}
+                    onChange={(e) => setSelectedRefundReason(e.target.value)}
+                    className="w-4 h-4 text-blue-600"
+                  />
+                  <span className="text-sm">상품 파손 및 불량</span>
+                </label>
+              </div>
+            </div>
+          }
           onConfirm={handleRefund}
-          message="환불을 진행하시겠습니까?"
-          rightButtonText="환불하기"
+          rightButtonText="환불 요청"
+          showCancel={true}
         />
 
         {showRefundErrorToast && (
