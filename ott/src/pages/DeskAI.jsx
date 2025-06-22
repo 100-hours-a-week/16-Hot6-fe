@@ -279,23 +279,12 @@ const DeskAI = () => {
               <input
                 type="radio"
                 name="concept"
-                value="BASIC"
-                checked={selectedConcept === 'BASIC'}
+                value="CARTOON"
+                checked={selectedConcept === 'CARTOON'}
                 onChange={(e) => setSelectedConcept(e.target.value)}
                 className="w-4 h-4 text-blue-600"
               />
-              <span className="text-sm">미니멀 스타일</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="concept"
-                value="BASIC"
-                checked={selectedConcept === 'BASIC'}
-                onChange={(e) => setSelectedConcept(e.target.value)}
-                className="w-4 h-4 text-blue-600"
-              />
-              <span className="text-sm">모던 스타일</span>
+              <span className="text-sm">카툰 스타일</span>
             </label>
           </div>
         </div>
