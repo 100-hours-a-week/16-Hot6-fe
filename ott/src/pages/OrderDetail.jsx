@@ -180,9 +180,13 @@ export default function OrderDetail() {
     }
 
     try {
-      await axiosBaseInstance.patch(`/orders/${orderId}/refund/request`, {
-        orderItemIds: selectedProducts,
-        refundReason: selectedRefundReason,
+      const refundItems = selectedProducts.map((orderItemId) => ({
+        orderItemId: orderItemId,
+        reason: selectedRefundReason,
+      }));
+
+      await axiosBaseInstance.patch(`/orders/${orderId}/payments`, {
+        refundItems: refundItems,
       });
       setToast('환불 요청이 완료되었습니다.');
       setShowRefundModal(false);
@@ -421,7 +425,7 @@ export default function OrderDetail() {
 
         {/* 환불 정보 표시 */}
         {orderData.products.some(
-          (product) => product.status === 'CANCELED' || product.status === 'REFUNDED',
+          (product) => product.status === 'CANCELED' || product.status === 'REFUND_APPROVED',
         ) &&
           orderData.refund && (
             <div className="px-4 pt-0 pb-6">
@@ -554,8 +558,8 @@ export default function OrderDetail() {
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="radio"
-                    name="refundReason"
-                    value="CUSTOMER_REQUEST"
+                    name="reason"
+                    value="CHANGE_MIND"
                     checked={selectedRefundReason === 'CHANGE_MIND'}
                     onChange={(e) => setSelectedRefundReason(e.target.value)}
                     className="w-4 h-4 text-blue-600"
@@ -565,7 +569,7 @@ export default function OrderDetail() {
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="radio"
-                    name="refundReason"
+                    name="reason"
                     value="WRONG_PRODUCT"
                     checked={selectedRefundReason === 'WRONG_PRODUCT'}
                     onChange={(e) => setSelectedRefundReason(e.target.value)}
@@ -576,7 +580,7 @@ export default function OrderDetail() {
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="radio"
-                    name="refundReason"
+                    name="reason"
                     value="DEFECTIVE_PRODUCT"
                     checked={selectedRefundReason === 'DEFECTIVE_PRODUCT'}
                     onChange={(e) => setSelectedRefundReason(e.target.value)}
@@ -587,7 +591,7 @@ export default function OrderDetail() {
               </div>
             </div>
           }
-          onConfirm={handleRefund}
+          onRightClick={handleRefund}
           rightButtonText="환불 요청"
           showCancel={true}
         />
