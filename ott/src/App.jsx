@@ -20,6 +20,7 @@ import OrderPage from './pages/Order';
 import OrderDetail from './pages/OrderDetail';
 import OrderList from './pages/OrderList';
 import Payment from './pages/Payment';
+import PaymentComplete from './pages/PaymentComplete';
 import PointHistory from './pages/PointHistory';
 import PostDetail from './pages/PostDetail';
 import PostEditor from './pages/PostEditor';
@@ -63,6 +64,7 @@ const App = () => {
           <Route path="/products/:productId" element={<ProductDetail />} />
           <Route path="/profile-edit" element={<ProfileEdit />} />
           <Route path="/payment/:orderId" element={<Payment />} />
+          <Route path="/payment/:orderId/complete" element={<PaymentComplete />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
