@@ -44,7 +44,7 @@ function formatStatus(status) {
     case 'CONFIRMED':
       return '주문 확정 완료';
     default:
-      return '';
+      return '결제 대기';
   }
 }
 export default function OrderList() {
@@ -153,7 +153,7 @@ export default function OrderList() {
               ref={idx === orders.length - 1 ? lastItemRef : null}
             >
               <button
-                className="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-xl font-bold"
+                className="absolute top-1 right-4 text-gray-400 hover:text-red-500 text-xl font-bold"
                 onClick={() => {
                   setOrderIdToDelete(order.orderId);
                   setShowDeleteModal(true);
@@ -220,7 +220,7 @@ export default function OrderList() {
           setOrderIdToDelete(null);
         }}
         onRightClick={handleDeleteOrder}
-        rightButtonText="예"
+        rightButtonText="확인"
       />
       {forbiddenModal && (
         <SimpleModal
