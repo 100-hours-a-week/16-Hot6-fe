@@ -263,7 +263,7 @@ export default function OrderDetail() {
         {/* 주문 일시/번호 (결제완료 시) */}
         {shouldShowOrderInfo(orderData.order.status) && (
           <div className="px-4 pt-0 pb-6">
-            <h3 className="font-semibold mb-2">결제 완료</h3>
+            <h3 className="text-lg font-semibold mb-2">결제 완료</h3>
             <div className="bg-gray-50 rounded-lg p-4">
               <p className="text-sm">
                 <span className="text-gray-500">주문 번호:</span> {orderData.order.orderNumber}
@@ -277,7 +277,7 @@ export default function OrderDetail() {
         )}
 
         <div className="px-4 pt-0">
-          <h3 className="font-semibold mb-4">주문자 정보</h3>
+          <h3 className="text-lg font-semibold mb-4">주문자 정보</h3>
           <div className="bg-gray-50 rounded-lg p-4">
             <p className="text-sm">
               <span className="text-gray-500">닉네임:</span> {orderData.user.nicknameKakao}
@@ -289,7 +289,7 @@ export default function OrderDetail() {
         </div>
 
         <div className="px-4 pt-6">
-          <h3 className="font-semibold mb-4">주문상품</h3>
+          <h3 className="text-lg font-semibold mb-4">주문상품</h3>
           {/* 전체 주문 확정 버튼 (DELIVERED, PARTIALLY_REFUNDED 상태 & DELIVERED 상품 존재 시) */}
           {(orderData.order.status === 'DELIVERED' ||
             orderData.order.status === 'PARTIALLY_REFUNDED') &&
@@ -375,7 +375,7 @@ export default function OrderDetail() {
         </div>
 
         <div className="px-4 pt-6 pb-6">
-          <h3 className="font-semibold mb-4">결제 정보</h3>
+          <h3 className="text-lg font-semibold mb-4">결제 정보</h3>
           <div className="bg-gray-50 rounded-lg p-4">
             <div className="flex justify-between items-center mb-2">
               <span className="text-gray-600">결제 수단</span>
@@ -429,17 +429,23 @@ export default function OrderDetail() {
           orderData.order.status === 'PARTIALLY_CANCELED' ||
           orderData.order.status === 'PARTIALLY_REFUNDED' ||
           orderData.order.status === 'DELIVERED') && (
-          <div className="fixed bottom-0 p-4 bg-white border-t z-50">
-            <button
-              className="w-full py-3 bg-gray-700 text-white rounded text-sm font-semibold hover:bg-gray-300
+          <div
+            className="fixed max-w-[768px] w-full bottom-0 left-1/2 -translate-x-1/2 bg-white border-t z-50"
+            style={{ height: '64px' }}
+          >
+            <div className="mx-auto flex w-full max-w-[480px] h-full">
+              <button
+                className="flex-1 m-3 py-3 bg-gray-700 text-white rounded text-sm font-semibold hover:bg-gray-300
     disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed"
-              onClick={handleCancelOrRefund}
-              disabled={!isButtonEnabled}
-            >
-              {orderData.order.status === 'PAID' || orderData.order.status === 'PARTIALLY_CANCELED'
-                ? '주문 취소'
-                : '환불하기'}
-            </button>
+                onClick={handleCancelOrRefund}
+                disabled={!isButtonEnabled}
+              >
+                {orderData.order.status === 'PAID' ||
+                orderData.order.status === 'PARTIALLY_CANCELED'
+                  ? '주문 취소'
+                  : '환불하기'}
+              </button>
+            </div>
           </div>
         )}
 
