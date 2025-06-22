@@ -116,13 +116,10 @@ function ProductDetail() {
 
     try {
       const res = await axiosInstance.post('/orders', { products: orderItems });
-      // 성공 처리 (예: 주문 완료 페이지 이동, 토스트 등)
-      console.log('주문 성공', res.data);
       navigate(`/payment/${res.data.data.orderId}`);
     } catch (err) {
       // 실패 처리 (예: 토스트 등)
-      console.error('주문 실패', err);
-      setToast('주문에 실패했습니다. 잠시 후 다시 시도해주세요.');
+      setToast(`주문에 실패했습니다.\n 잠시 후 다시 시도해주세요.`);
       setTimeout(() => setToast(''), 1500);
     }
   };
