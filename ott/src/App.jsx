@@ -7,6 +7,7 @@ import ScrollToTop from './components/common/ScrollToTop';
 import RootLayout from './components/layout/RootLayout';
 
 // 페이지 컴포넌트들
+import Admin from './pages/AdminProductStatus';
 import AiGenerationResult from './pages/AiGenerationResult';
 import DeskAI from './pages/DeskAI';
 import Home from './pages/Home';
@@ -41,6 +42,7 @@ const App = () => {
         <Routes>
           <Route element={<RootLayout />}>
             <Route index element={<Home />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="/desk" element={<DeskAI />} />
             <Route path="/posts" element={<Posts />} />
             <Route path="/my-page" element={<MyPage />} />
