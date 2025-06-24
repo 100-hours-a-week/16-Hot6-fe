@@ -13,7 +13,7 @@ const Header = ({ showModal, setShowModal }) => {
   return (
     <>
       <header
-        className="fixed top-0 left-1/2 -translate-x-1/2 w-full bg-white z-50"
+        className="fixed top-0 left-1/2 -translate-x-1/2 w-full bg-white z-40"
         style={{
           maxWidth: '768px',
           width: '100%',

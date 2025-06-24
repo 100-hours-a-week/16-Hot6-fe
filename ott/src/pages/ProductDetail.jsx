@@ -119,7 +119,15 @@ function ProductDetail() {
       navigate(`/payment/${res.data.data.orderId}`);
     } catch (err) {
       // 실패 처리 (예: 토스트 등)
-      setToast(`주문에 실패했습니다.\n 잠시 후 다시 시도해주세요.`);
+      if (err.response?.status === 403) {
+        setToast('추천인 코드를 입력 후 이용할 수 있습니다.');
+        setTimeout(() => {
+          setToast('');
+          navigate('/my-page');
+        }, 1500);
+        return;
+      }
+      setToast(`주문에 실패했습니다. 잠시 후 다시 시도해주세요.`);
       setTimeout(() => setToast(''), 1500);
     }
   };
@@ -318,10 +326,73 @@ function ProductDetail() {
       )}
 
       {/* 상품 설명 */}
-      <div className="px-4 mb-4">
+      <div className="px-4 mb-4 border-b-4 pb-4">
         <div className="text-xl font-bold mb-1">상세정보</div>
         <div className="text-gray-700 whitespace-pre-line">{detail.description}</div>
       </div>
+
+      {/* 배송/환불 */}
+      <div className="px-4 mb-4">
+        <div className="text-xl font-bold mb-4">배송/환불</div>
+        <div className="bg-white rounded-lg text-gray-800">
+          <div className="mb-8">
+            <h2 className="font-bold text-base mb-1">배송 안내</h2>
+            <p className="mb-4 text-sm">
+              상품은 주문 후 1일 이내(영업일 기준) 배송됩니다. <br />
+              [예정시간: 13-14시]
+            </p>
+          </div>
+
+          {/* 반품 사유에 따른 요청 가능 기간 */}
+          <div className="mb-8">
+            <h2 className="font-bold text-base mb-1">반품 사유에 따른 요청 가능 기간</h2>
+            <ol className="list-decimal pl-5 space-y-1 text-sm">
+              <li>구매자 단순 변심은 상품 수령 후 2일 이내</li>
+              <li>
+                표시/광고와 상이, 계약내용과 다르게 이행된 경우 상품 수령 후 2일 이내 경과 시
+                반품/교환 불가
+              </li>
+            </ol>
+          </div>
+
+          {/* 반품 불가능 사유 */}
+          <div>
+            <h2 className="font-bold text-base mb-1">반품 불가능 사유</h2>
+            <p className="text-gray-500 mb-4 text-sm">아래와 같은 경우 반품이 불가능합니다.</p>
+            <ol className="list-decimal pl-5 space-y-1 text-sm">
+              <li>반품요청기간이 지난 경우</li>
+              <li>
+                구매자의 책임 있는 사유로 상품 등이 멸실 또는 훼손된 경우
+                <span className="text-gray-500">
+                  {' '}
+                  (단, 상품의 내용을 확인하기 위하여 포장 등을 훼손한 경우는 제외)
+                </span>
+              </li>
+              <li>
+                포장을 개봉하였으나 포장이 훼손되어 상품가치가 현저히 상실된 경우
+                <span className="text-gray-500"> (예: 식품, 화장품)</span>
+              </li>
+              <li>
+                구매자의 사용 또는 일부 소비에 의하여 상품의 가치가 현저히 감소한 경우
+                <span className="text-gray-500">
+                  {' '}
+                  (라벨이 떨어진 의류 또는 태그가 떨어진 명품관 상품인 경우)
+                </span>
+              </li>
+              <li>
+                시간의 경과에 의하여 재판매가 곤란할 정도로 상품 등의 가치가 현저히 감소한 경우
+                <span className="text-gray-500"> (예: 식품, 화장품)</span>
+              </li>
+              <li>고객주문 확인 후 상품제작에 들어가는 주문제작상품</li>
+              <li>
+                복제가 가능한 상품 등의 포장을 훼손한 경우
+                <span className="text-gray-500"> (CD/DVD/GAME/도서의 경우 포장 개봉 시)</span>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
       {/* 하단 고정 바 */}
       <div
         className="fixed max-w-[768px] w-full bottom-0 left-1/2 -translate-x-1/2 bg-white border-t z-50"

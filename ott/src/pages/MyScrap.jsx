@@ -50,7 +50,8 @@ export default function MyScrap() {
   );
 
   return (
-    <div className="max-w-[768px] mx-auto min-h-screen bg-white pb-24 px-4">
+    <div className="max-w-[768px] mx-auto min-h-screen bg-white pb-24">
+      <div className="fixed inset-0 bg-gray-100 -z-10 hidden sm:block" />
       <TopBar title="스크랩 목록" />
       <div className="max-w-[480px] mx-auto mt-4">
         {scraps.length === 0 && !loading ? (

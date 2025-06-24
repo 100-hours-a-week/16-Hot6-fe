@@ -1,4 +1,16 @@
-const SimpleModal = ({ open, title, message, onClose, rightButtonText, onRightClick }) => {
+import React from 'react';
+
+const SimpleModal = ({
+  open,
+  title,
+  message,
+  onClose,
+  onConfirm,
+  leftButtonText = '확인',
+  rightButtonText,
+  onLeftClick,
+  onRightClick,
+}) => {
   if (!open) return null;
 
   return (
@@ -7,27 +19,44 @@ const SimpleModal = ({ open, title, message, onClose, rightButtonText, onRightCl
         {/* X 버튼 */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-xl"
+          className="absolute top-1 right-4 text-gray-400 hover:text-gray-700 text-xl"
           aria-label="닫기"
         >
           ×
         </button>
         {title && (
           <div className="mb-4 pb-2">
-            <h2 className="text-base font-bold text-center text-[#1A2238]">{title}</h2>
+            <h2 className="text-lg font-bold text-center">{title}</h2>
           </div>
         )}
-        <p className="text-center whitespace-pre-line mb-6 text-lg font-semibold text-[#232946]">
+        <p className="text-center whitespace-pre-line mb-6" style={{ whiteSpace: 'pre-line' }}>
           {message}
         </p>
-        <div className="flex justify-center">
-          {rightButtonText && (
-            <button
-              onClick={onRightClick || onClose}
-              className="px-4 py-2 rounded-lg bg-[#232946] text-white font-semibold text-sm hover:bg-[#1A2238] transition"
-            >
-              {rightButtonText}
-            </button>
+        <div className="flex justify-center gap-3">
+          {rightButtonText ? (
+            <>
+              <button
+                onClick={onRightClick || onConfirm || onClose}
+                className="px-6 py-2 rounded-lg bg-[#232946] text-white font-semibold text-sm hover:bg-[#1A2238] transition"
+              >
+                {rightButtonText}
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={onLeftClick || onClose}
+                className="flex-1 px-6 py-2 bg-gray-200 text-black rounded-lg font-semibold"
+              >
+                {leftButtonText}
+              </button>
+              <button
+                onClick={onConfirm || onClose}
+                className="px-6 py-2 bg-gray-500 text-white rounded-lg"
+              >
+                {leftButtonText}
+              </button>
+            </>
           )}
         </div>
       </div>

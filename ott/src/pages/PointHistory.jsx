@@ -17,6 +17,8 @@ function getDescriptionText(desc) {
       return '상품 구매';
     case 'POPULAR_POST_SELECTED':
       return '인기 게시글 선정';
+    case 'PRODUCT_REFUND':
+      return '상품 환불';
     default:
       return desc;
   }
@@ -66,7 +68,8 @@ export default function PointHistory() {
   );
 
   return (
-    <div className="max-w-[768px] mx-auto min-h-screen bg-white pb-24 px-4">
+    <div className="max-w-[768px] mx-auto min-h-screen bg-white pb-24">
+      <div className="fixed inset-0 bg-gray-100 -z-10 hidden sm:block" />
       <TopBar title="포인트 내역" showBack />
       <div className="max-w-[480px] mx-auto divide-y">
         {point.map((item, idx) => (
