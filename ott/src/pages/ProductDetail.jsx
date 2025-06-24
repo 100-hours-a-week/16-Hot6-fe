@@ -338,8 +338,7 @@ function ProductDetail() {
           <div className="mb-8">
             <h2 className="font-bold text-base mb-1">배송 안내</h2>
             <p className="mb-4 text-sm">
-              상품은 주문 후 1일 이내(영업일 기준) 배송됩니다. <br />
-              [예정시간: 13-14시]
+              상품은 주문 후 1일 이내(영업일 기준) 배송됩니다. [예정시간:13-14시]
             </p>
           </div>
 
@@ -395,7 +394,7 @@ function ProductDetail() {
 
       {/* 하단 고정 바 */}
       <div
-        className="fixed max-w-[768px] w-full bottom-0 left-1/2 -translate-x-1/2 bg-white border-t z-50"
+        className="fixed max-w-[768px] w-full bottom-0 left-1/2 -translate-x-1/2 bg-white border-t z-40"
         style={{ height: '64px' }}
       >
         <div className="mx-auto flex w-full max-w-[640px] h-full">
@@ -440,7 +439,7 @@ function ProductDetail() {
       {/* 옵션/수량 선택 바텀시트 */}
       {showSheet && (
         <div
-          className="fixed inset-0 z-50 flex flex-col justify-end bg-black/40"
+          className="fixed inset-0 z-40 flex flex-col justify-end bg-black/40"
           onClick={() => setShowSheet(false)}
         >
           <div

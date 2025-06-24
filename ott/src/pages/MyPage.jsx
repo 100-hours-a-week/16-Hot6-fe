@@ -223,53 +223,74 @@ export default function MyPage() {
 
       <SimpleModal
         open={isRecommendationModalOpen}
-        title={<span className="text-xl font-bold ">추천인 코드 입력</span>}
+        title="추천인 코드 입력"
         message={
-          <form onSubmit={handleRecommendationSubmit} className="w-full">
-            <div className="mb-4">
-              <input
-                type="text"
-                value={recommendationCode}
-                onChange={(e) => setRecommendationCode(e.target.value)}
-                className="w-full border rounded px-3 py-2 focus:outline-none focus:ring text-sm"
-                placeholder="추천인 코드를 입력하세요"
-                required
-              />
-            </div>
-            <div className="mb-2">
-              <input
-                type="text"
-                value={nicknameKakao}
-                onChange={(e) => setNicknameKakao(e.target.value)}
-                className="w-full border rounded px-3 py-2 focus:outline-none focus:ring text-sm"
-                placeholder="카테부 닉네임을 입력하세요 (예: kakao.kim)"
-                required
-              />
-            </div>
-            <div className="mb-6">
-              <p className="text-sm text-gray-500">닉네임 사칭 시 책임은 본인에게 있습니다.</p>
+          <>
+            <input
+              type="text"
+              value={recommendationCode}
+              onChange={(e) => setRecommendationCode(e.target.value)}
+              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring text-sm mb-2"
+              placeholder="추천인 코드를 입력하세요"
+              required
+            />
+            <input
+              type="text"
+              value={nicknameKakao}
+              onChange={(e) => setNicknameKakao(e.target.value)}
+              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring text-sm mb-2"
+              placeholder="카테부 닉네임을 입력하세요 (예: kakao.kim)"
+              required
+            />
+            <div className="text-sm text-gray-500 mb-2">
+              닉네임 사칭 시 책임은 본인에게 있습니다.
             </div>
             {recommendationError && (
-              <div className="text-red-500 mb-4 text-center">{recommendationError}</div>
+              <div className="text-red-500 mb-2 text-center">{recommendationError}</div>
             )}
             {success && (
-              <div className="text-green-500 mb-4 text-center">등록이 완료되었습니다!</div>
+              <div className="text-green-500 mb-2 text-center">등록이 완료되었습니다!</div>
             )}
-            <button
-              type="submit"
-              className="w-full bg-gray-700 text-white py-2 rounded font-semibold disabled:opacity-50"
-              disabled={loading}
-            >
-              {loading ? '등록 중...' : '확인'}
-            </button>
-          </form>
+          </>
         }
+        rightButtonText={'확인'}
         onClose={() => {
           setIsRecommendationModalOpen(false);
           setRecommendationError(null);
           setSuccess(false);
           setRecommendationCode('');
           setNicknameKakao('');
+        }}
+        onRightClick={async () => {
+          if (loading) return;
+          setLoading(true);
+          setRecommendationError(null);
+          try {
+            await axiosInstance.post('/users/recommendation-code', {
+              code: recommendationCode,
+              nicknameKakao,
+            });
+            setSuccess(true);
+            setTimeout(() => {
+              setIsRecommendationModalOpen(false);
+              setSuccess(false);
+              setRecommendationCode('');
+              setNicknameKakao('');
+              window.location.reload();
+            }, 500);
+          } catch (error) {
+            if (error.response && error.response.status === 400) {
+              setRecommendationError('추천인 코드가 유효하지 않습니다.');
+            } else {
+              setRecommendationError('추천인 코드 등록에 실패했습니다.');
+              setTimeout(() => {
+                setIsRecommendationModalOpen(false);
+                navigate('/my-page');
+              }, 500);
+            }
+          } finally {
+            setLoading(false);
+          }
         }}
       />
     </div>

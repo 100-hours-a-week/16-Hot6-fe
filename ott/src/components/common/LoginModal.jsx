@@ -14,7 +14,6 @@ const LoginModal = () => {
       open={modal.open}
       message="로그인 후 다시 시도해주세요."
       rightButtonText="로그인하기"
-      onLeftClick={() => setModal({ ...modal, open: false })}
       onRightClick={() => {
         setModal({ ...modal, open: false });
         navigate('/login');

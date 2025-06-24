@@ -153,7 +153,7 @@ export default function ProfileEdit() {
       );
       return;
     }
-    if (!validateKakaoNickname(kakaoNickname)) {
+    if (kakaoNickname && !validateKakaoNickname(kakaoNickname)) {
       setKakaoNicknameError(
         "* 카테부 닉네임은 2~20자의 영문, 숫자만 사용하며, 중간에 '.'이 정확히 한 개 있어야 합니다. 한글은 사용할 수 없습니다.",
       );
@@ -178,7 +178,7 @@ export default function ProfileEdit() {
           'Content-Type': 'multipart/form-data',
         },
       });
-      navigate('/mypage');
+      navigate('/my-page');
     } catch {
       setToast('회원정보 변경에 실패했습니다. 잠시 후 다시 시도해 주세요.');
       setTimeout(() => setToast(''), 3000);
@@ -190,107 +190,115 @@ export default function ProfileEdit() {
   const isProfileChanged = profileFile || profileImg !== originalProfileImg;
   const isNicknameChanged = nickname !== originalNickname;
   const isKakaoNicknameChanged = kakaoNickname !== originalKakaoNickname;
-  const isValid =
-    isNicknameValid &&
-    (certified ? isKakaoNicknameValid : true) &&
-    (isProfileChanged || isNicknameChanged || isKakaoNicknameChanged);
+  let isValid;
+  if (certified) {
+    isValid =
+      isNicknameValid &&
+      isKakaoNicknameValid &&
+      (isProfileChanged || isNicknameChanged || isKakaoNicknameChanged);
+  } else {
+    isValid = isNicknameValid && (isProfileChanged || isNicknameChanged);
+  }
 
   return (
     <div className="max-w-[768px] mx-auto min-h-screen bg-white pb-24 relative">
       <div className="fixed inset-0 bg-gray-100 -z-10 hidden sm:block" />
       <TopBar title="회원정보 변경" showBack />
-
-      {/* 프로필 사진 + 이미지 선택 버튼 */}
-      <div className="flex items-center gap-4 mt-8 px-4 justify-between">
-        <img
-          src={profileImg}
-          alt="프로필"
-          className="w-[85px] h-[85px] rounded-xl object-cover border"
-        />
-        <div className="w-full max-w-[300px]">
-          <label className="w-full flex items-center gap-2 px-3 py-2 bg-gray-100 rounded cursor-pointer text-gray-400 text-sm justify-center">
-            <svg
-              width="20"
-              height="20"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path d="M15.232 5.232l3.536 3.536M9 11l6 6M3 17v4h4l11-11a2.828 2.828 0 10-4-4L3 17z" />
-            </svg>
-            이미지를 선택해주세요.
-            <input
-              type="file"
-              accept="image/jpeg,image/png"
-              className="hidden"
-              ref={fileInputRef}
-              onChange={handleProfileChange}
-            />
-          </label>
-          {imgHelper && !profileImg && <div className="text-xs text-red-500 mt-1">{imgHelper}</div>}
-          {!profileFile && (
-            <div className="text-xs text-gray-400 mt-1">
-              * 이미지는 5MB 이하의 jpg, png 파일만 가능합니다.
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 닉네임 변경 */}
-      <div className="flex items-center gap-4 mt-8 px-4 justify-between">
-        <div className="font-bold min-w-[90px]">닉네임 변경</div>
-        <div className="w-full max-w-[300px]">
-          <div className="flex items-center border rounded px-3 py-2 bg-white">
-            <input
-              type="text"
-              value={nickname}
-              onChange={handleNicknameChange}
-              className="flex-1 outline-none bg-transparent"
-              maxLength={20}
-              placeholder="닉네임을 입력하세요"
-            />
-          </div>
-          {nicknameError && <div className="text-xs text-red-500 mt-1">{nicknameError}</div>}
-        </div>
-      </div>
-
-      {/* 카테부 닉네임 변경 */}
-      {certified && (
+      <div className="max-w-[480px] mx-auto mt-4">
+        {/* 프로필 사진 + 이미지 선택 버튼 */}
         <div className="flex items-center gap-4 mt-8 px-4 justify-between">
-          <div className="font-bold min-w-[120px]">카테부 닉네임 변경</div>
+          <img
+            src={profileImg}
+            alt="프로필"
+            className="w-[85px] h-[85px] rounded-xl object-cover border"
+          />
+          <div className="w-full max-w-[300px]">
+            <label className="w-full flex items-center gap-2 px-3 py-2 bg-gray-100 rounded cursor-pointer text-gray-400 text-sm justify-center">
+              <svg
+                width="20"
+                height="20"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M15.232 5.232l3.536 3.536M9 11l6 6M3 17v4h4l11-11a2.828 2.828 0 10-4-4L3 17z" />
+              </svg>
+              이미지를 선택해주세요.
+              <input
+                type="file"
+                accept="image/jpeg,image/png"
+                className="hidden"
+                ref={fileInputRef}
+                onChange={handleProfileChange}
+              />
+            </label>
+            {imgHelper && !profileImg && (
+              <div className="text-xs text-red-500 mt-1">{imgHelper}</div>
+            )}
+            {!profileFile && (
+              <div className="text-xs text-gray-400 mt-1">
+                * 이미지는 5MB 이하의 jpg, png 파일만 가능합니다.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 닉네임 변경 */}
+        <div className="flex items-center gap-4 mt-8 px-4 justify-between">
+          <div className="font-bold min-w-[90px]">닉네임 변경</div>
           <div className="w-full max-w-[300px]">
             <div className="flex items-center border rounded px-3 py-2 bg-white">
               <input
                 type="text"
-                value={kakaoNickname}
-                onChange={handleKakaoNicknameChange}
+                value={nickname}
+                onChange={handleNicknameChange}
                 className="flex-1 outline-none bg-transparent"
                 maxLength={20}
-                placeholder="카테부 닉네임을 입력하세요"
+                placeholder="닉네임을 입력하세요"
               />
             </div>
-            {kakaoNicknameError && (
-              <div className="text-xs text-red-500 mt-1">{kakaoNicknameError}</div>
-            )}
+            {nicknameError && <div className="text-xs text-red-500 mt-1">{nicknameError}</div>}
           </div>
         </div>
-      )}
-      {/* 저장 버튼 */}
-      <div className="flex-1">
-        <div className="flex justify-end mt-4 px-4">
-          <button
-            className={`px-8 py-2 border rounded-lg font-semibold 
+
+        {/* 카테부 닉네임 변경 */}
+        {certified && (
+          <div className="flex items-center gap-4 mt-8 px-4 justify-between">
+            <div className="font-bold min-w-[120px]">카테부 닉네임 변경</div>
+            <div className="w-full max-w-[300px]">
+              <div className="flex items-center border rounded px-3 py-2 bg-white">
+                <input
+                  type="text"
+                  value={kakaoNickname}
+                  onChange={handleKakaoNicknameChange}
+                  className="flex-1 outline-none bg-transparent"
+                  maxLength={20}
+                  placeholder="카테부 닉네임을 입력하세요"
+                />
+              </div>
+              {kakaoNicknameError && (
+                <div className="text-xs text-red-500 mt-1">{kakaoNicknameError}</div>
+              )}
+            </div>
+          </div>
+        )}
+        {/* 저장 버튼 */}
+        <div className="flex-1">
+          <div className="flex justify-end mt-4 px-4">
+            <button
+              className={`px-8 py-2 border rounded-lg font-semibold 
               ${
                 isValid
                   ? 'bg-gray-700 text-white hover:bg-blue-600'
                   : 'bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed'
               }`}
-            onClick={handleSave}
-            disabled={!isValid}
-          >
-            저장
-          </button>
+              onClick={handleSave}
+              disabled={!isValid}
+            >
+              저장
+            </button>
+          </div>
         </div>
       </div>
 

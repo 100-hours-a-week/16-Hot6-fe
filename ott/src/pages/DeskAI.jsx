@@ -72,7 +72,7 @@ const DeskAI = () => {
   };
 
   // 스타일 옵션 배열
-  const conceptOptions = ['BASIC', 'MSPAINT', 'SIMPLE', 'OIL', 'CARTOON'];
+  const conceptOptions = ['BASIC', 'MSPAINT', 'SIMPLE', 'OIL'];
 
   useEffect(() => {
     const checkAvailability = async () => {
@@ -182,6 +182,12 @@ const DeskAI = () => {
           open: true,
           message: '책상 사진이 아닙니다.\n책상이 잘 나오도록 사진을 다시 업로드해주세요.',
           onConfirm: () => setModal({ open: false, message: '' }), // 확인 버튼 누르면 모달 닫기
+          onClose: () => {
+            setModal({ open: false, message: '' });
+            if (fileInputRef.current) {
+              fileInputRef.current.value = '';
+            }
+          },
         });
       } else if (err.response && err.response.status === 403) {
         setModal({

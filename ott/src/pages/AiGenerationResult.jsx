@@ -1,4 +1,5 @@
 import axiosInstance from '@/api/axios';
+import { addScrap, removeScrap } from '@/api/scraps';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import SimpleModal from '../components/common/SimpleModal';
@@ -10,7 +11,7 @@ const AIGeneratedResult = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showForbiddenModal, setShowForbiddenModal] = useState(false);
-  const [selectedProducts, setSelectedProducts] = useState(null);
+  const [selectedProductIds, setSelectedProductIds] = useState([]);
   const containerRef = useRef(null);
   const navigate = useNavigate();
   const [toast, setToast] = useState('');
@@ -51,33 +52,25 @@ const AIGeneratedResult = () => {
   }, [imageId]);
 
   // 스크랩 토글 핸들러
-  const handleScrap = async (productId, scrapped) => {
+  const handleScrap = async (productId, scraped) => {
     try {
-      if (scrapped) {
-        // 스크랩 취소
-        await axiosInstance.delete(`/scraps`, {
-          data: {
-            type: 'PRODUCT',
-            targetId: productId,
-          },
-        });
+      if (scraped) {
+        await removeScrap({ type: 'PRODUCT', targetId: productId });
+        setToast('스크랩이 취소되었어요.');
       } else {
-        // 스크랩 추가
-        await axiosInstance.post(`/scraps`, {
-          type: 'PRODUCT',
-          targetId: productId,
-        });
+        await addScrap({ type: 'PRODUCT', targetId: productId });
+        setToast('스크랩이 추가되었어요.');
       }
-      // 스크랩 상태 업데이트
       setData((prev) => ({
         ...prev,
         products: prev.products.map((product) =>
-          product.productId === productId ? { ...product, isScrapped: !scrapped } : product,
+          product.productId === productId ? { ...product, scraped: !scraped } : product,
         ),
       }));
     } catch (err) {
-      console.log('에러 발생:', err);
+      if (err.response?.status === 401) return;
       setToast('스크랩 상태를 변경할 수 없습니다.');
+    } finally {
       setTimeout(() => setToast(''), 1500);
     }
   };
@@ -118,8 +111,14 @@ const AIGeneratedResult = () => {
 
   // 상품 클릭 핸들러
   const handleProductClick = (products) => {
-    setSelectedProducts(products);
+    setSelectedProductIds(products.map((p) => p.productId));
   };
+
+  // 렌더링 시
+  const selectedProducts =
+    data && selectedProductIds.length > 0
+      ? data.products.filter((p) => selectedProductIds.includes(p.productId))
+      : null;
 
   // 로딩 중이면 로딩 표시
   if (loading) return <div className="flex justify-center items-center h-screen">로딩중...</div>;
@@ -176,7 +175,7 @@ const AIGeneratedResult = () => {
             return (
               <div
                 key={key}
-                className="absolute w-6 h-6 bg-blue-500 bg-opacity-50 rounded-full cursor-pointer transform -translate-x-1/2 -translate-y-1/2 hover:bg-opacity-70 transition-all flex items-center justify-center"
+                className="absolute w-6 h-6 bg-blue-500 bg-opacity-80 rounded-full cursor-pointer transform -translate-x-1/2 -translate-y-1/2 hover:bg-opacity-70 transition-all flex items-center justify-center"
                 style={{
                   left: `${position.x}%`,
                   top: `${position.y}%`,

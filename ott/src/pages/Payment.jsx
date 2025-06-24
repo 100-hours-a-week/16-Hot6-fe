@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import axiosInstance from '../api/axios';
 
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import SimpleModal from '../components/common/SimpleModal';
 import Toast from '../components/common/Toast';
 import TopBar from '../components/common/TopBar';
 
@@ -14,6 +15,7 @@ export default function Payment() {
   const [error, setError] = useState(null);
   const [isPaying, setIsPaying] = useState(false);
   const [toast, setToast] = useState('');
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -80,7 +82,7 @@ export default function Payment() {
   return (
     <div className="max-w-[768px] mx-auto min-h-screen bg-white pb-24 relative">
       <div className="fixed inset-0 bg-gray-100 -z-10 hidden sm:block" />
-      <TopBar title="주문/결제" showBack />
+      <TopBar title="주문/결제" showBack onBackClick={() => setShowLeaveModal(true)} />
       <div className="max-w-[480px] mx-auto p-4">
         {/* 주문 상품 정보 */}
         <div className="mb-4">
@@ -141,6 +143,15 @@ export default function Payment() {
         </button>
       </div>
       <Toast message={toast} />
+      <SimpleModal
+        open={showLeaveModal}
+        title="결제 정보 유실 안내"
+        message={`30분 안에 결제하지 않으면 주문 정보가 삭제됩니다.\n내 정보의 주문내역에서 결제를 이어서 진행할 수 있습니다.`}
+        leftButtonText="취소"
+        rightButtonText="나가기"
+        onLeftClick={() => setShowLeaveModal(false)}
+        onRightClick={() => navigate(-1)}
+      />
     </div>
   );
 }
