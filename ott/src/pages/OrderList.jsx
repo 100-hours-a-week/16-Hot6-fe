@@ -174,9 +174,15 @@ export default function OrderList() {
                   <span className="text-sm text-gray-500">{formatDate(order.orderedAt)} 주문</span>
                   <button
                     className="ml-2 px-3 py-1 bg-gray-700 text-white rounded text-xs font-semibold hover:bg-blue-600 transition"
-                    onClick={() => navigate(`/orders/${order.orderId}`)}
+                    onClick={() => {
+                      if (order.orderStatus === 'PENDING') {
+                        navigate(`/payment/${order.orderId}`);
+                      } else {
+                        navigate(`/orders/${order.orderId}`);
+                      }
+                    }}
                   >
-                    주문 상세보기
+                    {order.orderStatus === 'PENDING' ? '결제 요청' : '주문 상세보기'}
                   </button>
                 </div>
               </div>

@@ -6,8 +6,8 @@ const SimpleModal = ({
   message,
   onClose,
   onConfirm,
-  leftButtonText = '확인',
-  rightButtonText,
+  leftButtonText,
+  rightButtonText = '확인',
   onLeftClick,
   onRightClick,
 }) => {
@@ -18,7 +18,7 @@ const SimpleModal = ({
       <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 relative">
         {/* X 버튼 */}
         <button
-          onClick={onClose}
+          onClick={onClose || onLeftClick}
           className="absolute top-1 right-4 text-gray-400 hover:text-gray-700 text-xl"
           aria-label="닫기"
         >
@@ -33,7 +33,7 @@ const SimpleModal = ({
           {message}
         </p>
         <div className="flex justify-center gap-3">
-          {rightButtonText ? (
+          {!leftButtonText ? (
             <>
               <button
                 onClick={onRightClick || onConfirm || onClose}
@@ -51,10 +51,10 @@ const SimpleModal = ({
                 {leftButtonText}
               </button>
               <button
-                onClick={onConfirm || onClose}
-                className="px-6 py-2 bg-gray-500 text-white rounded-lg"
+                onClick={onRightClick || onConfirm || onClose}
+                className="flex-1 px-6 py-2 bg-gray-500 text-white rounded-lg font-semibold"
               >
-                {leftButtonText}
+                {rightButtonText}
               </button>
             </>
           )}

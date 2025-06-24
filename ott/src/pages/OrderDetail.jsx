@@ -456,7 +456,7 @@ export default function OrderDetail() {
           >
             <div className="mx-auto flex w-full max-w-[480px] h-full">
               <button
-                className="flex-1 m-3 py-3 bg-gray-700 text-white rounded text-sm font-semibold hover:bg-gray-300
+                className="flex-1 m-3 py-3 bg-gray-600 text-white rounded text-sm font-semibold hover:bg-gray-700
     disabled:bg-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed"
                 onClick={handleCancelOrRefund}
                 disabled={!isButtonEnabled}
@@ -524,8 +524,7 @@ export default function OrderDetail() {
             </div>
           }
           onRightClick={handleCancelConfirm}
-          rightButtonText="취소하기"
-          showCancel={true}
+          rightButtonText="확인"
         />
 
         {forbiddenModal && (
@@ -593,7 +592,6 @@ export default function OrderDetail() {
           }
           onRightClick={handleRefund}
           rightButtonText="환불 요청"
-          showCancel={true}
         />
 
         {showRefundErrorToast && (

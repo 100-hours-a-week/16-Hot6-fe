@@ -6,10 +6,8 @@ import Toast from '../components/common/Toast';
 import TopBar from '../components/common/TopBar';
 
 function formatDate(createdAtStr) {
-  const KST_OFFSET = 9 * 60 * 60 * 1000;
-  const now = new Date(Date.now() + KST_OFFSET);
-  const createdUTC = new Date(createdAtStr);
-  const createdKST = new Date(createdUTC.getTime() + KST_OFFSET);
+  const now = new Date();
+  const createdKST = new Date(createdAtStr);
 
   const diffMs = now - createdKST;
   const diffMin = Math.floor(diffMs / (1000 * 60));

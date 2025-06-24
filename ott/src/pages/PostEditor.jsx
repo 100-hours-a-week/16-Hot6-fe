@@ -1,11 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import TopBar from '../components/common/TopBar';
-import SimpleModal from '../components/common/SimpleModal';
 import axiosInstance from '@/api/axios';
+import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import AiImageBottomSheet from '../components/common/AiImageBottomSheet';
 import ImagePreview from '../components/common/ImagePreview';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import AiImageBottomSheet from '../components/common/AiImageBottomSheet';
+import SimpleModal from '../components/common/SimpleModal';
+import TopBar from '../components/common/TopBar';
 
 const categories = [
   { value: 'ai', label: 'AI' },
