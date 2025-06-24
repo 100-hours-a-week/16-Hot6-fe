@@ -123,8 +123,10 @@ export default function OrderList() {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <p className="text-red-500 mb-4">{error}</p>
+      <div className="max-w-[768px] mx-auto min-h-screen bg-white pb-24">
+        <div className="fixed inset-0 bg-gray-100 -z-10 hidden sm:block" />
+        <TopBar title="주문 내역" showBack />
+        <div className="text-center text-red-500 py-20">{error}</div>
       </div>
     );
   }
@@ -132,6 +134,7 @@ export default function OrderList() {
   if (!orders.length) {
     return (
       <div className="max-w-[768px] mx-auto min-h-screen bg-white pb-24">
+        <div className="fixed inset-0 bg-gray-100 -z-10 hidden sm:block" />
         <TopBar title="주문 내역" showBack />
         <div className="text-center text-gray-400 py-20">주문 내역이 없습니다.</div>
       </div>
@@ -140,6 +143,7 @@ export default function OrderList() {
 
   return (
     <div className="max-w-[768px] mx-auto min-h-screen bg-white pb-24">
+      <div className="fixed inset-0 bg-gray-100 -z-10 hidden sm:block" />
       <TopBar title="주문 내역" showBack />
       <div className="max-w-[480px] mx-auto px-4 pt-4 space-y-6">
         {orders.map((order, idx) => {

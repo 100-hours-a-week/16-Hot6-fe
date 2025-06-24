@@ -28,23 +28,46 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config;
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      // 리프레시 토큰 갱신 시도 등 추가 가능
-      // ...여기선 생략, 바로 로그인 필요 모달
-      triggerGlobalModal({
-        open: true,
-        message: '로그인이 필요합니다. 로그인 후 다시 시도해주세요.',
-        leftButtonText: '나중에',
-        rightButtonText: '로그인하기',
-        onLeftClick: () => triggerGlobalModal({ open: false }),
-        onRightClick: () => {
-          triggerGlobalModal({ open: false });
-          window.location.href = '/login'; // useNavigate 쓸 수 없는 위치이므로
-        },
-      });
-      return Promise.reject(error);
+
+      try {
+        // 토큰 재발급
+        const response = await axios.post(
+          `${BASE_URL}/auth/token/refresh`,
+          {},
+          { withCredentials: true },
+        );
+        if (response.data.status === 200 && response.data.data.accessToken) {
+          const { accessToken } = response.data.data;
+          localStorage.setItem('accessToken', accessToken);
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+          return axiosInstance(originalRequest);
+        } else {
+          // 리프레시 토큰도 만료된 경우
+          return handleRefreshTokenExpired(error);
+        }
+      } catch (error) {
+        // 리프레시 토큰도 만료된 경우
+        return handleRefreshTokenExpired(error);
+      }
     }
     return Promise.reject(error);
   },
 );
+
+function handleRefreshTokenExpired(error) {
+  localStorage.removeItem('accessToken');
+  triggerGlobalModal({
+    open: true,
+    message: '로그인이 필요합니다. 로그인 후 다시 시도해주세요.',
+    leftButtonText: '나중에',
+    rightButtonText: '로그인하기',
+    onLeftClick: () => triggerGlobalModal({ open: false }),
+    onRightClick: () => {
+      triggerGlobalModal({ open: false });
+      window.location.href = '/login';
+    },
+  });
+  return Promise.reject(error);
+}
 
 export default axiosInstance;

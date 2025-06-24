@@ -93,7 +93,6 @@ export default function MyPage() {
   // 포인트 3자리마다 콤마
   const formatPoint = (point) => point.toLocaleString() + 'P';
 
-  console.log('MyPage: 렌더링 return 직전');
   return (
     <div className="max-w-[480px] mx-auto min-h-screen bg-white pb-24">
       <Header showModal={showModal} setShowModal={setShowModal} />
@@ -237,7 +236,7 @@ export default function MyPage() {
                 required
               />
             </div>
-            <div className="mb-6">
+            <div className="mb-2">
               <input
                 type="text"
                 value={nicknameKakao}
@@ -246,6 +245,9 @@ export default function MyPage() {
                 placeholder="카테부 닉네임을 입력하세요 (예: kakao.kim)"
                 required
               />
+            </div>
+            <div className="mb-6">
+              <p className="text-sm text-gray-500">닉네임 사칭 시 책임은 본인에게 있습니다.</p>
             </div>
             {recommendationError && (
               <div className="text-red-500 mb-4 text-center">{recommendationError}</div>

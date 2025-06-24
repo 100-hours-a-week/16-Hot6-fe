@@ -62,6 +62,18 @@ const DeskAI = () => {
   const { checkDeskAIAvailability, modal, setModal, quota } = useDeskAICheck();
   const [toast, setToast] = useState('');
 
+  // 스타일 매핑 객체
+  const conceptLabels = {
+    BASIC: '기본 스타일',
+    MSPAINT: '그림판 스타일',
+    SIMPLE: '동화책 스타일',
+    OIL: '유화 그림체 스타일',
+    CARTOON: '만화책 스타일',
+  };
+
+  // 스타일 옵션 배열
+  const conceptOptions = ['BASIC', 'MSPAINT', 'SIMPLE', 'OIL', 'CARTOON'];
+
   useEffect(() => {
     const checkAvailability = async () => {
       const isAvailable = await checkDeskAIAvailability();
@@ -85,12 +97,32 @@ const DeskAI = () => {
 
     const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
     if (!validTypes.includes(file.type)) {
-      setModal({ open: true, message: '지원하지 않는 이미지 형식입니다.' });
+      setModal({
+        open: true,
+        message: '지원하지 않는 이미지 형식입니다.',
+        onClose: () => {
+          setModal({ open: false, message: '' });
+          // 파일 입력값 초기화
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+        },
+      });
       setUploading(false);
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      setModal({ open: true, message: '이미지 크기는 최대 5MB까지 가능합니다.' });
+      setModal({
+        open: true,
+        message: '이미지 크기는 최대 5MB까지 가능합니다.',
+        onClose: () => {
+          setModal({ open: false, message: '' });
+          // 파일 입력값 초기화
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+        },
+      });
       setUploading(false);
       return;
     }
@@ -264,28 +296,19 @@ const DeskAI = () => {
         <div className="w-full max-w-lg mb-6">
           <p className="text-sm font-semibold mb-3">원하는 스타일을 선택해주세요</p>
           <div className="flex flex-col gap-3">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="concept"
-                value="BASIC"
-                checked={selectedConcept === 'BASIC'}
-                onChange={(e) => setSelectedConcept(e.target.value)}
-                className="w-4 h-4 text-blue-600"
-              />
-              <span className="text-sm">기본 스타일</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="concept"
-                value="CARTOON"
-                checked={selectedConcept === 'CARTOON'}
-                onChange={(e) => setSelectedConcept(e.target.value)}
-                className="w-4 h-4 text-blue-600"
-              />
-              <span className="text-sm">카툰 스타일</span>
-            </label>
+            {conceptOptions.map((concept) => (
+              <label key={concept} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="concept"
+                  value={concept}
+                  checked={selectedConcept === concept}
+                  onChange={(e) => setSelectedConcept(e.target.value)}
+                  className="w-4 h-4 text-blue-600"
+                />
+                <span className="text-sm">{conceptLabels[concept]}</span>
+              </label>
+            ))}
           </div>
         </div>
 
@@ -327,12 +350,11 @@ const DeskAI = () => {
 
         {/* 모달 컴포넌트 */}
         <SimpleModal
+          key={modal.message}
           open={modal.open}
           message={modal.message}
-          onClose={handleCloseModal}
+          onClose={modal.onClose}
           onConfirm={modal.onConfirm} // 확인 버튼 클릭 시 실행될 함수 (nullable)
-          confirmText={modal.onConfirm ? '확인' : null} // onConfirm 함수가 있을 때만 확인 버튼 표시
-          showCancel={modal.onConfirm === null} // onConfirm 함수가 없을 때만 취소 버튼 표시 (기본 닫기)
         />
       </div>
     </div>
