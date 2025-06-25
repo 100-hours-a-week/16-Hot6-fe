@@ -55,6 +55,13 @@ export default function MyDeskImages() {
       navigate(`/ai-images/${aiImageId}`);
     } catch (err) {
       console.log('에러 발생:', err);
+      if (err.response.status === 404) {
+        setToast(
+          `죄송합니다. 요청하신 페이지를 찾을 수 없습니다.\n시스템 업데이트 중 정보가 삭제되었거나 이동되었을 수 있습니다.`,
+        );
+        setTimeout(() => setToast(''), 1500);
+        return;
+      }
       setToast('이미지를 불러올 수 없습니다.');
       setTimeout(() => setToast(''), 1500);
     }

@@ -13,11 +13,20 @@ const CATEGORY_MAP = [
   { label: 'AI추천', value: 'AI' },
   { label: '자유', value: 'FREE' },
 ];
-const SORT_MAP = [
+
+// 기본 정렬 옵션 (AI 카테고리가 아닐 때)
+const BASE_SORT_MAP = [
   { label: '최신순', value: 'LATEST' },
   { label: '조회수순', value: 'VIEW' },
   { label: '좋아요순', value: 'LIKE' },
-  // { label: '스크랩순', value: 'SCRAP' },
+];
+
+// AI 카테고리용 정렬 옵션 (POPULAR 포함)
+const AI_SORT_MAP = [
+  { label: '최신순', value: 'LATEST' },
+  { label: '인기순', value: 'POPULAR' },
+  { label: '조회수순', value: 'VIEW' },
+  { label: '좋아요순', value: 'LIKE' },
 ];
 
 const axiosBaseInstance = axios.create({
@@ -349,11 +358,17 @@ export default function Posts() {
             value={sort}
             onChange={(e) => handleSortChange(e.target.value)}
           >
-            {SORT_MAP.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
+            {category === 'AI'
+              ? AI_SORT_MAP.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))
+              : BASE_SORT_MAP.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
           </select>
         </div>
       </div>
