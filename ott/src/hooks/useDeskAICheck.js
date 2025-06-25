@@ -26,7 +26,6 @@ const useDeskAICheck = () => {
 
     try {
       const response = await axiosInstance.get('/ai-images/upload');
-
       const remainToken = response.data.data.uploadLimitPerDay;
       setQuota(remainToken);
 
