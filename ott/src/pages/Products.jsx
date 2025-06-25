@@ -14,14 +14,11 @@ const FIRST_TABS = [
 
 const SECOND_TABS = [
   { label: '전체', value: 'ALL' },
-  { label: '마우스', value: 'MOUSE' },
-  { label: '키보드', value: 'KEYBOARD' },
-  { label: '손목받침대', value: 'WRISTREST' },
-  { label: '무드등', value: 'MOODLIGHT' },
-  { label: '북엔드', value: 'BOOKEND' },
-  { label: '펜꽂이', value: 'PENHOLDER' },
-  { label: '모니터받침대', value: 'MONITORSTAND' },
-  { label: '컵받침', value: 'CUPHOLDER' },
+  { label: '액세서리', value: 'ACCESSORIES' },
+  { label: '수납/정리', value: 'STORAGE_ORGANIZATION' },
+  { label: '데코/생활용품', value: 'HOME_LIVING' },
+  { label: '다용도', value: 'MULTI_PURPOSE' },
+  { label: '기타', value: 'OTHERS' },
 ];
 
 const { BASE_URL } = getConfig();
