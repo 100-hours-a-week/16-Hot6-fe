@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
 import axiosInstance from '@/api/axios';
-import Toast from '@/components/common/Toast';
 import SimpleModal from '@/components/common/SimpleModal';
+import Toast from '@/components/common/Toast';
+import { triggerGlobalModal } from '@/hooks/globalModalController';
+import { useEffect, useRef, useState } from 'react';
 
 function formatCommentDate(createdAtStr) {
   const KST_OFFSET = 9 * 60 * 60 * 1000; // 9시간(ms)
@@ -129,8 +130,25 @@ export default function CommentBottomSheet({ open, onClose, postId, editComment,
         });
         setCommentInput('');
         fetchComments(true); // 댓글 목록 새로고침
-      } catch (e) {
-        setToast('댓글 등록에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+      } catch (err) {
+        if (err.response?.status === 401) {
+          // 1. 댓글 작성 BottomSheet 내리기
+          if (typeof onClose === 'function') onClose();
+          // 2. 로그인 필요 글로벌 모달 띄우기
+          triggerGlobalModal({
+            open: true,
+            message: '로그인이 필요한 기능입니다. 로그인 후 다시 시도해주세요.',
+            leftButtonText: '나중에',
+            rightButtonText: '로그인하기',
+            onLeftClick: () => triggerGlobalModal({ open: false }),
+            onRightClick: () => {
+              triggerGlobalModal({ open: false });
+              window.location.href = '/login';
+            },
+          });
+          setIsSubmitting(false);
+          return;
+        }
         setTimeout(() => setToast(''), 3000);
       }
     }

@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useOutletContext, useLocation } from 'react-router-dom';
 import axiosInstance from '@/api/axios';
-import SimpleModal from '@/components/common/SimpleModal';
-import useDeskAICheck from '@/hooks/useDeskAICheck';
+import { addScrap, removeScrap } from '@/api/scraps';
 import mainImage from '@/assets/images/main.webp';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { addScrap, removeScrap } from '@/api/scraps';
+import SimpleModal from '@/components/common/SimpleModal';
+import useDeskAICheck from '@/hooks/useDeskAICheck';
+import useImageGenerationStore from '@/store/imageGenerationStore';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const Home = () => {
   const { checkDeskAIAvailability, modal, setModal } = useDeskAICheck();
   const [showModal, setShowModal] = useState(false);
   const location = useLocation();
+  const { status } = useImageGenerationStore();
 
   // 메인 데이터 조회
   useEffect(() => {
@@ -76,6 +78,10 @@ const Home = () => {
         ),
       }));
     } catch (err) {
+      if (err.response?.status === 401) {
+        // 아무것도 하지 않음 (전역 모달에서 처리됨)
+        return;
+      }
       setToast('전송에 실패했습니다. 잠시 후 다시 시도해주세요.');
     } finally {
       setTimeout(() => setToast(''), 1500);
@@ -106,7 +112,7 @@ const Home = () => {
       <SimpleModal
         open={modal.open}
         message={modal.message}
-        onClose={() => setModal({ open: false, message: '' })}
+        onClose={() => setModal({ open: false, message: '', onConfirm: null })}
       />
 
       {/* 메인 이미지 섹션 */}
@@ -122,10 +128,15 @@ const Home = () => {
           <h1 className="text-xl font-bold mb-2 text-center">데스크테리어를 완성하세요</h1>
           <div className="w-full flex justify-center">
             <button
-              className="max-w-[280px] w-full py-3 bg-gray-400 text-white rounded-lg font-medium"
+              className={`max-w-[280px] w-full py-3 rounded-lg font-medium ${
+                status === 'generating'
+                  ? 'bg-gray-400 text-white cursor-not-allowed'
+                  : 'bg-gray-400 text-white'
+              }`}
               onClick={handleDeskClick}
+              disabled={status === 'generating'}
             >
-              데스크테리어 생성
+              {status === 'generating' ? '이미지 생성중...' : '데스크테리어 생성'}
             </button>
           </div>
           <p className="text-sm text-gray-600 mt-4 text-center">
@@ -142,7 +153,10 @@ const Home = () => {
               <h2 className="text-xl font-bold">이런 사진을 찾고 있나요?</h2>
               <p className="text-gray-600 text-sm">인기 있는 데스크 셋업을 추천해드려요.</p>
             </div>
-            <button onClick={handleShowModal} className="text-gray-900">
+            <button
+              onClick={() => navigate('/posts?category=AI&sort=POPULAR')}
+              className="text-gray-900"
+            >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -190,7 +204,7 @@ const Home = () => {
                       </svg>
                     ) : (
                       <svg
-                        className="w-5 h-5"
+                        className="w-5 h5"
                         fill="none"
                         stroke="#2563eb"
                         strokeWidth="2"
@@ -220,7 +234,10 @@ const Home = () => {
               ))}
               {/* 더보기 카드 */}
               <div className="flex-none w-[180px] relative aspect-square bg-white flex items-center justify-center">
-                <button onClick={handleShowModal} className="flex flex-col items-center gap-2">
+                <button
+                  onClick={() => navigate('/posts?category=AI&sort=POPULAR')}
+                  className="flex flex-col items-center gap-2"
+                >
                   <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
                     <svg
                       className="w-6 h-6 text-gray-600"
@@ -249,7 +266,7 @@ const Home = () => {
         <div className="px-4">
           <div className="mb-2 flex justify-between items-center">
             <h2 className="text-xl font-bold">오늘의 추천 아이템을 구경해보세요</h2>
-            <button onClick={handleShowModal} className="text-gray-900">
+            <button onClick={() => navigate('/recommended-products')} className="text-gray-900">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -329,7 +346,10 @@ const Home = () => {
               ))}
               {/* 더보기 카드 */}
               <div className="flex-none w-[180px] relative aspect-square bg-white flex items-center justify-center">
-                <button onClick={handleShowModal} className="flex flex-col items-center gap-2">
+                <button
+                  onClick={() => navigate('/recommended-products')}
+                  className="flex flex-col items-center gap-2"
+                >
                   <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
                     <svg
                       className="w-6 h-6 text-gray-600"

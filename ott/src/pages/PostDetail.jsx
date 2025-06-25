@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import TopBar from '@/components/common/TopBar';
-import axiosInstance from '../api/axios';
-import axios from 'axios';
-import SimpleModal from '@/components/common/SimpleModal';
-import CommentBottomSheet from '@/components/common/CommentBottomSheet';
-import Toast from '@/components/common/Toast';
 import { addLike, removeLike } from '@/api/likes';
 import { addScrap, removeScrap } from '@/api/scraps';
+import CommentBottomSheet from '@/components/common/CommentBottomSheet';
+import SimpleModal from '@/components/common/SimpleModal';
+import Toast from '@/components/common/Toast';
+import TopBar from '@/components/common/TopBar';
 import { getConfig } from '@/config/index';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import axiosInstance from '../api/axios';
 
 const { BASE_URL } = getConfig();
 const axiosBaseInstance = axios.create({
@@ -135,16 +135,17 @@ export default function PostDetail() {
   const handleLike = async () => {
     try {
       if (post.liked) {
-        await removeLike({ type: 'POST', targetId: post.postId });
+        await removeLike({ postId: post.postId });
       } else {
-        await addLike({ type: 'POST', targetId: post.postId });
+        await addLike({ postId: post.postId });
       }
       setPost((prev) => ({
         ...prev,
         liked: !prev.liked,
         likeCount: prev.liked ? prev.likeCount - 1 : prev.likeCount + 1,
       }));
-    } catch {
+    } catch (err) {
+      if (err.response?.status === 401) return;
       setToast('전송에 실패했습니다. 잠시 후 다시 시도해주세요.');
     } finally {
       setTimeout(() => setToast(''), 1500);
@@ -165,7 +166,8 @@ export default function PostDetail() {
         ...prev,
         scrapped: !prev.scrapped,
       }));
-    } catch {
+    } catch (err) {
+      if (err.response?.status === 401) return;
       setToast('전송에 실패했습니다. 잠시 후 다시 시도해주세요.');
     } finally {
       setTimeout(() => setToast(''), 1500);
@@ -174,7 +176,13 @@ export default function PostDetail() {
 
   // 댓글 등록 함수 예시
   const handleCommentSubmit = () => {
-    if (commentInput.trim().length === 0) return;
+    try {
+      if (commentInput.trim().length === 0) return;
+    } catch (err) {
+      if (err.response?.status === 401) return;
+      setToast('댓글 등록에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    }
+
     // 실제 등록 로직 추가
     // setComments([...comments, ...]);
     setCommentInput('');

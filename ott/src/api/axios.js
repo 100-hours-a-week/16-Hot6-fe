@@ -1,11 +1,12 @@
-import axios from 'axios';
 import { getConfig } from '@/config/index';
+import { triggerGlobalModal } from '@/hooks/globalModalController';
+import axios from 'axios';
 
 const { BASE_URL } = getConfig();
 
 export const axiosInstance = axios.create({
   baseURL: BASE_URL,
-  timeout: 5000,
+  timeout: 0,
 });
 
 // 요청 인터셉터
@@ -17,10 +18,7 @@ axiosInstance.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    console.log('error 인터셉트', error);
-    return Promise.reject(error);
-  },
+  (error) => Promise.reject(error),
 );
 
 // 응답 인터셉터
@@ -28,9 +26,7 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-
-    // 토큰이 만료되었고, 재시도하지 않았던 요청인 경우
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
@@ -38,9 +34,7 @@ axiosInstance.interceptors.response.use(
         const response = await axios.post(
           `${BASE_URL}/auth/token/refresh`,
           {},
-          {
-            withCredentials: true,
-          },
+          { withCredentials: true },
         );
         if (response.data.status === 200 && response.data.data.accessToken) {
           const { accessToken } = response.data.data;
@@ -49,22 +43,31 @@ axiosInstance.interceptors.response.use(
           return axiosInstance(originalRequest);
         } else {
           // 리프레시 토큰도 만료된 경우
-          localStorage.removeItem('accessToken');
-          // 로그인 페이지로 리다이렉트
-          window.location.href = '/login';
-          return Promise.reject(error);
+          return handleRefreshTokenExpired(error);
         }
       } catch (error) {
         // 리프레시 토큰도 만료된 경우
-        localStorage.removeItem('accessToken');
-        // 로그인 페이지로 리다이렉트
-        window.location.href = '/login';
-        return Promise.reject(error);
+        return handleRefreshTokenExpired(error);
       }
     }
-
     return Promise.reject(error);
   },
 );
+
+function handleRefreshTokenExpired(error) {
+  localStorage.removeItem('accessToken');
+  triggerGlobalModal({
+    open: true,
+    message: '로그인이 필요합니다. 로그인 후 다시 시도해주세요.',
+    leftButtonText: '나중에',
+    rightButtonText: '로그인하기',
+    onLeftClick: () => triggerGlobalModal({ open: false }),
+    onRightClick: () => {
+      triggerGlobalModal({ open: false });
+      window.location.href = '/login';
+    },
+  });
+  return Promise.reject(error);
+}
 
 export default axiosInstance;

@@ -1,17 +1,19 @@
+import LoginModal from '@/components/common/LoginModal';
+import SimpleModal from '@/components/common/SimpleModal';
+import Toast from '@/components/common/Toast';
+import useDeskAICheck from '@/hooks/useDeskAICheck';
 import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
-import Header from './Header'; // Header 컴포넌트 import
+import { Outlet, useLocation } from 'react-router-dom';
 import BottomNavigation from './BottomNavigation';
 import Footer from './Footer'; // Footer import 추가
-import useDeskAICheck from '@/hooks/useDeskAICheck';
-import SimpleModal from '@/components/common/SimpleModal';
-import ImageGenerationLoader from '@/components/common/ImageGenerationLoader';
-import LoginModal from '@/components/common/LoginModal';
-import Toast from '@/components/common/Toast';
+import Header from './Header'; // Header 컴포넌트 import
 
 const RootLayout = () => {
   const { checkDeskAIAvailability, modal, setModal } = useDeskAICheck();
   const [toast, setToast] = useState('');
+  const location = useLocation();
+
+  const hideGlobalUI = location.pathname.startsWith('/orders/');
 
   return (
     // 전체 컨테이너에 최소/최대 너비 설정
@@ -32,17 +34,16 @@ const RootLayout = () => {
 
       {/* 실제 컨텐츠 영역 (흰색 배경 유지) */}
       <div className="relative flex flex-col flex-1 w-full bg-white">
-        {' '}
         {/* overflow-x-hidden 추가 */}
-        <Header /> {/* Header 컴포넌트 사용 */}
+        {!hideGlobalUI && <Header />}
+        {/* Header 컴포넌트 사용 */}
         {/* 메인 컨텐츠 */}
-        <main className="flex-1 w-full pt-14 pb-16 relative">
+        <main className={`flex-1 w-full pb-16 relative${hideGlobalUI ? '' : ' pt-14'}`}>
           <Outlet context={{ toast, setToast }} />
         </main>
-        <Footer /> {/* Footer 추가 */}
-        {/* <ImageGenerationLoader /> */}
         {/* 하단 네비게이션 컴포넌트 */}
-        <BottomNavigation checkDeskAIAvailability={checkDeskAIAvailability} />
+        {!hideGlobalUI && <Footer />}
+        {!hideGlobalUI && <BottomNavigation checkDeskAIAvailability={checkDeskAIAvailability} />}
         <SimpleModal
           open={modal.open}
           message={modal.message}
