@@ -72,7 +72,7 @@ function Products() {
   const [isFetching, setIsFetching] = useState(false);
   const [pagination, setPagination] = useState({
     size: 10,
-    lastProductId: null,
+    lastVariantId: null,
     hasNext: true,
   });
   const [timerTick, setTimerTick] = useState(0);
@@ -95,8 +95,8 @@ function Products() {
     setError(null);
     try {
       const params = { size: pagination.size };
-      if (!isFirst && pagination.lastProductId) {
-        params.lastProductId = pagination.lastProductId;
+      if (!isFirst && pagination.lastVariantId) {
+        params.lastVariantId = pagination.lastVariantId;
       }
       if (firstTab === 'PROMOTION') {
         params.promotionType = 'BASIC';
@@ -128,7 +128,7 @@ function Products() {
       setProducts((prev) => (isFirst ? normalized : [...prev, ...normalized]));
       setPagination({
         size: newPagination.size,
-        lastProductId: newPagination.last_product_id,
+        lastVariantId: newPagination.last_product_id,
         hasNext: newPagination.has_next,
       });
     } catch (err) {
@@ -165,7 +165,7 @@ function Products() {
   // 탭 변경 시 상품 목록/페이지네이션 초기화 후 새로고침
   useEffect(() => {
     setProducts([]);
-    setPagination({ size: 10, lastProductId: null, hasNext: true });
+    setPagination({ size: 10, lastVariantId: null, hasNext: true });
     fetchProducts(true);
     // eslint-disable-next-line
   }, [firstTab, secondTab]);
