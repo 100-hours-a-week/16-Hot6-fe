@@ -19,6 +19,8 @@ function getDescriptionText(desc) {
       return '인기 게시글 선정';
     case 'PRODUCT_REFUND':
       return '상품 환불';
+    case 'CHANGE_DATA':
+      return '데이터 이전';
     default:
       return desc;
   }

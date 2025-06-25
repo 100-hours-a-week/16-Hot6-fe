@@ -153,7 +153,10 @@ const Home = () => {
               <h2 className="text-xl font-bold">이런 사진을 찾고 있나요?</h2>
               <p className="text-gray-600 text-sm">인기 있는 데스크 셋업을 추천해드려요.</p>
             </div>
-            <button onClick={handleShowModal} className="text-gray-900">
+            <button
+              onClick={() => navigate('/posts?category=AI&sort=POPULAR')}
+              className="text-gray-900"
+            >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -231,7 +234,10 @@ const Home = () => {
               ))}
               {/* 더보기 카드 */}
               <div className="flex-none w-[180px] relative aspect-square bg-white flex items-center justify-center">
-                <button onClick={handleShowModal} className="flex flex-col items-center gap-2">
+                <button
+                  onClick={() => navigate('/posts?category=AI&sort=POPULAR')}
+                  className="flex flex-col items-center gap-2"
+                >
                   <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
                     <svg
                       className="w-6 h-6 text-gray-600"
