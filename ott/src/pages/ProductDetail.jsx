@@ -10,7 +10,7 @@ import TopBar from '../components/common/TopBar';
 
 function ProductDetail() {
   const navigate = useNavigate();
-  const { productId } = useParams();
+  const { productId, variantId } = useParams();
   const [searchParams] = useSearchParams();
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -69,8 +69,14 @@ function ProductDetail() {
       setLoading(true);
       setError(null);
       try {
-        const res = await axiosBaseInstance.get(`/products/${productId}`);
+        const res = await axiosBaseInstance.get(`/products/${variantId}`);
         setDetail(res.data.data);
+
+        // variant 자동 선택
+        const found = res.data.data.variants.find(
+          (v) => String(v.variant_id) === String(variantId),
+        );
+        setSelectedVariant(found || res.data.data.variants[0]);
       } catch (err) {
         setError('상품 정보를 불러오지 못했습니다.');
       } finally {
@@ -78,20 +84,32 @@ function ProductDetail() {
       }
     };
     fetchDetail();
-  }, [productId]);
+  }, [variantId]);
 
   // 스크랩 토글 핸들러
   const handleScrap = async () => {
-    if (!detail) return;
+    if (!selectedVariant) return;
     setScrapLoading(true);
     try {
-      if (detail.scraped) {
-        await removeScrap({ type: 'SERVICE_PRODUCT', targetId: detail.product_id });
-        setDetail((prev) => ({ ...prev, scraped: false }));
+      if (selectedVariant.scraped) {
+        await removeScrap({ type: 'SERVICE_PRODUCT', targetId: selectedVariant.variant_id });
+        setDetail((prev) => ({
+          ...prev,
+          variants: prev.variants.map((v) =>
+            v.variant_id === selectedVariant.variant_id ? { ...v, scraped: false } : v,
+          ),
+        }));
+        setSelectedVariant((prev) => ({ ...prev, scraped: false }));
         setToast('스크랩이 취소되었어요.');
       } else {
-        await addScrap({ type: 'SERVICE_PRODUCT', targetId: detail.product_id });
-        setDetail((prev) => ({ ...prev, scraped: true }));
+        await addScrap({ type: 'SERVICE_PRODUCT', targetId: selectedVariant.variant_id });
+        setDetail((prev) => ({
+          ...prev,
+          variants: prev.variants.map((v) =>
+            v.variant_id === selectedVariant.variant_id ? { ...v, scraped: true } : v,
+          ),
+        }));
+        setSelectedVariant((prev) => ({ ...prev, scraped: true }));
         setToast('스크랩이 추가되었어요.');
       }
     } catch (err) {
@@ -166,6 +184,19 @@ function ProductDetail() {
     (sum, o) => sum + (o.variant.promotions?.[0]?.discount_price || o.variant.price) * o.quantity,
     0,
   );
+
+  // 품절 상태 확인
+  const isOutOfStock = () => {
+    if (!selectedVariant) return false;
+    const hasPromo = !!selectedVariant.promotions?.[0];
+    if (hasPromo) {
+      // 특가 상품: 프로모션 status가 SOLD_OUT이면 품절
+      return selectedVariant.promotions[0].status === 'SOLD_OUT';
+    } else {
+      // 일반 상품: status가 OUT_OF_STOCK이면 품절
+      return selectedVariant.status === 'OUT_OF_STOCK';
+    }
+  };
 
   // 안내용 느낌표 SVG
   const ExclamationIcon = () => (
@@ -274,20 +305,38 @@ function ProductDetail() {
         </div>
         <div className="font-semibold mb-2">옵션 선택</div>
         <div className="flex flex-wrap gap-2 mb-2">
-          {detail.variants.map((v) => (
-            <button
-              key={v.variant_id}
-              className={`px-4 py-2 rounded-lg border text-sm transition
-                ${variant?.variant_id === v.variant_id ? 'border-blue-500 bg-blue-50 font-bold' : 'border-gray-200 bg-white'}
-              `}
-              onClick={() => {
-                setSelectedVariant(v);
-                setCarouselIdx(0);
-              }}
-            >
-              {v.name}
-            </button>
-          ))}
+          {detail.variants.map((v) => {
+            // 품절 상태 확인
+            const hasPromo = !!v.promotions?.[0];
+            const isVariantOutOfStock = hasPromo
+              ? v.promotions[0].status === 'SOLD_OUT'
+              : v.status === 'OUT_OF_STOCK';
+
+            return (
+              <button
+                key={v.variant_id}
+                className={`px-4 py-2 rounded-lg border text-sm transition flex items-center gap-2 ${
+                  isVariantOutOfStock
+                    ? 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : variant?.variant_id === v.variant_id
+                      ? 'border-blue-500 bg-blue-50 font-bold'
+                      : 'border-gray-200 bg-white'
+                }`}
+                onClick={() => {
+                  if (!isVariantOutOfStock) {
+                    setSelectedVariant(v);
+                    setCarouselIdx(0);
+                  }
+                }}
+                disabled={isVariantOutOfStock}
+              >
+                <span>
+                  {v.name}
+                  {isVariantOutOfStock && ' (품절)'}
+                </span>
+              </button>
+            );
+          })}
         </div>
         {/* 특가 상품 한정수량 안내 */}
         {variant?.promotions?.[0]?.max_per_customer && (
@@ -403,7 +452,7 @@ function ProductDetail() {
             disabled={scrapLoading}
             onClick={handleScrap}
           >
-            {detail.scraped ? (
+            {selectedVariant?.scraped ? (
               <svg
                 width="28"
                 height="28"
@@ -428,10 +477,15 @@ function ProductDetail() {
             )}
           </button>
           <button
-            className="flex-1 m-3 rounded-lg bg-blue-500 text-white font-bold text-base"
+            className={`flex-1 m-3 rounded-lg font-bold text-base ${
+              isOutOfStock()
+                ? 'bg-gray-300 text-gray-400 cursor-not-allowed'
+                : 'bg-blue-500 text-white'
+            }`}
             onClick={() => setShowSheet(true)}
+            disabled={isOutOfStock()}
           >
-            구매하기
+            {isOutOfStock() ? '품절' : '구매하기'}
           </button>
         </div>
         <Toast message={toast} />
@@ -491,14 +545,31 @@ function ProductDetail() {
                       const isSelected = orderOptions.some(
                         (o) => o.variant.variant_id === v.variant_id,
                       );
+
+                      // 품절 상태 확인
+                      const hasPromo = !!v.promotions?.[0];
+                      const isVariantOutOfStock = hasPromo
+                        ? v.promotions[0].status === 'SOLD_OUT'
+                        : v.status === 'OUT_OF_STOCK';
+
                       return (
                         <button
                           key={v.variant_id}
-                          className={`w-full text-left px-4 py-3 hover:bg-blue-50 ${orderVariant?.variant_id === v.variant_id ? 'bg-blue-50 font-bold text-blue-600' : ''}`}
-                          onClick={() => handleSelectOption(v)}
+                          className={`w-full text-left px-4 py-3 flex items-center justify-between ${
+                            isVariantOutOfStock
+                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                              : orderVariant?.variant_id === v.variant_id
+                                ? 'bg-blue-50 font-bold text-blue-600 hover:bg-blue-50'
+                                : 'hover:bg-blue-50'
+                          }`}
+                          onClick={() => !isVariantOutOfStock && handleSelectOption(v)}
                           type="button"
+                          disabled={isVariantOutOfStock}
                         >
-                          {v.name}
+                          <span>
+                            {v.name}
+                            {isVariantOutOfStock && ' (품절)'}
+                          </span>
                         </button>
                       );
                     })}
@@ -518,7 +589,9 @@ function ProductDetail() {
                       className="flex items-center px-4 py-3 justify-between"
                     >
                       <div className="flex-1">
-                        <div className="font-semibold text-base mb-1">{variant.name}</div>
+                        <div className="font-semibold text-base mb-1 flex items-center gap-2">
+                          {variant.name}
+                        </div>
                         <div className="flex items-center gap-2">
                           <button
                             className="w-8 h-8 rounded bg-gray-100 text-lg flex items-center justify-center border border-gray-200"

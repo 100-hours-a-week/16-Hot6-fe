@@ -73,7 +73,7 @@ export default function PointHistory() {
     <div className="max-w-[768px] mx-auto min-h-screen bg-white pb-24">
       <div className="fixed inset-0 bg-gray-100 -z-10 hidden sm:block" />
       <TopBar title="포인트 내역" showBack />
-      <div className="max-w-[480px] mx-auto divide-y">
+      <div className="max-w-[480px] mx-auto px-4 pt-4 space-y-6">
         {point.map((item, idx) => (
           <div
             key={item.historyId}

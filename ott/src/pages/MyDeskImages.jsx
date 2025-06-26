@@ -57,7 +57,7 @@ export default function MyDeskImages() {
       console.log('에러 발생:', err);
       if (err.response.status === 404) {
         setToast(
-          `죄송합니다. 요청하신 페이지를 찾을 수 없습니다.\n시스템 업데이트 중 정보가 삭제되었거나 이동되었을 수 있습니다.`,
+          `요청하신 페이지를 찾을 수 없습니다.\n시스템 업데이트 중 정보가 삭제되었거나 이동되었을 수 있습니다.`,
         );
         setTimeout(() => setToast(''), 1500);
         return;
@@ -126,7 +126,7 @@ export default function MyDeskImages() {
     <div className="max-w-[768px] mx-auto min-h-screen bg-white pb-24">
       <div className="fixed inset-0 bg-gray-100 -z-10 hidden sm:block" />
       <TopBar title="나의 데스크 보기" />
-      <div className="max-w-[480px] mx-auto mt-4">
+      <div className="max-w-[480px] mx-auto px-4 pt-4 space-y-6">
         {Object.keys(grouped).length === 0 && !loading ? (
           <div className="text-center text-gray-400 py-20">생성한 데스크 이미지가 없습니다.</div>
         ) : (

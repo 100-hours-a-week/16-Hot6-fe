@@ -63,7 +63,7 @@ const App = () => {
           <Route path="/my-point-history" element={<PointHistory />} />
           <Route path="/ai-images/:imageId" element={<AiGenerationResult />} />
           <Route path="/posts/:postId" element={<PostDetail />} />
-          <Route path="/products/:productId" element={<ProductDetail />} />
+          <Route path="/products/:variantId" element={<ProductDetail />} />
           <Route path="/profile-edit" element={<ProfileEdit />} />
           <Route path="/payment/:orderId" element={<Payment />} />
           <Route path="/payment/:orderId/complete" element={<PaymentComplete />} />
