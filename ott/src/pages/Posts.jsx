@@ -96,6 +96,7 @@ export default function Posts() {
     lastPostId: null,
     lastLikeCount: null,
     lastViewCount: null,
+    lastWeightCount: null,
     hasNext: true,
     size: 10,
   });
@@ -125,6 +126,9 @@ export default function Posts() {
         } else if (sort === 'VIEW' && pagination.lastViewCount !== null) {
           params.lastViewCount = pagination.lastViewCount;
           params.lastPostId = pagination.lastPostId;
+        } else if (sort === 'POPULAR' && pagination.lastWeightCount !== null) {
+          params.lastWeightCount = pagination.lastWeightCount;
+          params.lastPostId = pagination.lastPostId;
         } else {
           params.lastPostId = pagination.lastPostId;
         }
@@ -140,6 +144,7 @@ export default function Posts() {
         lastPostId: newPagination.lastPostId,
         lastLikeCount: newPagination.lastLikeCount ?? prev.lastLikeCount,
         lastViewCount: newPagination.lastViewCount ?? prev.lastViewCount,
+        lastWeightCount: newPagination.lastWeightCount ?? prev.lastWeightCount,
         hasNext: newPagination.hasNext,
         size: newPagination.size,
       }));
@@ -168,6 +173,7 @@ export default function Posts() {
       lastPostId: null,
       lastLikeCount: null,
       lastViewCount: null,
+      lastWeightCount: null,
       hasNext: true,
       size: 10,
     });
@@ -185,6 +191,7 @@ export default function Posts() {
       lastPostId: null,
       lastLikeCount: null,
       lastViewCount: null,
+      lastWeightCount: null,
       hasNext: true,
       size: 10,
     });
