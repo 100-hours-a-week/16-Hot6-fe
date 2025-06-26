@@ -16,12 +16,13 @@ const Home = () => {
   const [mainData, setMainData] = useState({
     popularSetups: [],
     recommendedItems: [],
-    todayDeals: [],
+    promotionProducts: [],
   });
   const { checkDeskAIAvailability, modal, setModal } = useDeskAICheck();
   const [showModal, setShowModal] = useState(false);
   const location = useLocation();
   const { status } = useImageGenerationStore();
+  const [scrapLoading, setScrapLoading] = useState({}); // { [key: string]: boolean }
 
   // 메인 데이터 조회
   useEffect(() => {
@@ -57,17 +58,37 @@ const Home = () => {
 
   // 스크랩 토글 핸들러
   const handleScrap = async (type, id) => {
+    const key = `${type}_${id}`;
+    if (scrapLoading[key]) return;
+    setScrapLoading((prev) => ({ ...prev, [key]: true }));
     try {
       // 현재 아이템 찾기
-      const itemKey = type === 'popularSetups' ? 'postId' : 'itemId';
+      const itemKey =
+        type === 'popularSetups' ? 'postId' : type === 'promotionProducts' ? 'productId' : 'itemId';
       const item = mainData[type].find((item) => item[itemKey] === id);
 
       if (item.scrapped) {
-        await removeScrap({ type: type === 'popularSetups' ? 'POST' : 'PRODUCT', targetId: id });
+        await removeScrap({
+          type:
+            type === 'popularSetups'
+              ? 'POST'
+              : type === 'promotionProducts'
+                ? 'SERVICE_PRODUCT'
+                : 'PRODUCT',
+          targetId: id,
+        });
         setToast('스크랩이 취소되었어요.');
       } else {
         console.log(type, id);
-        await addScrap({ type: type === 'popularSetups' ? 'POST' : 'PRODUCT', targetId: id });
+        await addScrap({
+          type:
+            type === 'popularSetups'
+              ? 'POST'
+              : type === 'promotionProducts'
+                ? 'SERVICE_PRODUCT'
+                : 'PRODUCT',
+          targetId: id,
+        });
         setToast('스크랩이 추가되었어요.');
       }
 
@@ -84,6 +105,7 @@ const Home = () => {
       }
       setToast('전송에 실패했습니다. 잠시 후 다시 시도해주세요.');
     } finally {
+      setScrapLoading((prev) => ({ ...prev, [key]: false }));
       setTimeout(() => setToast(''), 1500);
     }
   };
@@ -192,6 +214,7 @@ const Home = () => {
                       e.stopPropagation();
                       handleScrap('popularSetups', setup.postId);
                     }}
+                    disabled={scrapLoading[`popularSetups_${setup.postId}`]}
                   >
                     {setup.scrapped ? (
                       <svg className="w-5 h-5" fill="#2563eb" stroke="#2563eb" viewBox="0 0 24 24">
@@ -302,6 +325,7 @@ const Home = () => {
                       e.stopPropagation();
                       handleScrap('recommendedItems', item.itemId);
                     }}
+                    disabled={scrapLoading[`recommendedItems_${item.itemId}`]}
                   >
                     {item.scrapped ? (
                       <svg className="w-5 h-5" fill="#2563eb" stroke="#2563eb" viewBox="0 0 24 24">
@@ -377,7 +401,10 @@ const Home = () => {
         <div className="px-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold">오늘의 특가</h2>
-            <button onClick={handleShowModal} className="text-gray-900">
+            <button
+              onClick={() => navigate('/products?primary=PROMOTION&secondary=ALL')}
+              className="text-gray-900"
+            >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -389,27 +416,30 @@ const Home = () => {
             </button>
           </div>
           <div className="space-y-4">
-            {mainData.todayDeals && mainData.todayDeals.length > 0
+            {mainData.promotionProducts && mainData.promotionProducts.length > 0
               ? // 실제 데이터가 있을 때 렌더링
-                mainData.todayDeals.map((deal) => (
+                mainData.promotionProducts.map((deal) => (
                   <div
-                    key={deal.itemId}
+                    key={deal.productId}
                     className="flex items-center space-x-4 bg-white rounded-lg p-4 border border-gray-200 cursor-pointer"
+                    onClick={handleShowModal}
                   >
                     <div className="w-24 h-24 bg-gray-100 rounded-lg flex-shrink-0">
                       <img
-                        src={deal.imageUrl}
+                        src={deal.imageUuid}
                         alt={deal.productName}
                         className="w-full h-full object-cover"
                       />
                     </div>
                     <div className="flex-1">
                       <h3 className="font-medium mb-1">{deal.productName}</h3>
-                      <p className="text-sm text-gray-600 mb-2">{deal.price.toLocaleString()}원</p>
+                      <p className="text-sm text-gray-600 mb-2">
+                        {deal.price.toLocaleString()} Point
+                      </p>
                       <div className="flex items-center space-x-2">
                         <span className="px-2 py-1 bg-gray-100 rounded text-xs">특가</span>
                         <span className="px-2 py-1 bg-gray-100 rounded text-xs">
-                          {deal.subCategory}
+                          {deal.promotionType}
                         </span>
                       </div>
                     </div>
@@ -417,8 +447,9 @@ const Home = () => {
                       className="w-8 h-8 flex items-center justify-center"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleScrap('todayDeals', deal.itemId);
+                        handleScrap('promotionProducts', deal.productId);
                       }}
+                      disabled={scrapLoading[`promotionProducts_${deal.productId}`]}
                     >
                       {deal.scrapped ? (
                         <svg
