@@ -204,7 +204,7 @@ export default function ProfileEdit() {
     <div className="max-w-[768px] mx-auto min-h-screen bg-white pb-24 relative">
       <div className="fixed inset-0 bg-gray-100 -z-10 hidden sm:block" />
       <TopBar title="회원정보 변경" showBack />
-      <div className="max-w-[480px] mx-auto mt-4">
+      <div className="max-w-[480px] mx-auto px-4 pt-4 space-y-6">
         {/* 프로필 사진 + 이미지 선택 버튼 */}
         <div className="flex items-center gap-4 mt-8 px-4 justify-between">
           <img

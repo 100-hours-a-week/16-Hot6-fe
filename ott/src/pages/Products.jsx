@@ -114,6 +114,7 @@ function Products() {
         productId: item.product_id,
         productName: item.product_name,
         productType: item.product_type,
+        variantId: item.variant_id,
         variantName: item.variant_name,
         imageUrl: item.image_url,
         originalPrice: item.original_price,
@@ -204,16 +205,16 @@ function Products() {
   }, []);
 
   // 스크랩 토글 핸들러
-  const handleScrap = async (productId, scraped) => {
+  const handleScrap = async (productId, variantId, scraped) => {
     setScrapLoading(productId);
     try {
       if (scraped) {
-        await removeScrap({ type, targetId: productId });
+        await removeScrap({ type, targetId: variantId });
       } else {
-        await addScrap({ type, targetId: productId });
+        await addScrap({ type, targetId: variantId });
       }
       setProducts((prev) =>
-        prev.map((p) => (p.productId === productId ? { ...p, scraped: !scraped } : p)),
+        prev.map((p) => (p.variantId === variantId ? { ...p, scraped: !scraped } : p)),
       );
       setToast(scraped ? '스크랩이 취소되었어요.' : '스크랩이 추가되었어요.');
     } catch (err) {
@@ -277,11 +278,7 @@ function Products() {
             <div
               key={product.productId}
               className="relative flex items-center border-b pb-4 cursor-pointer hover:bg-gray-50 transition"
-              onClick={() =>
-                navigate(
-                  `/products/${product.productId}?option=${encodeURIComponent(product.variantName)}`,
-                )
-              }
+              onClick={() => navigate(`/products/${product.variantId}`)}
             >
               <div className="flex flex-col items-center gap-2 mr-4">
                 {/* 오늘 특가 탭일 때만 타이머 */}
@@ -344,7 +341,7 @@ function Products() {
                 disabled={scrapLoading === product.productId}
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleScrap(product.productId, product.scraped);
+                  handleScrap(product.productId, product.variantId, product.scraped);
                 }}
               >
                 {product.scraped ? (
