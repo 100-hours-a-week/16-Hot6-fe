@@ -53,7 +53,7 @@ export default function MyScrap() {
     <div className="max-w-[768px] mx-auto min-h-screen bg-white pb-24">
       <div className="fixed inset-0 bg-gray-100 -z-10 hidden sm:block" />
       <TopBar title="스크랩 목록" />
-      <div className="max-w-[480px] mx-auto mt-4">
+      <div className="max-w-[480px] mx-auto px-4 pt-4 space-y-6">
         {scraps.length === 0 && !loading ? (
           <div className="text-center text-gray-400 py-20">스크랩한 항목이 없습니다.</div>
         ) : (
