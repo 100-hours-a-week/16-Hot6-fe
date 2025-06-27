@@ -416,109 +416,89 @@ const Home = () => {
             </button>
           </div>
           <div className="space-y-4">
-            {mainData.promotionProducts && mainData.promotionProducts.length > 0
-              ? // 실제 데이터가 있을 때 렌더링
-                mainData.promotionProducts.map((deal) => (
-                  <div
-                    key={deal.productId}
-                    className="flex items-center space-x-4 bg-white rounded-lg p-4 border border-gray-200 cursor-pointer"
-                    onClick={handleShowModal}
-                  >
-                    <div className="w-24 h-24 bg-gray-100 rounded-lg flex-shrink-0">
-                      <img
-                        src={deal.imageUuid}
-                        alt={deal.productName}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium mb-1">{deal.productName}</h3>
-                      <p className="text-sm text-gray-600 mb-2">
-                        {deal.price.toLocaleString()} Point
-                      </p>
-                      <div className="flex items-center space-x-2">
-                        <span className="px-2 py-1 bg-gray-100 rounded text-xs">특가</span>
-                        <span className="px-2 py-1 bg-gray-100 rounded text-xs">
-                          {deal.promotionType}
-                        </span>
-                      </div>
-                    </div>
-                    <button
-                      className="w-8 h-8 flex items-center justify-center"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleScrap('promotionProducts', deal.productId);
-                      }}
-                      disabled={scrapLoading[`promotionProducts_${deal.productId}`]}
-                    >
-                      {deal.scrapped ? (
-                        <svg
-                          className="w-5 h-5"
-                          fill="#2563eb"
-                          stroke="#2563eb"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
-                          />
-                        </svg>
-                      ) : (
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="#2563eb"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
-                          />
-                        </svg>
-                      )}
-                    </button>
+            {mainData.promotionProducts && mainData.promotionProducts.length > 0 ? (
+              // 실제 데이터가 있을 때 렌더링
+              mainData.promotionProducts.map((deal) => (
+                <div
+                  key={deal.productId}
+                  className="flex items-center space-x-4 bg-white rounded-lg p-4 border border-gray-200 cursor-pointer"
+                  onClick={handleShowModal}
+                >
+                  <div className="w-24 h-24 bg-gray-100 rounded-lg flex-shrink-0">
+                    <img
+                      src={deal.imageUuid}
+                      alt={deal.productName}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                ))
-              : // 더미 데이터 렌더링
-                Array(2)
-                  .fill(null)
-                  .map((_, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center space-x-4 bg-white rounded-lg p-4 border border-gray-200 cursor-pointer"
-                      onClick={handleShowModal}
-                    >
-                      <div className="w-24 h-24 bg-gray-100 rounded-lg flex-shrink-0"></div>
-                      <div className="flex-1">
-                        <h3 className="font-medium mb-1">레트로 플립 탁상시계</h3>
-                        <p className="text-sm text-gray-600 mb-2">1,000 Point</p>
-                        <div className="flex items-center space-x-2">
-                          <span className="px-2 py-1 bg-gray-100 rounded text-xs">특가</span>
-                          <span className="px-2 py-1 bg-gray-100 rounded text-xs">시계</span>
-                        </div>
-                      </div>
-                      <button className="w-8 h-8 flex items-center justify-center">
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
-                          />
-                        </svg>
-                      </button>
+                  <div className="flex-1">
+                    <h3 className="font-medium mb-1">{deal.productName}</h3>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {deal.price.toLocaleString()} Point
+                    </p>
+                    <div className="flex items-center space-x-2">
+                      <span className="px-2 py-1 bg-gray-100 rounded text-xs">특가</span>
+                      <span className="px-2 py-1 bg-gray-100 rounded text-xs">
+                        {deal.promotionType}
+                      </span>
                     </div>
-                  ))}
+                  </div>
+                  <button
+                    className="w-8 h-8 flex items-center justify-center"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleScrap('promotionProducts', deal.productId);
+                    }}
+                    disabled={scrapLoading[`promotionProducts_${deal.productId}`]}
+                  >
+                    {deal.scrapped ? (
+                      <svg className="w-5 h-5" fill="#2563eb" stroke="#2563eb" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="#2563eb"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              ))
+            ) : (
+              // 데이터가 없을 때 메시지 표시
+              <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+                <svg
+                  className="w-12 h-12 mb-4 text-gray-300"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <p className="text-lg font-medium mb-2">진행 중인 특가가 없습니다</p>
+                <p className="text-sm text-gray-400">곧 새로운 특가 상품을 준비해드릴게요!</p>
+              </div>
+            )}
           </div>
         </div>
       </section>
