@@ -33,17 +33,14 @@ axiosBaseInstance.interceptors.request.use(
 
 // 날짜 포맷 함수
 function formatDate(dateStr) {
-  const createdUTC = new Date(dateStr);
-  const date = new Date(createdUTC.getTime() + 9 * 60 * 60 * 1000);
+  const date = new Date(dateStr);
   return `${date.getFullYear()}년 ${String(date.getMonth() + 1).padStart(2, '0')}월 ${String(date.getDate()).padStart(2, '0')}일 ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
 function formatCommentDate(createdAtStr) {
-  const KST_OFFSET = 9 * 60 * 60 * 1000; // 9시간(ms)
   const now = new Date();
-  const createdUTC = new Date(createdAtStr);
-  const createdKST = new Date(createdUTC.getTime() + KST_OFFSET);
-  const diffMs = now.getTime() - createdKST.getTime();
+  const createdDate = new Date(createdAtStr);
+  const diffMs = now.getTime() - createdDate.getTime();
   const diffMin = Math.floor(diffMs / (1000 * 60));
   const diffHour = Math.floor(diffMin / 60);
   const diffDay = Math.floor(diffHour / 24);
@@ -58,7 +55,7 @@ function formatCommentDate(createdAtStr) {
     return `${diffDay}일 전`;
   } else {
     const pad = (n) => n.toString().padStart(2, '0');
-    return `${createdKST.getFullYear()}년 ${pad(createdKST.getMonth() + 1)}월 ${pad(createdKST.getDate())}일 ${pad(createdKST.getHours())}:${pad(createdKST.getMinutes())}`;
+    return `${createdDate.getFullYear()}년 ${pad(createdDate.getMonth() + 1)}월 ${pad(createdDate.getDate())}일 ${pad(createdDate.getHours())}:${pad(createdDate.getMinutes())}`;
   }
 }
 
