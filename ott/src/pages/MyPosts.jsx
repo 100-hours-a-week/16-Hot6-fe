@@ -5,11 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import TopBar from '../components/common/TopBar';
 
 function formatDate(createdAtStr) {
-  const KST_OFFSET = 9 * 60 * 60 * 1000;
   const now = new Date();
-  const createdUTC = new Date(createdAtStr);
-  const createdKST = new Date(createdUTC.getTime() + KST_OFFSET);
-  const diffMs = now.getTime() - createdKST.getTime();
+  const createdDate = new Date(createdAtStr);
+  const diffMs = now.getTime() - createdDate.getTime();
   const diffMin = Math.floor(diffMs / (1000 * 60));
   const diffHour = Math.floor(diffMin / 60);
   const diffDay = Math.floor(diffHour / 24);
@@ -18,7 +16,7 @@ function formatDate(createdAtStr) {
   if (diffHour < 24) return `${diffHour}시간 전`;
   if (diffDay < 7) return `${diffDay}일 전`;
   const pad = (n) => n.toString().padStart(2, '0');
-  return `${createdKST.getFullYear()}년 ${pad(createdKST.getMonth() + 1)}월 ${pad(createdKST.getDate())}일 ${pad(createdKST.getHours())}:${pad(createdKST.getMinutes())}`;
+  return `${createdDate.getFullYear()}년 ${pad(createdDate.getMonth() + 1)}월 ${pad(createdDate.getDate())}일 ${pad(createdDate.getHours())}:${pad(createdDate.getMinutes())}`;
 }
 
 export default function MyPosts() {
