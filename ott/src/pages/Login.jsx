@@ -1,10 +1,28 @@
-import React from 'react';
-import logo from '../assets/images/logo/logo.svg';
+import { API } from '@/api/client.js';
 import kakaoLoginButton from '@/assets/images/buttons/kakao-login-button.svg'; // 카카오 버튼 이미지 import
 import TopBar from '@/components/common/TopBar.jsx';
-import { API } from '@/api/client.js';
+import React from 'react';
+import { useLocation } from 'react-router-dom';
+import logo from '../assets/images/logo/logo.svg';
+
 const Login = () => {
+  const location = useLocation();
+
   const handleKakaoLogin = () => {
+    // URL에서 redirect 파라미터 추출
+    const urlParams = new URLSearchParams(location.search);
+    let redirectUrl = urlParams.get('redirect');
+
+    // URL에 없으면 localStorage에서 가져오기 (토큰 만료로 인한 재로그인)
+    if (!redirectUrl) {
+      redirectUrl = localStorage.getItem('loginRedirectUrl');
+    }
+
+    // localStorage에 redirect URL 저장
+    if (redirectUrl) {
+      localStorage.setItem('loginRedirectUrl', redirectUrl);
+    }
+
     window.location.href = `${API.auth.kakao}`;
   };
 
