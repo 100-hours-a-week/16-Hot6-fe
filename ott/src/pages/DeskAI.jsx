@@ -72,7 +72,7 @@ const DeskAI = () => {
   };
 
   // 스타일 옵션 배열
-  const conceptOptions = ['BASIC', 'MSPAINT', 'SIMPLE', 'OIL'];
+  const conceptOptions = ['BASIC', 'MSPAINT', 'SIMPLE', 'OIL', 'CARTOON'];
 
   useEffect(() => {
     const checkAvailability = async () => {
