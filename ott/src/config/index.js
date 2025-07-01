@@ -1,6 +1,6 @@
 const config = {
   development: {
-    BASE_URL: 'https://dev-backend.onthe-top.com/api/v1',
+    BASE_URL: 'http://localhost:8080/api/v1',
   },
   production: {
     BASE_URL: 'https://backend.onthe-top.com/api/v1', // 실제 배포 시 사용할 URL

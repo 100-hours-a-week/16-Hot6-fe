@@ -1,8 +1,8 @@
-import { create } from 'zustand';
+import axiosInstance from '@/api/axios';
 import axios from '@/api/axios.js';
 import { getConfig } from '@/config/index';
+import { create } from 'zustand';
 const { BASE_URL } = getConfig();
-import axiosInstance from '@/api/axios';
 
 const useAuthStore = create((set) => ({
   accessToken: localStorage.getItem('accessToken'),
@@ -10,7 +10,7 @@ const useAuthStore = create((set) => ({
   isAuthenticated: !!localStorage.getItem('accessToken'),
 
   // 로그인
-  login: async (navigate) => {
+  login: async (navigate, redirectUrl = null) => {
     try {
       const response = await axios.post(
         `${BASE_URL}/auth/token/refresh`,
@@ -23,7 +23,6 @@ const useAuthStore = create((set) => ({
           },
         },
       );
-      console.log('토큰 재발급 응답:', response.data);
 
       if (response.data.status === 200 && response.data.data.accessToken) {
         const { accessToken } = response.data.data;
@@ -31,14 +30,19 @@ const useAuthStore = create((set) => ({
         localStorage.setItem('accessToken', accessToken);
         // 전역 상태 저장
         set({ accessToken, isAuthenticated: true });
-        // 홈으로 이동
-        if (navigate) navigate('/');
+
+        // 리다이렉트 URL이 있으면 해당 URL로, 없으면 홈으로 이동
+        if (navigate) {
+          if (redirectUrl) {
+            navigate(decodeURIComponent(redirectUrl));
+          } else {
+            navigate('/');
+          }
+        }
       } else {
-        console.error('토큰 재발급 실패:', response.data);
         if (navigate) navigate('/login');
       }
     } catch (error) {
-      console.error('OAuth 처리 중 에러:', error);
       if (navigate) navigate('/login');
     }
   },
