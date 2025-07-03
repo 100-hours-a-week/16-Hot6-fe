@@ -45,15 +45,26 @@ axiosBaseInstance.interceptors.request.use(
 const type = 'SERVICE_PRODUCT';
 
 // 마감 타이머 계산 함수
-function getTimeLeft(endAt) {
-  if (!endAt) return null;
+function getTimeLeft(startAt, endAt) {
+  if (!endAt || !startAt) return null;
+  const start = new Date(startAt);
   const end = new Date(endAt);
   const now = new Date();
-  let diff = Math.max(0, end - now);
-  const h = String(Math.floor(diff / 1000 / 60 / 60)).padStart(2, '0');
-  const m = String(Math.floor((diff / 1000 / 60) % 60)).padStart(2, '0');
-  const s = String(Math.floor((diff / 1000) % 60)).padStart(2, '0');
-  return `${h}:${m}:${s} 남음`;
+
+  if (now < start) {
+    // 오픈 전
+    const month = String(start.getMonth() + 1).padStart(2, '0');
+    const day = String(start.getDate()).padStart(2, '0');
+    const hour = String(start.getHours()).padStart(2, '0');
+    return `${month}/${day} ${hour}시 오픈`;
+  } else {
+    // 오픈 후 ~ 마감 전
+    let diff = Math.max(0, end - now);
+    const h = String(Math.floor(diff / 1000 / 60 / 60)).padStart(2, '0');
+    const m = String(Math.floor((diff / 1000 / 60) % 60)).padStart(2, '0');
+    const s = String(Math.floor((diff / 1000) % 60)).padStart(2, '0');
+    return `${h}:${m}:${s} 남음`;
+  }
 }
 
 function Products() {
@@ -121,6 +132,7 @@ function Products() {
         discountPrice: item.discount_price,
         discountRate: item.discount_rate,
         availableQuantity: item.available_quantity,
+        promotionStartAt: item.promotion_start_at,
         promotionEndAt: item.promotion_end_at,
         isPromotion: item.is_promotion,
         scraped: item.scraped,
@@ -259,7 +271,7 @@ function Products() {
       {/* 오늘 특가 안내 문구 */}
       {firstTab === 'PROMOTION' && (
         <div className="px-4 py-4 mb-2">
-          <div className="text-xl font-bold mb-1">서비스 출시기념 매일 아침 10시 특가</div>
+          <div className="text-xl font-bold mb-1">서비스 출시기념 매일 오후 1시 특가</div>
           <div className="text-gray-500 text-base">포인트로 특가상품을 구입해보세요!</div>
         </div>
       )}
@@ -285,7 +297,7 @@ function Products() {
                 {firstTab === 'PROMOTION' && product.promotionEndAt && (
                   <div className="flex justify-center">
                     <div className="inline-block bg-white text-red-500 text-xs font-bold px-3 py-1 rounded shadow">
-                      {getTimeLeft(product.promotionEndAt)}
+                      {getTimeLeft(product.promotionStartAt, product.promotionEndAt)}
                     </div>
                   </div>
                 )}
