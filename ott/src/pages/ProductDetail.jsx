@@ -3,6 +3,7 @@ import { addScrap, removeScrap } from '@/api/scraps';
 import { getConfig } from '@/config/index';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Toast from '../components/common/Toast';
@@ -49,15 +50,26 @@ function ProductDetail() {
   // 옵션 쿼리파라미터로 자동 선택
   useEffect(() => {
     if (!detail) return;
+    // 1. URL에 variantId가 있으면 우선적으로 해당 옵션 선택
+    if (variantId) {
+      const found = detail.variants.find((v) => String(v.variant_id) === String(variantId));
+      if (found) {
+        setSelectedVariant(found);
+        return;
+      }
+    }
+    // 2. option 쿼리파라미터가 있으면 해당 옵션 선택
     const optionName = searchParams.get('option');
     if (optionName) {
       const found = detail.variants.find((v) => v.name === optionName);
-      if (found) setSelectedVariant(found);
-      else setSelectedVariant(detail.variants[0]);
-    } else {
-      setSelectedVariant(detail.variants[0]);
+      if (found) {
+        setSelectedVariant(found);
+        return;
+      }
     }
-  }, [detail, searchParams]);
+    // 3. 기본값: 첫 번째 옵션
+    setSelectedVariant(detail.variants[0]);
+  }, [detail, searchParams, variantId]);
 
   // variant가 바뀌면 캐러셀 인덱스 초기화
   useEffect(() => {
@@ -308,9 +320,27 @@ function ProductDetail() {
           {detail.variants.map((v) => {
             // 품절 상태 확인
             const hasPromo = !!v.promotions?.[0];
-            const isVariantOutOfStock = hasPromo
-              ? v.promotions[0].status === 'SOLD_OUT'
-              : v.status === 'OUT_OF_STOCK';
+            let isVariantOutOfStock = false;
+            let isOpenSoon = false;
+            let openSoonDateText = '';
+            if (hasPromo) {
+              const promo = v.promotions[0];
+              const now = new Date();
+              const startAt = new Date(promo.start_at);
+              if (now < startAt) {
+                // 오픈예정
+                const month = String(startAt.getMonth() + 1).padStart(2, '0');
+                const day = String(startAt.getDate()).padStart(2, '0');
+                const hour = String(startAt.getHours()).padStart(2, '0');
+                isOpenSoon = true;
+                openSoonDateText = `${month}/${day} ${hour}시 오픈예정`;
+                isVariantOutOfStock = true;
+              } else {
+                isVariantOutOfStock = promo.status === 'SOLD_OUT';
+              }
+            } else {
+              isVariantOutOfStock = v.status === 'OUT_OF_STOCK';
+            }
 
             return (
               <button
@@ -332,7 +362,7 @@ function ProductDetail() {
               >
                 <span>
                   {v.name}
-                  {isVariantOutOfStock && ' (품절)'}
+                  {!isOpenSoon && isVariantOutOfStock ? ' (품절)' : ''}
                 </span>
               </button>
             );
@@ -376,8 +406,10 @@ function ProductDetail() {
 
       {/* 상품 설명 */}
       <div className="px-4 mb-4 border-b-4 pb-4">
-        <div className="text-xl font-bold mb-1">상세정보</div>
-        <div className="text-gray-700 whitespace-pre-line">{detail.description}</div>
+        <div className="text-xl font-bold mb-2">상세정보</div>
+        <div className="prose text-gray-700">
+          <ReactMarkdown>{detail.description}</ReactMarkdown>
+        </div>
       </div>
 
       {/* 배송/환불 */}
@@ -476,6 +508,32 @@ function ProductDetail() {
               </svg>
             )}
           </button>
+          {/* 구매 버튼 오픈예정 처리 */}
+          {(() => {
+            let isOpenSoon = false;
+            let openSoonDateText = '';
+            if (selectedVariant && selectedVariant.promotions?.[0]) {
+              const promo = selectedVariant.promotions[0];
+              const now = new Date();
+              const startAt = new Date(promo.start_at);
+              if (now < startAt) {
+                isOpenSoon = true;
+                const month = String(startAt.getMonth() + 1).padStart(2, '0');
+                const day = String(startAt.getDate()).padStart(2, '0');
+                const hour = String(startAt.getHours()).padStart(2, '0');
+                openSoonDateText = `${month}/${day} ${hour}시 오픈예정`;
+              }
+            }
+            return (
+              <button
+                className={`flex-1 m-3 rounded-lg font-bold text-base bg-gray-300 text-gray-400 cursor-not-allowed`}
+                style={{ display: isOpenSoon ? undefined : 'none' }}
+                disabled
+              >
+                {openSoonDateText}
+              </button>
+            );
+          })()}
           <button
             className={`flex-1 m-3 rounded-lg font-bold text-base ${
               isOutOfStock()
@@ -483,7 +541,20 @@ function ProductDetail() {
                 : 'bg-blue-500 text-white'
             }`}
             onClick={() => setShowSheet(true)}
-            disabled={isOutOfStock()}
+            disabled={
+              isOutOfStock() ||
+              (selectedVariant &&
+                selectedVariant.promotions?.[0] &&
+                new Date() < new Date(selectedVariant.promotions[0].start_at))
+            }
+            style={{
+              display:
+                selectedVariant &&
+                selectedVariant.promotions?.[0] &&
+                new Date() < new Date(selectedVariant.promotions[0].start_at)
+                  ? 'none'
+                  : undefined,
+            }}
           >
             {isOutOfStock() ? '품절' : '구매하기'}
           </button>
@@ -548,9 +619,27 @@ function ProductDetail() {
 
                       // 품절 상태 확인
                       const hasPromo = !!v.promotions?.[0];
-                      const isVariantOutOfStock = hasPromo
-                        ? v.promotions[0].status === 'SOLD_OUT'
-                        : v.status === 'OUT_OF_STOCK';
+                      let isVariantOutOfStock = false;
+                      let isOpenSoon = false;
+                      let openSoonDateText = '';
+                      if (hasPromo) {
+                        const promo = v.promotions[0];
+                        const now = new Date();
+                        const startAt = new Date(promo.start_at);
+                        if (now < startAt) {
+                          // 오픈예정
+                          const month = String(startAt.getMonth() + 1).padStart(2, '0');
+                          const day = String(startAt.getDate()).padStart(2, '0');
+                          const hour = String(startAt.getHours()).padStart(2, '0');
+                          isOpenSoon = true;
+                          openSoonDateText = `${month}/${day} ${hour}시 오픈예정`;
+                          isVariantOutOfStock = true;
+                        } else {
+                          isVariantOutOfStock = promo.status === 'SOLD_OUT';
+                        }
+                      } else {
+                        isVariantOutOfStock = v.status === 'OUT_OF_STOCK';
+                      }
 
                       return (
                         <button
@@ -568,7 +657,7 @@ function ProductDetail() {
                         >
                           <span>
                             {v.name}
-                            {isVariantOutOfStock && ' (품절)'}
+                            {!isOpenSoon && isVariantOutOfStock ? ' (품절)' : ''}
                           </span>
                         </button>
                       );

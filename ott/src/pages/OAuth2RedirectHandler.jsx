@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { getConfig } from '@/config/index';
 import useAuthStore from '@/store/authStore';
+import React, { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const { BASE_URL } = getConfig();
 
@@ -11,15 +11,20 @@ const OAuth2RedirectHandler = () => {
 
   useEffect(() => {
     const handleOAuthResponse = async () => {
-      console.log('OAuth2RedirectHandler 호출됨');
       if (location.pathname === '/oauth-success') {
-        console.log('OAuth 로그인 성공 리다이렉트 감지');
-        // authStore의 login 함수 호출
-        await useAuthStore.getState().login(navigate);
+        // localStorage에서 redirect URL 가져오기
+        const redirectUrl = localStorage.getItem('loginRedirectUrl');
+
+        if (redirectUrl) {
+          localStorage.removeItem('loginRedirectUrl'); // 사용 후 삭제
+        }
+
+        // authStore의 login 함수 호출 (리다이렉트 URL 전달)
+        await useAuthStore.getState().login(navigate, redirectUrl);
       }
     };
     handleOAuthResponse();
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
 
   // 로딩 상태 표시
   return (

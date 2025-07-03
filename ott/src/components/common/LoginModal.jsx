@@ -1,10 +1,11 @@
 import SimpleModal from '@/components/common/SimpleModal';
 import useGlobalModal from '@/hooks/useGlobalModal';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const LoginModal = () => {
   const { modal, setModal } = useGlobalModal();
   const navigate = useNavigate();
+  const location = useLocation();
 
   if (!modal.open) return null;
 
@@ -16,7 +17,9 @@ const LoginModal = () => {
       rightButtonText="로그인하기"
       onRightClick={() => {
         setModal({ ...modal, open: false });
-        navigate('/login');
+        // 현재 페이지 URL을 쿼리 파라미터로 전달
+        const currentPath = location.pathname + location.search;
+        navigate(`/login?redirect=${encodeURIComponent(currentPath)}`);
       }}
       onClose={() => setModal({ ...modal, open: false })}
     />
