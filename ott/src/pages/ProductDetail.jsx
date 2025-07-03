@@ -3,6 +3,7 @@ import { addScrap, removeScrap } from '@/api/scraps';
 import { getConfig } from '@/config/index';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Toast from '../components/common/Toast';
@@ -405,8 +406,10 @@ function ProductDetail() {
 
       {/* 상품 설명 */}
       <div className="px-4 mb-4 border-b-4 pb-4">
-        <div className="text-xl font-bold mb-1">상세정보</div>
-        <div className="text-gray-700 whitespace-pre-line">{detail.description}</div>
+        <div className="text-xl font-bold mb-2">상세정보</div>
+        <div className="prose text-gray-700">
+          <ReactMarkdown>{detail.description}</ReactMarkdown>
+        </div>
       </div>
 
       {/* 배송/환불 */}
