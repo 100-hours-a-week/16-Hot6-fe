@@ -45,9 +45,9 @@ export default function MyPage() {
       }, 500);
     } catch (error) {
       if (error.response && error.response.status === 400) {
-        setRecommendationError('추천인 코드가 유효하지 않습니다.');
+        setRecommendationError('인증 코드가 유효하지 않습니다.');
       } else {
-        setRecommendationError('추천인 코드 등록에 실패했습니다.');
+        setRecommendationError('인증 코드 등록에 실패했습니다.');
         setTimeout(() => {
           setIsRecommendationModalOpen(false);
           navigate('/my-page');
@@ -153,7 +153,7 @@ export default function MyPage() {
         </div>
       </div>
 
-      {/* 포인트/추천인 코드 */}
+      {/* 포인트/인증 코드 */}
       <div className="mx-4 my-4 p-4 border rounded flex items-center justify-between">
         <div>
           <div className="text-2xl font-bold">{formatPoint(userInfo.point)}</div>
@@ -168,7 +168,7 @@ export default function MyPage() {
                   }
             }
           >
-            {userInfo.certified ? '카테부 인증 완료' : '추천인 코드 입력'}
+            {userInfo.certified ? '카테부 인증 완료' : '인증 코드 입력'}
           </div>
         </div>
         <button
@@ -223,7 +223,7 @@ export default function MyPage() {
 
       <SimpleModal
         open={isRecommendationModalOpen}
-        title="추천인 코드 입력"
+        title="인증 코드 입력"
         message={
           <>
             <input
@@ -231,7 +231,7 @@ export default function MyPage() {
               value={recommendationCode}
               onChange={(e) => setRecommendationCode(e.target.value)}
               className="w-full border rounded px-3 py-2 focus:outline-none focus:ring text-sm mb-2"
-              placeholder="추천인 코드를 입력하세요"
+              placeholder="인증 코드를 입력하세요"
               required
             />
             <input
@@ -280,9 +280,9 @@ export default function MyPage() {
             }, 500);
           } catch (error) {
             if (error.response && error.response.status === 400) {
-              setRecommendationError('추천인 코드가 유효하지 않습니다.');
+              setRecommendationError('인증 코드가 유효하지 않습니다.');
             } else {
-              setRecommendationError('추천인 코드 등록에 실패했습니다.');
+              setRecommendationError('인증 코드 등록에 실패했습니다.');
               setTimeout(() => {
                 setIsRecommendationModalOpen(false);
                 navigate('/my-page');
