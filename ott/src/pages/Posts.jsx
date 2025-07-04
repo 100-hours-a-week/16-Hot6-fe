@@ -444,7 +444,10 @@ export default function Posts() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <img
-                  src={post.author.profileImageUrl || 'https://via.placeholder.com/34'}
+                  src={
+                    post.author.profileImage ||
+                    'https://play-lh.googleusercontent.com/38AGKCqmbjZ9OuWx4YjssAz3Y0DTWbiM5HB0ove1pNBq_o9mtWfGszjZNxZdwt_vgHo=w480-h960-rw'
+                  }
                   alt="profile"
                   className="w-7 h-7 rounded-full object-cover"
                 />
