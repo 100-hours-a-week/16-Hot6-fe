@@ -50,12 +50,6 @@ const Home = () => {
     }
   }, [location.state, location.pathname, navigate]);
 
-  // 모달 표시 핸들러
-  const handleShowModal = (e) => {
-    e.stopPropagation();
-    setShowModal(true);
-  };
-
   // 스크랩 토글 핸들러
   const handleScrap = async (type, id) => {
     const key = `${type}_${id}`;
@@ -422,7 +416,7 @@ const Home = () => {
                 <div
                   key={deal.productId}
                   className="flex items-center space-x-4 bg-white rounded-lg p-4 border border-gray-200 cursor-pointer"
-                  onClick={handleShowModal}
+                  onClick={() => navigate(`/products/${deal.productId}`)}
                 >
                   <div className="w-24 h-24 bg-gray-100 rounded-lg flex-shrink-0">
                     <img
