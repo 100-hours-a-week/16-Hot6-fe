@@ -26,38 +26,6 @@ export default function MyPage() {
   const [recommendationError, setRecommendationError] = useState(null);
   const navigate = useNavigate();
 
-  const handleRecommendationSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setRecommendationError(null);
-    try {
-      await axiosInstance.post('/users/recommendation-code', {
-        code: recommendationCode,
-        nicknameKakao,
-      });
-      setSuccess(true);
-      setTimeout(() => {
-        setIsRecommendationModalOpen(false);
-        setSuccess(false);
-        setRecommendationCode('');
-        setNicknameKakao('');
-        window.location.reload();
-      }, 500);
-    } catch (error) {
-      if (error.response && error.response.status === 400) {
-        setRecommendationError('인증 코드가 유효하지 않습니다.');
-      } else {
-        setRecommendationError('인증 코드 등록에 실패했습니다.');
-        setTimeout(() => {
-          setIsRecommendationModalOpen(false);
-          navigate('/my-page');
-        }, 500);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const surveyUrl = 'https://forms.gle/YSV9DpJ1U3Cc1Dzw9';
 
   // 사용자 정보 가져오기
@@ -157,8 +125,11 @@ export default function MyPage() {
       <div className="mx-4 my-4 p-4 border rounded flex items-center justify-between">
         <div>
           <div className="text-2xl font-bold">{formatPoint(userInfo.point)}</div>
-          <div
-            className={`text-xs mt-1 cursor-pointer px-4 py-2 rounded ${userInfo.certified ? 'text-black bg-transparent pl-0' : 'text-white bg-gray-700'}`}
+          <button
+            type="button"
+            className={`inline-flex items-center justify-center text-xs mt-1 cursor-pointer px-4 py-2 rounded transition-all duration-150
+              ${userInfo.certified ? 'text-black bg-transparent pl-0' : 'text-white bg-gray-700'} min-w-[80px] w-auto`}
+            style={{ width: 'auto' }}
             onClick={
               userInfo.certified
                 ? undefined
@@ -167,9 +138,10 @@ export default function MyPage() {
                     setIsRecommendationModalOpen(true);
                   }
             }
+            disabled={userInfo.certified}
           >
             {userInfo.certified ? '카테부 인증 완료' : '인증 코드 입력'}
-          </div>
+          </button>
         </div>
         <button
           className="px-4 py-2 bg-gray-700 text-white rounded text-sm font-semibold"
