@@ -445,7 +445,7 @@ export default function Posts() {
               <div className="flex items-center gap-2">
                 <img
                   src={
-                    post.author.profileImage ||
+                    post.author.profileImageUrl ||
                     'https://play-lh.googleusercontent.com/38AGKCqmbjZ9OuWx4YjssAz3Y0DTWbiM5HB0ove1pNBq_o9mtWfGszjZNxZdwt_vgHo=w480-h960-rw'
                   }
                   alt="profile"
