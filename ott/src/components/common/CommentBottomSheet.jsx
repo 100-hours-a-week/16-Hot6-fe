@@ -5,11 +5,9 @@ import { triggerGlobalModal } from '@/hooks/globalModalController';
 import { useEffect, useRef, useState } from 'react';
 
 function formatCommentDate(createdAtStr) {
-  const KST_OFFSET = 9 * 60 * 60 * 1000; // 9시간(ms)
   const now = new Date();
-  const createdUTC = new Date(createdAtStr);
-  const createdKST = new Date(createdUTC.getTime() + KST_OFFSET);
-  const diffMs = now.getTime() - createdKST.getTime();
+  const createdDate = new Date(createdAtStr);
+  const diffMs = now.getTime() - createdDate.getTime();
   const diffMin = Math.floor(diffMs / (1000 * 60));
   const diffHour = Math.floor(diffMin / 60);
   const diffDay = Math.floor(diffHour / 24);
@@ -24,7 +22,7 @@ function formatCommentDate(createdAtStr) {
     return `${diffDay}일 전`;
   } else {
     const pad = (n) => n.toString().padStart(2, '0');
-    return `${createdKST.getFullYear()}년 ${pad(createdKST.getMonth() + 1)}월 ${pad(createdKST.getDate())}일 ${pad(createdKST.getHours())}:${pad(createdKST.getMinutes())}`;
+    return `${createdDate.getFullYear()}년 ${pad(createdDate.getMonth() + 1)}월 ${pad(createdDate.getDate())}일 ${pad(createdDate.getHours())}:${pad(createdDate.getMinutes())}`;
   }
 }
 
