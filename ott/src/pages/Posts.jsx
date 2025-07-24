@@ -1,4 +1,4 @@
-import { addLike, removeLike } from '@/api/likes';
+import { addLike } from '@/api/likes';
 import { addScrap, removeScrap } from '@/api/scraps';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { getConfig } from '@/config/index';
@@ -81,6 +81,24 @@ function useWindowWidth() {
   return width;
 }
 
+// concept 한글 매핑 함수
+function getConceptLabel(concept) {
+  switch ((concept || '').trim()) {
+    case 'BASIC':
+      return '기본';
+    case 'CARTOON':
+      return '만화책';
+    case 'OIL':
+      return '유화';
+    case 'MSPAINT':
+      return '그림판';
+    case 'SIMPLE':
+      return '동화책';
+    default:
+      return '자유';
+  }
+}
+
 export default function Posts() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -100,7 +118,7 @@ export default function Posts() {
   });
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState(null);
-  const { toast, setToast } = useOutletContext();
+  const { setToast } = useOutletContext();
 
   const windowWidth = useWindowWidth();
 
@@ -148,7 +166,7 @@ export default function Posts() {
       }));
 
       setError(null);
-    } catch (e) {
+    } catch {
       setError('게시글 목록을 불러오지 못했습니다.');
     } finally {
       setIsFetching(false);
@@ -269,12 +287,7 @@ export default function Posts() {
   // 좋아요 토글
   const handleLike = async (id) => {
     try {
-      const post = posts.find((post) => post.postId === id);
-      if (post.liked) {
-        await removeLike({ postId: id });
-      } else {
-        await addLike({ postId: id });
-      }
+      await addLike({ postId: id });
       setPosts((prev) =>
         prev.map((post) =>
           post.postId === id
@@ -432,6 +445,10 @@ export default function Posts() {
                 )}
               </button>
             </div>
+            {/* Concept pill */}
+            <span className="mb-1 px-2 py-0.5 rounded-full bg-black text-white text-xs font-semibold whitespace-nowrap inline-block">
+              {getConceptLabel(post.concept)}
+            </span>
             {/* 제목 */}
             <div className="font-bold text-base mb-1 truncate">{post.title}</div>
             {/* 날짜/댓글 */}
