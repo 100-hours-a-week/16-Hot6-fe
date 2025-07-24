@@ -7,7 +7,5 @@ export const addLike = async ({ postId }) => {
 
 // 좋아요 취소
 export const removeLike = async ({ postId }) => {
-  return axiosInstance.delete('/likes', {
-    data: { postId },
-  });
+  return axiosInstance.post('/likes', { postId });
 };
