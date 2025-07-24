@@ -19,6 +19,23 @@ function formatDate(createdAtStr) {
   return `${createdDate.getFullYear()}년 ${pad(createdDate.getMonth() + 1)}월 ${pad(createdDate.getDate())}일 ${pad(createdDate.getHours())}:${pad(createdDate.getMinutes())}`;
 }
 
+function getConceptLabel(concept) {
+  switch ((concept || '').trim()) {
+    case 'BASIC':
+      return '기본';
+    case 'CARTOON':
+      return '만화책';
+    case 'OIL':
+      return '유화';
+    case 'MSPAINT':
+      return '그림판';
+    case 'SIMPLE':
+      return '동화책';
+    default:
+      return '자유';
+  }
+}
+
 export default function MyPosts() {
   const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
@@ -129,6 +146,9 @@ export default function MyPosts() {
               <span className="font-semibold text-sm">{post.author.nickname}</span>
               <span className="text-xs text-gray-400 ml-2">{formatDate(post.createdAt)}</span>
             </div>
+            <span className="mb-1 px-2 py-0.5 rounded-full bg-black text-white text-xs font-semibold whitespace-nowrap inline-block">
+              {getConceptLabel(post.concept)}
+            </span>
             <div className="font-bold text-base mb-1 line-clamp-2">{post.title}</div>
             <div className="flex items-center gap-4 text-gray-500 text-sm mt-2">
               <span>좋아요 {post.likeCount}</span>
