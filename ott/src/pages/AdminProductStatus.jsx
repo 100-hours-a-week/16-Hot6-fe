@@ -9,7 +9,7 @@ const { BASE_URL } = getConfig();
 
 const axiosBaseInstance = axios.create({
   baseURL: BASE_URL,
-  timeout: 5000,
+  timeout: 8000,
 });
 
 // 요청 인터셉터

@@ -1,4 +1,4 @@
-import { addLike, removeLike } from '@/api/likes';
+import { addLike } from '@/api/likes';
 import { addScrap, removeScrap } from '@/api/scraps';
 import CommentBottomSheet from '@/components/common/CommentBottomSheet';
 import SimpleModal from '@/components/common/SimpleModal';
@@ -66,17 +66,29 @@ const formatLikeCount = (count) => {
   return `${Math.floor(count / 1000)}k`;
 };
 
+// concept 한글 매핑 함수
+function getConceptLabel(concept) {
+  switch ((concept || '').trim()) {
+    case 'BASIC':
+      return '기본';
+    case 'CARTOON':
+      return '만화책';
+    case 'OIL':
+      return '유화';
+    case 'MSPAINT':
+      return '그림판';
+    case 'SIMPLE':
+      return '동화책';
+    default:
+      return '자유';
+  }
+}
+
 export default function PostDetail() {
   const { postId } = useParams();
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
-  const [commentPageInfo, setCommentPageInfo] = useState({
-    size: 10,
-    hasNext: false,
-    lastCommentId: null,
-  });
-  const [commentInput, setCommentInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [carouselIdx, setCarouselIdx] = useState(0);
@@ -97,7 +109,7 @@ export default function PostDetail() {
     try {
       const response = await axiosBaseInstance.get(`/posts/${postId}`);
       setPost(response.data.data);
-    } catch (err) {
+    } catch {
       setError('게시글을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
@@ -110,10 +122,9 @@ export default function PostDetail() {
       const params = { size: 10 };
       if (!isFirst && lastCommentId) params.lastCommentId = lastCommentId;
       const res = await axiosBaseInstance.get(`/posts/${postId}/comments`, { params });
-      const { comments: newComments, pageInfo } = res.data.data;
+      const { comments: newComments } = res.data.data;
       setComments((prev) => (isFirst ? newComments : [...prev, ...newComments]));
-      setCommentPageInfo(pageInfo);
-    } catch (e) {
+    } catch {
       // 에러 처리
     }
   };
@@ -131,11 +142,7 @@ export default function PostDetail() {
   // 좋아요 토글 핸들러 추가
   const handleLike = async () => {
     try {
-      if (post.liked) {
-        await removeLike({ postId: post.postId });
-      } else {
-        await addLike({ postId: post.postId });
-      }
+      await addLike({ postId: post.postId });
       setPost((prev) => ({
         ...prev,
         liked: !prev.liked,
@@ -169,20 +176,6 @@ export default function PostDetail() {
     } finally {
       setTimeout(() => setToast(''), 1500);
     }
-  };
-
-  // 댓글 등록 함수 예시
-  const handleCommentSubmit = () => {
-    try {
-      if (commentInput.trim().length === 0) return;
-    } catch (err) {
-      if (err.response?.status === 401) return;
-      setToast('댓글 등록에 실패했습니다. 잠시 후 다시 시도해주세요.');
-    }
-
-    // 실제 등록 로직 추가
-    // setComments([...comments, ...]);
-    setCommentInput('');
   };
 
   const handleEdit = () => {
@@ -268,66 +261,71 @@ export default function PostDetail() {
         )}
       </div>
 
-      {/* 제목, 좋아요, 스크랩 */}
-      <div className="flex items-center px-4 mt-4">
-        <div className="font-bold text-xl break-words whitespace-pre-line min-w-0 flex-1">
-          {post.title}
+      {/* Concept pill + 제목, 좋아요, 스크랩 */}
+      <div className="px-4 mt-4">
+        <span className="mb-1 px-2 py-0.5 rounded-full bg-black text-white text-xs font-semibold whitespace-nowrap inline-block">
+          {getConceptLabel(post.concept)}
+        </span>
+        <div className="flex items-center mt-1">
+          <div className="font-bold text-xl break-words whitespace-pre-line min-w-0 flex-1">
+            {post.title}
+          </div>
+          <button className="flex items-center mr-2" onClick={handleLike}>
+            {post.liked ? (
+              <svg
+                width="24"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="#ff3b30"
+                stroke="#ff3b30"
+                strokeWidth="2"
+                style={{ transform: 'scale(1.2,1)' }}
+              >
+                <path d="M12 21C12 21 4 13.5 4 8.5C4 5.5 6.5 3 9.5 3C11.24 3 12 4.5 12 4.5C12 4.5 12.76 3 14.5 3C17.5 3 20 5.5 20 8.5C20 13.5 12 21 12 21Z" />
+              </svg>
+            ) : (
+              <svg
+                width="24"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#ff3b30"
+                strokeWidth="2"
+                style={{ transform: 'scale(1.2,1)' }}
+              >
+                <path d="M12 21C12 21 4 13.5 4 8.5C4 5.5 6.5 3 9.5 3C11.24 3 12 4.5 12 4.5C12 4.5 12.76 3 14.5 3C17.5 3 20 5.5 20 8.5C20 13.5 12 21 12 21Z" />
+              </svg>
+            )}
+            <span className="ml-1">{formatLikeCount(post.likeCount)}</span>
+          </button>
+          <button onClick={handleScrap}>
+            {post.scrapped ? (
+              <svg className="w-6 h-6" fill="#2563eb" stroke="#2563eb" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                />
+              </svg>
+            ) : (
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="#2563eb"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                />
+              </svg>
+            )}
+          </button>
         </div>
-        <button className="flex items-center mr-2" onClick={handleLike}>
-          {post.liked ? (
-            <svg
-              width="24"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="#ff3b30"
-              stroke="#ff3b30"
-              strokeWidth="2"
-              style={{ transform: 'scale(1.2,1)' }}
-            >
-              <path d="M12 21C12 21 4 13.5 4 8.5C4 5.5 6.5 3 9.5 3C11.24 3 12 4.5 12 4.5C12 4.5 12.76 3 14.5 3C17.5 3 20 5.5 20 8.5C20 13.5 12 21 12 21Z" />
-            </svg>
-          ) : (
-            <svg
-              width="24"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#ff3b30"
-              strokeWidth="2"
-              style={{ transform: 'scale(1.2,1)' }}
-            >
-              <path d="M12 21C12 21 4 13.5 4 8.5C4 5.5 6.5 3 9.5 3C11.24 3 12 4.5 12 4.5C12 4.5 12.76 3 14.5 3C17.5 3 20 5.5 20 8.5C20 13.5 12 21 12 21Z" />
-            </svg>
-          )}
-          <span className="ml-1">{formatLikeCount(post.likeCount)}</span>
-        </button>
-        <button onClick={handleScrap}>
-          {post.scrapped ? (
-            <svg className="w-6 h-6" fill="#2563eb" stroke="#2563eb" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
-              />
-            </svg>
-          ) : (
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="#2563eb"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
-              />
-            </svg>
-          )}
-        </button>
       </div>
 
       {/* 이미지 영역 */}
